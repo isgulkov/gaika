@@ -1,60 +1,82 @@
 
 #include <iostream>
 #include <SDL2/SDL.h>
+#include <SDL2_gfxPrimitives.h>
 
 #include "geometry.hpp"
 
-int main()
+class solid_window
 {
-    SDL_Window* const window = SDL_CreateWindow(
-            "Hello, world!",
-            SDL_WINDOWPOS_CENTERED,
-            SDL_WINDOWPOS_CENTERED,
-            640,
-            480,
-            SDL_WINDOW_SHOWN | SDL_WINDOW_ALWAYS_ON_TOP
-    );
+    SDL_Renderer* renderer;
+    SDL_Window* window;
 
-    shape3d suk = shape3d::tetrahedron({ 0, 1, 0 }, { 1, 1, 0 }, { 1, 0, 0 }, { 0, 0, 1 });
+    std::vector<const solid3d> contents;
 
-    std::cout << suk << std::endl;
+public:
+    solid_window()
+    {
+        window = SDL_CreateWindow(
+                "Hello, world!",
+                SDL_WINDOWPOS_CENTERED,
+                SDL_WINDOWPOS_CENTERED,
+                640,
+                480,
+                SDL_WINDOW_SHOWN | SDL_WINDOW_ALWAYS_ON_TOP
+        );
 
-    for(triangle3d triangle : suk.faces) {
-        std::cout << "  - " << triangle << std::endl;
+        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     }
 
-    SDL_Renderer* const renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    ~solid_window()
+    {
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+    }
 
-    SDL_Rect filling_rect { 0, 0, 640, 480 / 3 };
+    void add_solid(const solid3d& solid)
+    {
+        contents.emplace_back(solid);
+    }
 
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_RenderFillRect(renderer, &filling_rect);
+    void redraw()
+    {
+        for(const solid3d& solid : contents) {
+            for(const triangle3d& t : solid.faces) {
+                filledTrigonRGBA(renderer,
+                                 (int16_t)(t.a.x * 250 + 75), (int16_t)(t.a.y * 250 + 75),
+                                 (int16_t)(t.b.x * 250 + 75), (int16_t)(t.b.y * 250 + 75),
+                                 (int16_t)(t.c.x * 250 + 75), (int16_t)(t.c.y * 250 + 75),
+                                 127, 127, 127, 127
+                );
+            }
+        }
+    }
 
-    filling_rect.y += 480 / 3;
-    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-    SDL_RenderFillRect(renderer, &filling_rect);
+    void present()
+    {
+        SDL_RenderPresent(renderer);
+    }
+};
 
-    filling_rect.y += 480 / 3;
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    SDL_RenderFillRect(renderer, &filling_rect);
+int main()
+{
+    solid_window solids;
 
-    filling_rect.y = 0;
-    filling_rect.h = 480;
+    SDL_Delay(1000);
 
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderDrawRect(renderer, &filling_rect);
+    solids.add_solid(
+            solid3d::tetrahedron({ 0, 1, 0 }, { 1, 1, 0 }, { 1, 0, 0 }, { 0, 0, 1 })
+    );
 
-    SDL_RenderPresent(renderer);
+    solids.redraw();
+    solids.present();
 
     while(true) {
         SDL_Event event;
 
         while(SDL_PollEvent(&event)) {
             if(event.type == SDL_QUIT) {
-                SDL_DestroyRenderer(renderer);
-                SDL_DestroyWindow(window);
                 SDL_Quit();
-
                 return EXIT_SUCCESS;
             }
         }

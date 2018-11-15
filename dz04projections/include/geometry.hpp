@@ -37,21 +37,21 @@ std::ostream& operator<<(std::ostream& os, const triangle3d& tri)
     return os << R"(▲{)" << tri.a << ";" << tri.b << ";" << tri.c << "}";
 }
 
-struct shape3d
+struct solid3d
 {
     const std::vector<triangle3d> faces;
 
-    static shape3d tetrahedron(point3d a, point3d b, point3d c, point3d p)
+    static solid3d tetrahedron(point3d a, point3d b, point3d c, point3d p)
     {
-        return shape3d {
+        return solid3d {
                 {{ a, b, c }, { a, b, p }, { b, c, p }, { a, c, p }}
         };
     }
 };
 
-std::ostream& operator<<(std::ostream& os, const shape3d& shape)
+std::ostream& operator<<(std::ostream& os, const solid3d& solid)
 {
-    return os << "Shape{" << shape.faces.size() << " faces}";
+    return os << "S{" << solid.faces.size() << "f}";
 }
 
 #endif //DZ04PROJECTIONS_GEOMETRY_HPP
