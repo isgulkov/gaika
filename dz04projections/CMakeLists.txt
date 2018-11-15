@@ -12,9 +12,5 @@ target_link_libraries(dz04projections dz04geometry)
 
 find_package(SDL2 REQUIRED)
 
-add_subdirectory(vendor/SDL2_gfx)
-
-target_link_libraries(dz04projections ${SDL2_LIBRARIES} SDL2_gfx)
+target_link_libraries(dz04projections ${SDL2_LIBRARIES})
 target_include_directories(dz04projections PRIVATE ${SDL2_INCLUDE_DIR})
-
-#list(APPEND CMAKE_PREFIX_PATH "/usr/local/Cellar/sdl2_gfx/1.0.4/")

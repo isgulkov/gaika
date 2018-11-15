@@ -4,52 +4,58 @@
 
 #include <vector>
 #include <string>
+#include <array>
 #include <ostream>
 #include <iomanip>
 
-struct point3d
+template <typename T, std::size_t NDim>
+class vec_t : public std::array<const T, NDim>
 {
-    const double x, y, z;
+public:
+    template <typename ...Fuck>
+    vec_t(Fuck&&... f) : std::array<const T, NDim>{ std::forward<Fuck>(f)... } { }
 
-    std::string to_string() const
-    {
-        return "(" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")";
-    }
+    friend std::ostream& operator<<(std::ostream& os, const vec_t<T, NDim>& v);
 };
 
-std::ostream& operator<<(std::ostream& os, const point3d& p)
+template <typename T, size_t NDim>
+std::ostream& operator<<(std::ostream& os, const vec_t<T, NDim>& v)
 {
-    return os << "(" << std::setprecision(2) << p.x << "," << p.y << "," << p.z << ")";
+    os << "(";
+
+    //
+
+    return os << ")";
 }
 
-struct triangle3d
-{
-    const point3d a, b, c;
+typedef vec_t<float, 3> vec3f;
+typedef vec_t<int16_t, 2> vec2s;
 
-    std::string to_string() const
-    {
-        return R"(▲{)" + a.to_string() + ", " + b.to_string() + ", " + c.to_string() + "}";
-    }
+template <typename Tv>
+struct triangle
+{
+    const Tv a, b, c;
 };
 
-std::ostream& operator<<(std::ostream& os, const triangle3d& tri)
+template <typename Tv>
+std::ostream& operator<<(std::ostream& os, const triangle<Tv>& tri)
 {
     return os << R"(▲{)" << tri.a << ";" << tri.b << ";" << tri.c << "}";
 }
 
-struct solid3d
+struct phedron3f
 {
-    const std::vector<triangle3d> faces;
+    const std::vector<triangle<vec3f>> faces;
 
-    static solid3d tetrahedron(point3d a, point3d b, point3d c, point3d p)
+    static phedron3f tetrahedron(vec3f a, vec3f b, vec3f c, vec3f p)
     {
-        return solid3d {
+        return phedron3f {
                 {{ a, b, c }, { a, b, p }, { b, c, p }, { a, c, p }}
         };
     }
 };
 
-std::ostream& operator<<(std::ostream& os, const solid3d& solid)
+std::ostream& operator<<(std::ostream& os, const phedron3f& solid)
 {
     return os << "S{" << solid.faces.size() << "f}";
 }

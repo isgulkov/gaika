@@ -1,19 +1,20 @@
 
-#include <iostream>
+#include <array>
+#include <list>
+#include <iostream>  //
 #include <SDL2/SDL.h>
-#include <SDL2_gfxPrimitives.h>
 
 #include "geometry.hpp"
 
-class solid_window
+class wireframe_display
 {
     SDL_Renderer* renderer;
     SDL_Window* window;
 
-    std::vector<const solid3d> contents;
+    std::vector<const phedron3f> contents;
 
 public:
-    solid_window()
+    wireframe_display()
     {
         window = SDL_CreateWindow(
                 "Hello, world!",
@@ -27,26 +28,47 @@ public:
         renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     }
 
-    ~solid_window()
+    ~wireframe_display()
     {
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
     }
 
-    void add_solid(const solid3d& solid)
+    void add_solid(const phedron3f& solid)
     {
         contents.emplace_back(solid);
     }
 
     void redraw()
     {
-        for(const solid3d& solid : contents) {
-            for(const triangle3d& t : solid.faces) {
-                filledTrigonRGBA(renderer,
-                                 (int16_t)(t.a.x * 250 + 75), (int16_t)(t.a.y * 250 + 75),
-                                 (int16_t)(t.b.x * 250 + 75), (int16_t)(t.b.y * 250 + 75),
-                                 (int16_t)(t.c.x * 250 + 75), (int16_t)(t.c.y * 250 + 75),
-                                 127, 127, 127, 127
+        std::list<std::array<uint8_t, 3>> colors = {
+                { 255, 0, 0 },
+                { 0, 255, 0 },
+                { 0, 0, 255 }
+        };
+
+        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
+        for(const phedron3f& ph : contents) {
+            SDL_SetRenderDrawColor(renderer, colors.front()[0], colors.front()[1], colors.front()[2], 127);
+
+            colors.push_back(colors.front());
+            colors.pop_front();
+
+            for(const triangle<vec3f>& t : ph.faces) {
+                SDL_RenderDrawLine(renderer,
+                                   (int16_t)(t.a[0] * 250 + 75), (int16_t)(t.a[1] * 250 + 75),
+                                   (int16_t)(t.b[0] * 250 + 75), (int16_t)(t.b[1] * 250 + 75)
+                );
+
+                SDL_RenderDrawLine(renderer,
+                                   (int16_t)(t.b[0] * 250 + 75), (int16_t)(t.b[1] * 250 + 75),
+                                   (int16_t)(t.c[0] * 250 + 75), (int16_t)(t.c[1] * 250 + 75)
+                );
+
+                SDL_RenderDrawLine(renderer,
+                                   (int16_t)(t.a[0] * 250 + 75), (int16_t)(t.a[1] * 250 + 75),
+                                   (int16_t)(t.c[0] * 250 + 75), (int16_t)(t.c[1] * 250 + 75)
                 );
             }
         }
@@ -60,12 +82,16 @@ public:
 
 int main()
 {
-    solid_window solids;
+    wireframe_display solids;
 
     SDL_Delay(1000);
 
     solids.add_solid(
-            solid3d::tetrahedron({ 0, 1, 0 }, { 1, 1, 0 }, { 1, 0, 0 }, { 0, 0, 1 })
+            phedron3f::tetrahedron({ 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 1.0f })
+    );
+
+    solids.add_solid(
+            phedron3f::tetrahedron({ 1.0f, 1.5f, 0.0f }, { 0.75f, 0.75f, 0.25f }, { 0.98f, -0.09f, 0.0f }, { 0.0f, 0.0f, 1.7f })
     );
 
     solids.redraw();
