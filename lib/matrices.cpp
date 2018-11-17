@@ -98,15 +98,18 @@ vec3f vec3f::unit() const
     return operator*(norm());
 }
 
-int16_t what_do_i_call_this(float x, int16_t x_size)
+/**
+ * Map @param x from [-1; 1] to [0; @param x_size], where 0 becomes @code{x_size / 2}
+ */
+int scaled(float x, int x_size)
 {
-    return (int16_t)(((x + 1.0f) / 5.0f) * x_size);
+    return (int16_t)(((x + 1.0f) / 2.0f) * x_size);
 }
 
-vec2s vec3f::onto_xy_screen(int16_t x_size, int16_t y_size) const
+vec2i vec3f::onto_xy_screen(int x_size, int y_size) const
 {
     // TODO: now, how do I call this and how should it be implemented?
-    return { what_do_i_call_this(x(), x_size), what_do_i_call_this(y(), y_size) };
+    return { scaled(x(), x_size), scaled(y(), y_size) };
 }
 
 std::ostream& operator<<(std::ostream& os, const vec3f& v)

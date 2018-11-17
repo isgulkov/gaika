@@ -36,6 +36,6 @@ target_link_libraries(dz04_display2d Qt5::Core Qt5::Widgets)
 set_target_properties(dz04_display2d PROPERTIES AUTOMOC TRUE)
 
 add_executable(dz04_qt src/dz04_qt.cpp)
-target_link_libraries(dz04_qt dz04_display2d)
+target_link_libraries(dz04_qt dz04_display2d dz04_matrices dz04_geometry)
 
 set_target_properties(dz04_qt PROPERTIES AUTOMOC TRUE)

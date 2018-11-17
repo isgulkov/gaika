@@ -95,7 +95,7 @@ public:
 private:
     void draw_line(vec3f a, vec3f b)
     {
-        const vec2s a_scr = a.onto_xy_screen(WIDTH, HEIGHT),
+        const vec2i a_scr = a.onto_xy_screen(WIDTH, HEIGHT),
                 b_scr = b.onto_xy_screen(WIDTH, HEIGHT);
 
         SDL_RenderDrawLine(renderer, a_scr.x(), a_scr.y(), b_scr.x(), b_scr.y());
@@ -128,9 +128,9 @@ public:
                 { 0, 0, 255 }
         };
 
-        const mat_sq4f tx_camera = mx_tx::rot_x(camera.orientation.x())
-                            * mx_tx::rot_y(camera.orientation.y())
-                            * mx_tx::rot_z(camera.orientation.z())
+        const mat_sq4f tx_camera = mx_tx::rotate_x(camera.orientation.x())
+                            * mx_tx::rotate_y(camera.orientation.y())
+                            * mx_tx::rotate_z(camera.orientation.z())
                             * mx_tx::translate(-camera.position);
 
 //        const mat_sq4f tx_camera = mx_tx::translate(-camera.position);
