@@ -3,6 +3,9 @@
 
 #include <vector>
 #include <algorithm>
+#include <cmath>
+
+#include <iostream> // REMOVE: !
 
 template <typename T, size_t N>
 std::ostream& print_array(std::ostream& os, const std::array<T, N>& xs)
@@ -27,6 +30,27 @@ std::ostream& print_array(std::ostream& os, const std::array<T, N>& xs)
 
 //
 
+vec3f vec3f::operator*(float x) const
+{
+    return { _xs[0] * x, _xs[1] * x, _xs[2] * x };
+}
+
+vec3f& vec3f::operator+=(const vec3f& other)
+{
+    for(int i = 0; i < 3; i++) {
+        _xs[i] += other._xs[i];
+    }
+
+    return *this;
+}
+
+vec3f vec3f::operator+(const vec3f& other) const
+{
+    vec3f product = *this;
+
+    return product += other;
+}
+
 vec3f& vec3f::operator*=(const vec3f& other)
 {
     for(int i = 0; i < 3; i++) {
@@ -41,6 +65,37 @@ vec3f vec3f::operator*(const vec3f& other) const
     vec3f product = *this;
 
     return product *= other;
+}
+
+vec3f& vec3f::operator-=(const vec3f& other)
+{
+    for(int i = 0; i < 3; i++) {
+        _xs[i] -= other._xs[i];
+    }
+
+    return *this;
+}
+
+vec3f vec3f::operator-(const vec3f& other) const
+{
+    vec3f product = *this;
+
+    return product -= other;
+}
+
+vec3f vec3f::operator-() const
+{
+    return { -x(), -y(), -z() };
+}
+
+float vec3f::norm() const
+{
+    return std::sqrt(_xs[0] * _xs[0] + _xs[1] * _xs[1] + _xs[2] * _xs[2]);
+}
+
+vec3f vec3f::unit() const
+{
+    return operator*(norm());
 }
 
 int16_t what_do_i_call_this(float x, int16_t x_size)
@@ -59,10 +114,10 @@ std::ostream& operator<<(std::ostream& os, const vec3f& v)
     return print_array(os << "(", v.xs()) << ")";
 }
 
+//
+
 mat_sq4f mat_sq4f::operator*(const mat_sq4f& other) const
 {
-    // TODO: represent as std::array<float, 16>; multiply with std::transform (or something)
-
     std::array<std::array<float, 4>, 4> new_rows;
 
     for(int i_row = 0; i_row < 4; i_row++) {

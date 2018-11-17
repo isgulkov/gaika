@@ -4,11 +4,14 @@
 
 #include "matrices.hpp"
 
-#include <cmath> // TODO: -> .cpp
+namespace mx_tx {
 
-namespace mx_transforms {
-
+mat_sq4f identity(); // REVIEW: should this be here?
+mat_sq4f translate(vec3f xs);
 mat_sq4f rot_x(float theta);
+mat_sq4f rot_y(float theta);
+mat_sq4f rot_z(float theta);
+mat_sq4f perspective_z(float theta_w, float wh_ratio, float z_near, float z_far);
 
 }
 

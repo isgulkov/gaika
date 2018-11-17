@@ -2,42 +2,23 @@
 #include <vector>
 #include <array>
 #include <list>
-#include <iostream>  //
+#include <iostream>  // REMOVE: !
+#include <iomanip>  // REMOVE: !
+#include <queue>
 #include <SDL2/SDL.h>
 
 #include "matrices.hpp"
 #include "geometry.hpp"
 
-class wf_renderer
+class wf_boy
 {
-    std::vector<const std::vector<vec3f>> contents;
-
-    /**
-     * State:
-     *   - objects: string -> (model, v_up, v_pos)
-     *   - camera: (v_pos, v_target, angle_roll)
-     *   - projection: ?
-     *   - viewport: (width, height)
-     */
-
-    struct wf_object
-    {
-        const std::vector<vec3f> triangles_model;
-        vec3f v_up, v_pos;
-        uint8_t c_r, c_g, c_b;
-    };
-
-    std::vector<wf_object> objects;
-    std::vector<const std::vector<vec3f>> objects_world;
-
-    // TODO: make resizable
-    const int16_t WIDTH = 800, HEIGHT = 600;
+    const int16_t WIDTH = 800, HEIGHT = 600; // TODO: make resizable
 
     SDL_Renderer* renderer;
     SDL_Window* window;
 
 public:
-    wf_renderer()
+    wf_boy()
     {
         window = SDL_CreateWindow(
                 "Hello, world!",
@@ -51,18 +32,65 @@ public:
         renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     }
 
-    ~wf_renderer()
+    ~wf_boy()
     {
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
     }
 
-    void add_solid(const std::vector<vec3f>& solid)
+private:
+    /**
+     * State:
+     *   - objects: string -> (model, position, orientation, color)
+     *   - camera: (position, orientation)
+     *   - projection: (theta_w, theta_h, z_near, z_far)
+     *   - viewport: (width, height)
+     */
+
+public:
+    struct wf_object
     {
-        contents.emplace_back(solid);
+        // TODO: represent objects (at least) as a collection of edges, not triangles
+        const std::vector<vec3f> triangles_model;
+        vec3f position, orientation;
+        uint8_t c_r, c_g, c_b;
+    };
+
+private:
+public: // REMOVE: <--
+    // TODO: cache world coordinates of every object
+    std::vector<wf_object> objects;
+
+    // TODO: init with meaningful values and all in one place
+    struct {
+        vec3f position, orientation;
+//    } camera = { { 0.0f, 0.0f, 15.0f }, { 0.0f, 0.0f, 0.0f } };
+    } camera = { { 10.0f, 2.5f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+
+    struct {
+        float theta_w, wh_ratio, z_near, z_far;
+    } perspective = { 30.0f / 180.f * (float)M_PI, 4.0f / 3.0f, 0.0f, -10.0f };
+
+    float z_min = std::numeric_limits<float>::max(),
+          z_max = std::numeric_limits<float>::lowest();
+
+public:
+    wf_object& add_object(const std::vector<vec3f>& triangles)
+    {
+        objects.push_back({ triangles, { 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, 255, 255, 255 });
+
+        for(const vec3f& v : triangles) {
+            if(v.z() < z_min) {
+                z_min = v.z();
+            }
+
+            if(v.z() > z_max) {
+                z_max = v.z();
+            }
+        }
+
+        return objects.back();
     }
-
-
 
 private:
     void draw_line(vec3f a, vec3f b)
@@ -74,28 +102,88 @@ private:
     }
 
 public:
-    // TODO: move to geometry.hpp
+    // TODO: move to separate module
 
+//    int shit = 0;
 
     void redraw()
     {
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+
+//        SDL_Rect fuck { 0, 0, shit++, 10 };
+//        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+//        SDL_RenderFillRect(renderer, &fuck);
+
+        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
         std::list<std::array<uint8_t, 3>> colors = {
+                { 255, 165, 0 },
+                { 255, 165, 0 },
+                { 255, 165, 0 },
+                { 255, 165, 0 },
+                { 255, 255, 255 },
                 { 255, 0, 0 },
                 { 0, 255, 0 },
                 { 0, 0, 255 }
         };
 
-        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+        const mat_sq4f tx_camera = mx_tx::rot_x(camera.orientation.x())
+                            * mx_tx::rot_y(camera.orientation.y())
+                            * mx_tx::rot_z(camera.orientation.z())
+                            * mx_tx::translate(-camera.position);
 
-        const mat_sq4f mx_huirot = mx_transforms::rot_x((float)M_PI * 45.0f / 180.0f);
+//        const mat_sq4f tx_camera = mx_tx::translate(-camera.position);
 
-        for(const std::vector<vec3f>& solid : contents) {
-            SDL_SetRenderDrawColor(renderer, colors.front()[0], colors.front()[1], colors.front()[2], 127);
+//        const mat_sq4f tx_perspective = mx_tx::perspective_z(perspective.theta_w,
+//                                                             perspective.theta_h,
+//                                                             z_max,
+//                                                             z_min);
 
-            colors.push_back(colors.front());
+        const mat_sq4f tx_perspective = mx_tx::perspective_z(perspective.theta_w,
+                                                             perspective.wh_ratio,
+                                                             -1.0f,
+                                                             1.0f);
+
+//        const mat_sq4f tx_perspective = mat_sq4f(
+//                1.0f, 0.0f, 0.0f, 0.0f,
+//                0.0f, 1.0f, 0.0f, 0.0f,
+//                0.0f, 0.0f, 1.0f, 0.0f,
+//                0.0f, 0.0f, 0.0f, 1.0f
+//        );
+
+        const mat_sq4f tx_fucking_scale = mat_sq4f(
+                0.1f, 0.0f, 0.0f, 0.0f,
+                0.0f, 0.1f, 0.0f, 0.0f,
+                0.0f, 0.0f, 0.1f, 0.0f,
+                0.0f, 0.0f, 0.0f, 1.0f
+        );
+
+        const mat_sq4f tx_view_project = tx_perspective * tx_fucking_scale * tx_camera;
+
+        for(const wf_object& object : objects) {
+            const auto c = colors.front();
+
+            SDL_SetRenderDrawColor(renderer, c[0], c[1], c[2], 127);
+
+            colors.push_back(c);
             colors.pop_front();
 
-            const std::vector<vec3f> solid_hui = mx_huirot * solid;
+            const std::vector<vec3f> solid_hui = tx_view_project * object.triangles_model;
+
+            if(menstrukha) {
+//                for(size_t i = 0; i < solid_hui.size(); i++) {
+//                    std::cout << std::setprecision(2) << solid_hui[i] << " -> " << object.triangles_model[i]
+//                              << std::endl;
+//                }
+//                std::cout << std::endl;
+
+
+                for(size_t i = 0; i < solid_hui.size(); i++) {
+                    std::cout << std::setprecision(2) << object.triangles_model[i].z() << " ";
+                }
+                std::cout << std::endl;
+            }
 
             for(size_t i = 0; i < solid_hui.size(); i += 3) {
                 draw_line(solid_hui[i], solid_hui[i + 1]);
@@ -103,11 +191,18 @@ public:
                 draw_line(solid_hui[i + 2], solid_hui[i]);
             }
         }
+
+        if(menstrukha) {
+            menstrukha = false;
+        }
     }
+
+    bool menstrukha = false;
 
     void present()
     {
         SDL_RenderPresent(renderer);
+
     }
 };
 
@@ -131,52 +226,166 @@ int main()
 
     // TODO: fix the constructor
     mat_sq4f mx_a(
-            {
-                    std::array<float, 4> { 1.0f, 1.0f, 1.0f, 1.0f },
-                    std::array<float, 4> { 1.0f, 1.0f, 1.0f, 1.0f },
-                    std::array<float, 4> { 1.0f, 1.0f, 9.0f, 1.0f },
-                    std::array<float, 4> { 1.0f, 1.0f, 1.0f, 1.0f }
-            }
+            1.0f, 0.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 1.0f, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f
     ), mx_b(
-            {
-                    std::array<float, 4> { 1.0f, 0.0f, 0.0f, 0.0f },
-                    std::array<float, 4> { 0.0f, -0.15f, 0.0f, 0.0f },
-                    std::array<float, 4> { 0.0f, 0.0f, 0.0f, 0.0f },
-                    std::array<float, 4> { 0.0f, 0.0f, 0.0f, 1.0f }
-            }
+            1.0f, 0.0f, 0.0f, 0.0f,
+            0.0f, 1.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 1.0f, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f
+    ), mx_c(
+            1.0f, 1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f, 1.0f
     );
 
-    std::cout << mx_a << std::endl;
-    std::cout << mx_b << std::endl;
-    std::cout << (mx_a * mx_b) << std::endl;
+//    std::cout << (mx_a * mx_c) << std::endl;
 
-    wf_renderer solids;
+    wf_boy boi;
 
     SDL_Delay(100);
 
-    std::vector<vec3f> th_a = suka_tetrahedron({ 0.0f, 0.75f, 0.0f }, { 1.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 1.0f });
-    std::vector<vec3f> th_b = suka_tetrahedron({ 1.0f, 1.0f, 0.0f }, { 0.75f, 0.75f, 0.25f }, { 0.98f, 0.09f, 0.0f }, { 0.0f, 0.0f, 0.7f });
+    std::vector<vec3f> big_nw = suka_tetrahedron(
+            { -8.0f, 4.0f, 0.0f },
+            { -4.0f, 8.0f, 0.0f },
+            { -9.0f, 9.0f, 0.0f },
+            { -7.0f, 7.0f, -7.5f }
+    );
 
-    solids.add_solid(th_a);
+    std::vector<vec3f> big_ne = suka_tetrahedron(
+            { 8.0f, 4.0f, 0.0f },
+            { 4.0f, 8.0f, 0.0f },
+            { 9.0f, 9.0f, 0.0f },
+            { 7.0f, 7.0f, 7.5f }
+    );
 
-    solids.redraw();
-    solids.present();
+    std::vector<vec3f> big_sw = suka_tetrahedron(
+            { -6.0f, -9.0f, 0.0f },
+            { -9.0f, -6.0f, 0.0f },
+            { -4.0f, -4.0f, 0.0f },
+            { -6.0f, -6.0f, 7.5f }
+    );
 
-    SDL_Delay(500);
+    std::vector<vec3f> big_se = suka_tetrahedron(
+            { 6.0f, -9.0f, 0.0f },
+            { 9.0f, -6.0f, 0.0f },
+            { 4.0f, -4.0f, 0.0f },
+            { 6.0f, -6.0f, -7.5f }
+    );
 
-    solids.add_solid(th_b);
+    std::vector<vec3f> center = suka_tetrahedron(
+            { -1.0f, -1.0f, -1.0f },
+            { 0.0f, 1.0f, -1.0f },
+            { 1.0f, -1.0f, -1.0f },
+            { 0.0f, 0.0f, 1.5f }
+    );
 
-    solids.redraw();
-    solids.present();
+    std::vector<vec3f> skinny_x = suka_tetrahedron(
+            { 1.0f, -1.0f, -1.0f },
+            { 1.0f, -1.0f, -1.0f },
+            { 1.0f, 1.0f, 1.0f },
+            { 15.0f, 0.0f, 0.0f }
+    );
+
+    std::vector<vec3f> skinny_y = suka_tetrahedron(
+            { -1.0f, 1.0f, -1.0f },
+            { 1.0f, 1.0f, -1.0f },
+            { 1.0f, 1.0f, 1.0f },
+            { 0.0f, 15.0f, 0.0f }
+    );
+
+    std::vector<vec3f> skinny_z = suka_tetrahedron(
+            { -1.0f, -1.0f, 1.0f },
+            { -1.0f, -1.0f, 1.0f },
+            { 1.0f, 1.0f, 1.0f },
+            { 0.0f, 0.0f, 15.0f }
+    );
+
+    boi.add_object(big_nw);
+    boi.add_object(big_ne);
+    boi.add_object(big_sw);
+    boi.add_object(big_se);
+
+    boi.add_object(center);
+
+    boi.add_object(skinny_x);
+    boi.add_object(skinny_y);
+    boi.add_object(skinny_z);
+
+    boi.redraw();
+    boi.present();
+
+    std::ios::sync_with_stdio(false);
+
+    const uint32_t FPS_TARGET = 25;
 
     while(true) {
+        // REVIEW: consider whether the time between loop iterations should be accounted for
+        uint32_t t_start = SDL_GetTicks();
+
         SDL_Event event;
 
         while(SDL_PollEvent(&event)) {
-            if(event.type == SDL_QUIT) {
+            // mutate
+
+            if(event.type == SDL_KEYDOWN) {
+//                std::cout << event.key.keysym.sym << std::endl;
+
+                switch(event.key.keysym.sym) {
+                    case SDLK_w:
+                        // TODO: actual movement
+                        boi.camera.position -= { 0, 0, 2.5f };
+                        break;
+                    case SDLK_s:
+                        boi.camera.position += { 0, 0, 2.5f };
+                        break;
+                    case SDLK_f:
+                        boi.menstrukha = true;
+                        break;
+                    case SDLK_t:
+                        boi.camera.orientation += { 0.05f, 0.0f, 0.0f };
+                        break;
+                    case SDLK_g:
+                        boi.camera.orientation -= { 0.05f, 0.0f, 0.0f };
+                        break;
+                    case SDLK_y:
+                        boi.camera.orientation += { 0.0f, 0.05f, 0.0f };
+                        break;
+                    case SDLK_h:
+                        boi.camera.orientation -= { 0.0f, 0.05f, 0.0f };
+                        break;
+                    case SDLK_u:
+                        boi.camera.orientation += { 0.0f, 0.0f, 0.05f };
+                        break;
+                    case SDLK_j:
+                        boi.camera.orientation -= { 0.0f, 0.0f, 0.05f };
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else if(event.type == SDL_MOUSEMOTION) {
+                boi.camera.position += { event.motion.xrel / 100.0f, event.motion.yrel / 100.0f, 0.0f };
+
+//                boi.camera.orientation.x += event.motion.xrel / 250.0f;
+//                boi.camera.orientation.y += event.motion.yrel / 250.0f;
+            }
+            else if(event.type == SDL_QUIT) {
                 SDL_Quit();
                 return EXIT_SUCCESS;
             }
+        }
+
+        boi.redraw();
+        boi.present();
+
+        const int32_t ti_delay = 1000 / FPS_TARGET - (SDL_GetTicks() - t_start);
+
+        if(ti_delay > 0) {
+            SDL_Delay((uint32_t)ti_delay);
         }
     }
 }

@@ -31,8 +31,20 @@ public:
     float y() const { return _xs[1]; }
     float z() const { return _xs[2]; }
 
+    vec3f operator*(float x) const;
+
+    vec3f& operator+=(const vec3f& other);
+    vec3f operator+(const vec3f& other) const;
+
     vec3f& operator*=(const vec3f& other);
     vec3f operator*(const vec3f& other) const;
+
+    vec3f& operator-=(const vec3f& other);
+    vec3f operator-(const vec3f& other) const;
+    vec3f operator-() const;
+
+    float norm() const;
+    vec3f unit() const;
 
     // TODO: now, how do I call this and how should it be implemented?
     vec2s onto_xy_screen(int16_t x_size, int16_t y_size) const;
@@ -45,7 +57,13 @@ class mat_sq4f
     std::array<std::array<float, 4>, 4> rows;
 
 public:
+    // REVIEW: consider: std::array<float, 16> repr.; inline multiplication (no loops)
+    // REVIEW: a better way to construct this beast
     mat_sq4f(std::array<std::array<float, 4>, 4> rows) : rows(rows) { }
+    mat_sq4f(float a, float b, float c, float d,
+             float e, float f, float g, float h,
+             float i, float j, float k, float l,
+             float m, float n, float o, float p) : rows{ a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p } { }
 
     mat_sq4f operator*(const mat_sq4f& other) const;
     vec3f operator*(const vec3f& v) const;
