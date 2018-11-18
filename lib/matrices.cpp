@@ -95,7 +95,9 @@ float vec3f::norm() const
 
 vec3f vec3f::unit() const
 {
-    return operator*(norm());
+    const float n = norm();
+
+    return n != 0.0f ? operator*(1.0f / n) : *this;
 }
 
 /**
@@ -118,6 +120,16 @@ std::ostream& operator<<(std::ostream& os, const vec3f& v)
 }
 
 //
+
+mat_sq4f mat_sq4f::identity()
+{
+    return {
+            1.0f, 0.0f, 0.0f, 0.0f,
+            0.0f, 1.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 1.0f, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f
+    };
+}
 
 mat_sq4f mat_sq4f::operator*(const mat_sq4f& other) const
 {
@@ -163,6 +175,43 @@ std::vector<vec3f> mat_sq4f::operator*(const std::vector<vec3f>& vs) const
 //        }
 
     return new_vs;
+}
+
+void mat_sq4f::multiply_row(int i_row, float x)
+{
+    for(int i_col = 0; i_col < 4; i_col++) {
+        rows[i_row][i_col] *= x;
+    }
+}
+
+void mat_sq4f::subtract_rows(int i_row, int j_row, float x)
+{
+    for(int i_col = 0; i_col < 4; i_col++) {
+        rows[i_row][i_col] -= rows[j_row][i_col] * x;
+    }
+}
+
+mat_sq4f mat_sq4f::inverse() const
+{
+    mat_sq4f a = *this, b = identity();
+
+    for(int i = 0; i < 4; i++) {
+        const float x_diag = a.rows[i][i];
+        a.multiply_row(i, 1.0f / x_diag);
+        b.multiply_row(i, 1.0f / x_diag);
+
+        for(int j = 0; j < 4; j++) {
+            if(i == j) {
+                continue;
+            }
+
+            const float x_col = a.rows[j][i];
+            a.subtract_rows(j, i, x_col);
+            b.subtract_rows(j, i, x_col);
+        }
+    }
+
+    return b;
 }
 
 std::ostream& operator<<(std::ostream& os, const mat_sq4f& m)

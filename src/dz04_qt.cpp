@@ -22,29 +22,9 @@ class wf_viewer : public QWidget
 
     wf_state state;
 
-public:
-    wf_viewer()
+    void init_state()
     {
-        setWindowTitle("Hello, world!");
-
-        p_widget = new display2d_widget(this, state);
-
-        auto* slider_theta_w = new QSlider(Qt::Horizontal);
-        slider_theta_w->setMinimum(0);
-        slider_theta_w->setMaximum(180);
-        slider_theta_w->setValue(50);
-        connect(slider_theta_w, &QSlider::valueChanged, this, &wf_viewer::shitslide);
-
-        auto* layout = new QHBoxLayout;
-        layout->setSpacing(0);
-        layout->setMargin(0);
-
-        layout->addWidget(p_widget);
-        layout->addWidget(slider_theta_w);
-        setLayout(layout);
-
-        last_tick.start();
-        QTimer::singleShot(0, this, &wf_viewer::tick);
+        // TODO: move somewhere reasonable
 
         /**
          * A public data structure with the complete state, which is passed by reference to both the updater and
@@ -53,25 +33,25 @@ public:
 
         // TODO: auto-center each model's center of mass at its origin
         const wf_state::th_model fat = {{
-            { -2.5f, -1.5f, 0.0f },
-            { 2.5f, 1.5f, 0.0f },
-            { -3.5f, 2.6f, 0.0f },
-            { -1.5f, 0.5f, 7.5f }
-        }};
+                                                { -2.5f, -1.5f, 0.0f },
+                                                { 2.5f, 1.5f, 0.0f },
+                                                { -3.5f, 2.6f, 0.0f },
+                                                { -1.5f, 0.5f, 7.5f }
+                                        }};
 
         const wf_state::th_model center = {{
-            { -1.0f, -1.0f, 0.0f },
-            { 0.0f, 1.0f, 0.0f },
-            { 1.0f, -1.0f, 0.0f },
-            { 0.0f, 0.0f, 2.5f }
-        }};
+                                                   { -1.0f, -1.0f, 0.0f },
+                                                   { 0.0f, 1.0f, 0.0f },
+                                                   { 1.0f, -1.0f, 0.0f },
+                                                   { 0.0f, 0.0f, 2.5f }
+                                           }};
 
         const wf_state::th_model skinny = {{
-            { 1.0f, -1.0f, -1.0f },
-            { 1.0f, -1.0f, 1.0f },
-            { 1.0f, 1.0f, 1.0f },
-            { 15.0f, 0.0f, 0.0f }
-        }};
+                                                   { 1.0f, -1.0f, -1.0f },
+                                                   { 1.0f, -1.0f, 1.0f },
+                                                   { 1.0f, 1.0f, 1.0f },
+                                                   { 15.0f, 0.0f, 0.0f }
+                                           }};
 
         state.th_objects = std::vector<wf_state::th_object> {
                 { fat, QColor::fromRgb(255, 107, 0), { -4, 4, 0 }, { 0, 0, 0 } },
@@ -89,14 +69,32 @@ public:
                 { 0, 0, 0 }
         };
 
-        state.v_camera = {
-                { 0, 0, 0 },
-                { 0, 0, 0 }
+        state.perspective = {
+                1, 1.0f, 0, 100
         };
 
-        state.perspective = {
-                1, 4.0f / 3.0f, 0, -100
-        };
+        state.viewport = { 640, 640 };
+    }
+
+public:
+    wf_viewer()
+    {
+        setWindowTitle("Hello, world!");
+
+        init_state();
+
+        p_widget = new display2d_widget(this, state);
+
+        auto* layout = new QHBoxLayout;
+        layout->setSpacing(0);
+        layout->setMargin(0);
+
+        layout->addWidget(p_widget);
+
+        setLayout(layout);
+
+        last_tick.start();
+        QTimer::singleShot(0, this, &wf_viewer::tick);
     }
 
     display2d_widget* p_widget;
@@ -111,22 +109,41 @@ public slots:
         // TODO: skip frames to catch up?
 
         // Do routine updates
-        state.camera.pos += state.v_camera.pos;
+        state.camera.pos += state.v_camera * 0.1f;
+        state.v_camera = calculate_v_camera();
 
         // Redraw
         p_widget->update();
 
         const int64_t t_left = 16 - last_tick.elapsed();
 
-//        std::cout << t_left << '\n';
-
         QTimer::singleShot(std::max(0LL, t_left), this, &wf_viewer::tick);
     };
 
-    void shitslide(int new_theta_w)
+private:
+    vec3f calculate_v_camera()
     {
-        std::cout << new_theta_w << std::endl;
-        state.perspective.theta_w = new_theta_w / 180.0f * (float)M_PI;
+        // TODO: do this more efficiently, ffs
+
+        vec3f v_camera = { 0, 0, 0 };
+
+        if(state.controls.forward) {
+            v_camera += { 0, 0, -1 };
+        }
+
+        if(state.controls.back) {
+            v_camera += { 0, 0, 1 };
+        }
+
+        if(state.controls.left) {
+            v_camera += { -1, 0, 0 }; // TODO: lock L-R movement on the world's horizontal plane!
+        }
+
+        if(state.controls.right) {
+            v_camera += { 1, 0, 0 };
+        }
+
+        return (mx_tx::rotate_xyz(state.camera.orient) * v_camera).unit();
     }
 
 protected:
@@ -144,26 +161,19 @@ protected:
                 p_widget->hud_perspective = !p_widget->hud_perspective;
                 return;
             case Qt::Key_W:
-                state.v_camera.pos += { 0, -0.025f, 0 };
+                state.controls.forward = true;
                 return;
             case Qt::Key_A:
-                state.v_camera.pos += { -0.025f, 0, 0 };
+                state.controls.left = true;
                 return;
             case Qt::Key_S:
-                state.v_camera.pos += { 0, 0.025f, 0 };
+                state.controls.back = true;
                 return;
             case Qt::Key_D:
-                state.v_camera.pos += { 0.025f, 0, 0 };
-                return;
-            case Qt::Key_K:
-                state.camera.orient += { 0.01f, 0, 0 };
-                return;
-            case Qt::Key_J:
-                state.camera.orient -= { 0.01f, 0, 0 };
+                state.controls.right = true;
                 return;
             default:
                 QWidget::keyPressEvent(event);
-                std::cout << event->text().toStdString() << std::endl;
         }
     }
 
@@ -175,35 +185,71 @@ protected:
 
         switch(event->key()) {
             case Qt::Key_W:
-                state.v_camera.pos -= { 0, -0.025f, 0 };
+                state.controls.forward = false;
                 return;
             case Qt::Key_A:
-                state.v_camera.pos -= { -0.025f, 0, 0 };
+                state.controls.left = false;
                 return;
             case Qt::Key_S:
-                state.v_camera.pos -= { 0, 0.025f, 0 };
+                state.controls.back = false;
                 return;
             case Qt::Key_D:
-                state.v_camera.pos -= { 0.025f, 0, 0 };
+                state.controls.right = false;
                 return;
             default:
                 QWidget::keyReleaseEvent(event);
-//                std::cout << event->text().toStdString() << std::endl;
         }
     }
 
     void wheelEvent(QWheelEvent* event) override
     {
-        state.camera.pos += { 0, 0, event->angleDelta().y() / 100.0f };
+        float& theta_w = state.perspective.theta_w;
+
+        theta_w += event->angleDelta().y() / 1000.f;
+
+        if(theta_w < 0.0f) {
+            theta_w = 0.0f;
+        }
+
+        if(theta_w > (float)M_PI) {
+            theta_w = (float)M_PI;
+        }
     }
+
+    bool is_rotating = false;
+    int xrel_prev, yrel_prev;
 
     void mouseMoveEvent(QMouseEvent* event) override
     {
         // TODO: enable tracking, implement fps-like control (toggle with LMB/Esc), figure out sensitivity
-//        std::cout << event->pos().x() << " " << event->pos().y() << '\n';
 
-//        std::cout << event->pos().y() << " " << (event->pos().y() - 240) / 480.0f << '\n';
-        state.camera.orient = { event->pos().y() / 480.0f - 0.5f, -(event->pos().x() / 600.0f - 0.5f), 0 };
+        const int xrel = event->x(), yrel = event->y();
+
+        if(is_rotating) {
+            state.camera.orient += {
+                -(yrel - yrel_prev) / 640.0f,
+                (xrel - xrel_prev) / 640.0f,
+                0
+            };
+        }
+
+        xrel_prev = xrel;
+        yrel_prev = yrel;
+    }
+
+    void mousePressEvent(QMouseEvent* event) override
+    {
+        if(!is_rotating) {
+            is_rotating = true;
+
+            xrel_prev = event->x();
+            yrel_prev = event->y();
+        }
+    }
+
+    void mouseReleaseEvent(QMouseEvent* event) override
+    {
+        is_rotating = false;
     }
 };
 

@@ -6,7 +6,6 @@
 
 namespace mx_tx {
 
-mat_sq4f identity(); // REVIEW: should this be here?
 mat_sq4f scale(float s);
 mat_sq4f translate(const vec3f& xs);
 mat_sq4f rotate_x(float theta);

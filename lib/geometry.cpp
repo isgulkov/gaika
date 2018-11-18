@@ -5,16 +5,6 @@
 
 namespace mx_tx {
 
-mat_sq4f identity()
-{
-    return {
-        1.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
-    };
-}
-
 mat_sq4f scale(float s)
 {
     return {

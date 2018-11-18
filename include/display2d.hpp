@@ -43,7 +43,9 @@ struct wf_state
 
     struct {
         vec3f pos, orient;
-    } camera, v_camera;
+    } camera;
+
+    vec3f v_camera = { 0, 0, 0 };
 
     // TODO: orthographic perspectives
     struct {
@@ -52,7 +54,14 @@ struct wf_state
 
     struct {
         int width, height;
-    } viewport = { 640, 480 };
+    } viewport;
+
+    struct {
+        bool forward = false,
+                left = false,
+                back = false,
+                right = false;
+    } controls;
 };
 
 class display2d_widget : public QWidget
@@ -127,59 +136,80 @@ protected:
 
 //        std::cout << z_min << " " << z_max << '\n';
 
+        painter.setOpacity(1.0);
+        int y_hud = 5;
+
         if(hud_camera) {
-            painter.setFont(QFont("Courier"));
-            painter.setPen(QPen(Qt::white, 1));
-            painter.setOpacity(1.0);
+            // TODO: make the world and camera coords right-handed (Z+ away from the viewer)
+            // TODO: in OpenGL, it's the perspective transform that makes it left-handed
+            // https://stackoverflow.com/a/12336360
 
-            // TODO: draw vectors as columns
-
-            QString text;
-
-            QTextStream s_text(&text);
-            s_text.setRealNumberNotation(QTextStream::RealNumberNotation::FixedNotation);
-            s_text.setRealNumberPrecision(2);
-
-            painter.drawText(QRect(5, 5, 90, 55), Qt::AlignHCenter, "Camera");
-
-            s_text << state.camera.pos.x() << '\n'
-                   << state.camera.pos.y() << '\n'
-                   << state.camera.pos.z();
-            painter.drawText(QRect(5, 25, 90, 55), Qt::AlignLeft, text);
-
-            text = "";
-            s_text.setRealNumberPrecision(1);
-            s_text << state.camera.orient.x() / (float)M_PI * 180 << QString::fromUtf8("°") << '\n'
-                   << state.camera.orient.y() / (float)M_PI * 180 << QString::fromUtf8("°") << '\n'
-                   << state.camera.orient.z() / (float)M_PI * 180 << QString::fromUtf8("°");
-            painter.drawText(QRect(5, 25, 90, 55), Qt::AlignRight, text);
+            y_hud += draw_camera_hud(painter, 5, y_hud);
         }
 
         if(hud_perspective) {
-            painter.setFont(QFont("Courier"));
-            painter.setPen(QPen(Qt::white, 1));
-            painter.setOpacity(1.0);
-
-            // TODO: draw vectors as columns
-
-            QString text;
-
-            QTextStream s_text(&text);
-            s_text.setRealNumberNotation(QTextStream::RealNumberNotation::FixedNotation);
-
-            painter.drawText(QRect(5, 80, 90, 55), Qt::AlignHCenter, "Perspective");
-
-            float thw_deg = state.perspective.theta_w / (float)M_PI * 180;
-            float thh_deg = thw_deg / state.perspective.wh_ratio;
-
-            s_text.setRealNumberPrecision(1);
-            s_text << thw_deg << QString::fromUtf8("°") << " " << thh_deg << QString::fromUtf8("°") << '\n';
-            s_text.setRealNumberPrecision(0);
-            s_text << "[" << state.perspective.z_near << "," << state.perspective.z_far << "]";
-            painter.drawText(QRect(5, 100, 90, 55), Qt::AlignHCenter, text);
+            y_hud += draw_perspective_hud(painter, 5, y_hud);
         }
 
         painter.end();
+    }
+
+    QFont f_hud{"Courier"};
+    QFont f_hud_small{"Courier", 10};
+
+    int draw_camera_hud(QPainter& painter, int x, int y)
+    {
+        painter.setFont(f_hud);
+        painter.setPen(QPen(Qt::white, 1));
+
+        QString text;
+
+        QTextStream s_text(&text);
+        s_text.setRealNumberNotation(QTextStream::RealNumberNotation::FixedNotation);
+        s_text.setRealNumberPrecision(2);
+
+        painter.drawText(QRect(x, y, 90, 55), Qt::AlignHCenter, "Camera");
+
+        s_text << state.camera.pos.x() << '\n'
+               << state.camera.pos.y() << '\n'
+               << state.camera.pos.z();
+        painter.drawText(QRect(x, y + 20, 90, 55), Qt::AlignLeft, text);
+
+        text = "";
+        s_text.setRealNumberPrecision(1);
+        s_text << state.camera.orient.x() / (float)M_PI * 180 << QString::fromUtf8("°") << '\n'
+               << state.camera.orient.y() / (float)M_PI * 180 << QString::fromUtf8("°") << '\n'
+               << state.camera.orient.z() / (float)M_PI * 180 << QString::fromUtf8("°");
+        painter.drawText(QRect(x, y + 20, 90, 55), Qt::AlignRight, text);
+
+        return 75;
+    }
+
+    int draw_perspective_hud(QPainter& painter, int x, int y)
+    {
+        painter.setFont(f_hud);
+        painter.setPen(QPen(Qt::white, 1));
+
+        // TODO: draw vectors as columns
+
+        QString text;
+
+        QTextStream s_text(&text);
+        s_text.setRealNumberNotation(QTextStream::RealNumberNotation::FixedNotation);
+
+        painter.drawText(QRect(5, y, 90, 55), Qt::AlignHCenter, "Perspective");
+
+        float thw_deg = state.perspective.theta_w / (float)M_PI * 180;
+        float thh_deg = thw_deg / state.perspective.wh_ratio;
+
+        s_text.setRealNumberPrecision(1);
+        s_text << thw_deg << QString::fromUtf8("°") << " "
+               << thh_deg << QString::fromUtf8("°") << '\n';
+        s_text.setRealNumberPrecision(0);
+        s_text << "[" << state.perspective.z_near << "," << state.perspective.z_far << "]";
+        painter.drawText(QRect(5, y + 20, 90, 55), Qt::AlignHCenter, text);
+
+        return 40;
     }
 };
 

@@ -65,9 +65,19 @@ public:
              float i, float j, float k, float l,
              float m, float n, float o, float p) : rows{ a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p } { }
 
+
+    static mat_sq4f identity();
+
     mat_sq4f operator*(const mat_sq4f& other) const;
     vec3f operator*(const vec3f& v) const;
     std::vector<vec3f> operator*(const std::vector<vec3f>& vs) const;
+
+private:
+    void multiply_row(int i_row, float x);
+    void subtract_rows(int i_row, int j_row, float x);
+
+public:
+    mat_sq4f inverse() const;
 
     friend std::ostream& operator<<(std::ostream& os, const mat_sq4f& m);
 };
