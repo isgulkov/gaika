@@ -70,7 +70,7 @@ class wf_viewer : public QWidget
         };
 
         state.perspective = {
-                1, 1.0f, 0, 100
+                (float)(M_PI * 2 / 3), 1.0f, 1, 100
         };
 
         state.viewport = { 640, 640 };
@@ -95,6 +95,10 @@ public:
 
         last_tick.start();
         QTimer::singleShot(0, this, &wf_viewer::tick);
+
+        // TODO: make the world and camera coords right-handed (X right, Y up, Z towards the viewer)
+        // TODO: in OpenGL, it's the perspective transform that makes it left-handed
+        // https://stackoverflow.com/a/12336360
     }
 
     display2d_widget* p_widget;

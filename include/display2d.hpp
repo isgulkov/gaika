@@ -49,6 +49,7 @@ struct wf_state
 
     // TODO: orthographic perspectives
     struct {
+        // TODO: leave the ratio out of here and just use the viewport parameters (theta being the larger side's fov)
         float theta_w, wh_ratio, z_near, z_far;
     } perspective;
 
@@ -100,8 +101,6 @@ protected:
 
         painter.setOpacity(0.75);
 
-        float z_min = 1000, z_max = -1000;
-
         const mat_sq4f tx_camera = mx_tx::rotate_xyz(-state.camera.orient) * mx_tx::translate(-state.camera.pos);
         const mat_sq4f tx_projection = mx_tx::perspective_z(state.perspective.theta_w,
                                                             state.perspective.wh_ratio,
@@ -111,17 +110,12 @@ protected:
         for(wf_state::th_object object : state.th_objects) {
             const mat_sq4f tx_world = mx_tx::rotate_xyz(object.orient) * mx_tx::translate(object.pos);
 
-            std::vector<vec3f> vertices_camera = tx_camera * mx_tx::scale(1.0f / state.camera.pos.z()) * tx_world * object.model.vertices;
-
-            for(vec3f h : tx_projection * vertices_camera) {
-                z_min = std::min(h.x(), z_min);
-                z_max = std::max(h.x(), z_max);
-            }
+            std::vector<vec3f> vertices_projected = tx_projection * tx_camera * tx_world * object.model.vertices;
 
             std::vector<vec2i> vertices_screen;
-            vertices_screen.reserve(vertices_camera.size());
+            vertices_screen.reserve(vertices_projected.size());
 
-            for(const vec3f& vertex : tx_projection * vertices_camera) {
+            for(const vec3f& vertex : vertices_projected) {
                 vertices_screen.emplace_back(vertex.onto_xy_screen(state.viewport.width, state.viewport.height));
             }
 
@@ -134,16 +128,10 @@ protected:
             draw_line(painter, vertices_screen[2], vertices_screen[3]);
         }
 
-//        std::cout << z_min << " " << z_max << '\n';
-
         painter.setOpacity(1.0);
         int y_hud = 5;
 
         if(hud_camera) {
-            // TODO: make the world and camera coords right-handed (Z+ away from the viewer)
-            // TODO: in OpenGL, it's the perspective transform that makes it left-handed
-            // https://stackoverflow.com/a/12336360
-
             y_hud += draw_camera_hud(painter, 5, y_hud);
         }
 

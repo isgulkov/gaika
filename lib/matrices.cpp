@@ -160,8 +160,13 @@ vec3f mat_sq4f::operator*(const vec3f& v) const
         }
     }
 
-//        return { new_xs };
-    return { new_xs[0], new_xs[1], new_xs[2] };
+    float w = rows[3][3];
+
+    for(size_t i = 0; i < 3; i++) {
+        w += rows[3][i] * v.at(i);
+    }
+
+    return { new_xs[0] / w, new_xs[1] / w, new_xs[2] / w };
 }
 
 std::vector<vec3f> mat_sq4f::operator*(const std::vector<vec3f>& vs) const
