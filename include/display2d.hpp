@@ -110,7 +110,22 @@ protected:
         for(wf_state::th_object object : state.th_objects) {
             const mat_sq4f tx_world = mx_tx::rotate_xyz(object.orient) * mx_tx::translate(object.pos);
 
-            std::vector<vec3f> vertices_projected = tx_projection * tx_camera * tx_world * object.model.vertices;
+            std::vector<vec3f> vertices_camera = tx_camera * tx_world * object.model.vertices;
+
+            bool is_behind = false;
+
+            for(const vec3f& vertex : vertices_camera) {
+                if(vertex.z() > 0) {
+                    is_behind = true;
+                    break;
+                }
+            }
+
+            if(is_behind) {
+                break;
+            }
+
+            std::vector<vec3f> vertices_projected = tx_projection * vertices_camera;
 
             std::vector<vec2i> vertices_screen;
             vertices_screen.reserve(vertices_projected.size());
