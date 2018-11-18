@@ -61,16 +61,15 @@ class wf_viewer : public QWidget
                 { center, QColor::fromRgb(255, 255, 255), { 0, 0, -1 }, { 0, 0, 0 } },
                 { skinny, QColor::fromRgb(255, 0, 0), { 0, 0, 0 }, { 0, 0, 0 } },
                 { skinny, QColor::fromRgb(0, 255, 0), { 0, 0, 0 }, { 0, 0, 1.57f } },
-                { skinny, QColor::fromRgb(0, 0, 255), { 0, 0, 0 }, { 0, 1.57f, 0 } }
+                { skinny, QColor::fromRgb(0, 0, 255), { 0, 0, 0 }, { 0, -1.57f, 0 } }
         };
 
         state.camera = {
-                { 0, 0, 10 },
-                { 0, 0, 0 }
+                { 0, 0, 10 }, { 0, 0, 0 }
         };
 
         state.perspective = {
-                (float)(M_PI * 2 / 3), 1.0f, 1, 100
+                (float)(M_PI * 2 / 3), 1.0f, 0.1f, 100.f
         };
 
         state.viewport = { 640, 640 };
@@ -113,7 +112,7 @@ public slots:
         // TODO: skip frames to catch up?
 
         // Do routine updates
-        state.camera.pos += state.v_camera * 0.1f;
+        state.camera.pos += state.v_camera * 0.5f; // TODO: base on time, not frames
         state.v_camera = calculate_v_camera();
 
         // Redraw
@@ -231,7 +230,7 @@ protected:
 
         if(is_rotating) {
             state.camera.orient += {
-                -(yrel - yrel_prev) / 640.0f,
+                (yrel - yrel_prev) / 640.0f,
                 (xrel - xrel_prev) / 640.0f,
                 0
             };

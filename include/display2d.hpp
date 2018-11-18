@@ -170,6 +170,13 @@ protected:
                << state.camera.orient.z() / (float)M_PI * 180 << QString::fromUtf8("°");
         painter.drawText(QRect(x, y + 20, 90, 55), Qt::AlignRight, text);
 
+        text = "";
+        s_text.setRealNumberPrecision(2);
+        s_text << state.v_camera.x() << '\n'
+               << state.v_camera.y() << '\n'
+               << state.v_camera.z();
+        painter.drawText(QRect(x, y + 20, 150, 55), Qt::AlignRight, text);
+
         return 75;
     }
 

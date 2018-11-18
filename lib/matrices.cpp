@@ -62,9 +62,9 @@ vec3f& vec3f::operator*=(const vec3f& other)
 
 vec3f vec3f::operator*(const vec3f& other) const
 {
-    vec3f product = *this;
+    vec3f result = *this;
 
-    return product *= other;
+    return result *= other;
 }
 
 vec3f& vec3f::operator-=(const vec3f& other)
@@ -78,9 +78,9 @@ vec3f& vec3f::operator-=(const vec3f& other)
 
 vec3f vec3f::operator-(const vec3f& other) const
 {
-    vec3f product = *this;
+    vec3f result = *this;
 
-    return product -= other;
+    return result -= other;
 }
 
 vec3f vec3f::operator-() const
@@ -105,13 +105,13 @@ vec3f vec3f::unit() const
  */
 int scaled(float x, int x_size)
 {
-    return (int16_t)(((x + 1.0f) / 2.0f) * x_size);
+    return (int16_t)((x / 2.0f + 0.5f) * x_size);
 }
 
 vec2i vec3f::onto_xy_screen(int x_size, int y_size) const
 {
     // TODO: now, how do I call this and how should it be implemented?
-    return { scaled(x(), x_size), scaled(y(), y_size) };
+    return { scaled(x(), x_size), scaled(-y(), y_size) };
 }
 
 std::ostream& operator<<(std::ostream& os, const vec3f& v)

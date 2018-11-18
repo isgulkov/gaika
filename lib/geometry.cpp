@@ -73,8 +73,8 @@ mat_sq4f perspective_z(float theta_w, float wh_ratio, float z_near, float z_far)
     return {
             1.0f / std::tan(half_theta_w), 0.0f, 0.0f, 0.0f,
             0.0f, 1.0f / std::tan(half_theta_w / wh_ratio), 0.0f, 0.0f,
-            0.0f, 0.0f, - z_far / (z_far - z_near), -1.0f,
-            0.0f, 0.0f, - z_near * z_far / (z_far - z_near), 0.0f
+            0.0f, 0.0f, z_far / (z_far - z_near), -1.0f,
+            0.0f, 0.0f, -z_near * z_far / (z_far - z_near), 0.0f
     };
 }
 
