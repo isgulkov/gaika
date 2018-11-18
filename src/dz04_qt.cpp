@@ -86,7 +86,7 @@ public:
 
         state.camera = {
                 { 0, 0, 10 },
-                { 0, 0, -1 }
+                { 0, 0, 0 }
         };
 
         state.v_camera = {
@@ -155,6 +155,12 @@ protected:
             case Qt::Key_D:
                 state.v_camera.pos += { 0.025f, 0, 0 };
                 return;
+            case Qt::Key_K:
+                state.camera.orient += { 0.01f, 0, 0 };
+                return;
+            case Qt::Key_J:
+                state.camera.orient -= { 0.01f, 0, 0 };
+                return;
             default:
                 QWidget::keyPressEvent(event);
                 std::cout << event->text().toStdString() << std::endl;
@@ -182,13 +188,22 @@ protected:
                 return;
             default:
                 QWidget::keyReleaseEvent(event);
-                std::cout << event->text().toStdString() << std::endl;
+//                std::cout << event->text().toStdString() << std::endl;
         }
     }
 
     void wheelEvent(QWheelEvent* event) override
     {
         state.camera.pos += { 0, 0, event->angleDelta().y() / 100.0f };
+    }
+
+    void mouseMoveEvent(QMouseEvent* event) override
+    {
+        // TODO: enable tracking, implement fps-like control (toggle with LMB/Esc), figure out sensitivity
+//        std::cout << event->pos().x() << " " << event->pos().y() << '\n';
+
+//        std::cout << event->pos().y() << " " << (event->pos().y() - 240) / 480.0f << '\n';
+        state.camera.orient = { event->pos().y() / 480.0f - 0.5f, -(event->pos().x() / 600.0f - 0.5f), 0 };
     }
 };
 

@@ -36,13 +36,13 @@ struct wf_state
     struct th_object {
         th_model model; // TODO: reference
         QColor color;
-        vec3f translate, orient;
+        vec3f pos, orient;
     };
 
     std::vector<th_object> th_objects;
 
     struct {
-        vec3f pos, dir;
+        vec3f pos, orient;
     } camera, v_camera;
 
     // TODO: orthographic perspectives
@@ -93,23 +93,21 @@ protected:
 
         float z_min = 1000, z_max = -1000;
 
-        const mat_sq4f tx_camera = mx_tx::translate(-state.camera.pos);
+        const mat_sq4f tx_camera = mx_tx::rotate_xyz(-state.camera.orient) * mx_tx::translate(-state.camera.pos);
         const mat_sq4f tx_projection = mx_tx::perspective_z(state.perspective.theta_w,
                                                             state.perspective.wh_ratio,
                                                             state.perspective.z_near,
                                                             state.perspective.z_far);
 
         for(wf_state::th_object object : state.th_objects) {
-            const mat_sq4f tx_world = mx_tx::rot_xyz(object.orient) * mx_tx::translate(object.translate);
+            const mat_sq4f tx_world = mx_tx::rotate_xyz(object.orient) * mx_tx::translate(object.pos);
 
             std::vector<vec3f> vertices_camera = tx_camera * mx_tx::scale(1.0f / state.camera.pos.z()) * tx_world * object.model.vertices;
 
             for(vec3f h : tx_projection * vertices_camera) {
-                z_min = std::min(h.z(), z_min);
-                z_max = std::max(h.z(), z_max);
+                z_min = std::min(h.x(), z_min);
+                z_max = std::max(h.x(), z_max);
             }
-
-//            mx_tx::perspective_z(1.57f, 4.0f / 3.0f, 0, 100) *
 
             std::vector<vec2i> vertices_screen;
             vertices_screen.reserve(vertices_camera.size());
@@ -127,7 +125,7 @@ protected:
             draw_line(painter, vertices_screen[2], vertices_screen[3]);
         }
 
-        std::cout << z_min << " " << z_max << '\n';
+//        std::cout << z_min << " " << z_max << '\n';
 
         if(hud_camera) {
             painter.setFont(QFont("Courier"));
@@ -150,9 +148,10 @@ protected:
             painter.drawText(QRect(5, 25, 90, 55), Qt::AlignLeft, text);
 
             text = "";
-            s_text << state.camera.dir.x() << '\n'
-                   << state.camera.dir.y() << '\n'
-                   << state.camera.dir.z();
+            s_text.setRealNumberPrecision(1);
+            s_text << state.camera.orient.x() / (float)M_PI * 180 << QString::fromUtf8("°") << '\n'
+                   << state.camera.orient.y() / (float)M_PI * 180 << QString::fromUtf8("°") << '\n'
+                   << state.camera.orient.z() / (float)M_PI * 180 << QString::fromUtf8("°");
             painter.drawText(QRect(5, 25, 90, 55), Qt::AlignRight, text);
         }
 
