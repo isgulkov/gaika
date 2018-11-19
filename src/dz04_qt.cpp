@@ -135,7 +135,8 @@ public:
 
         setLayout(layout);
 
-        last_tick.start();
+        last_tick_end.start();
+        last_update.start();
         QTimer::singleShot(0, this, &wf_viewer::tick);
 
         // TODO: make the world and camera coords right-handed (X right, Y up, Z towards the viewer)
@@ -145,51 +146,44 @@ public:
 
     display2d_widget* p_widget;
 
-    QElapsedTimer last_tick;
+    QElapsedTimer last_tick_end, last_update;
 
 public slots:
     void tick()
     {
-        last_tick.restart(); // TODO: restart at the end of the "previous" iteration?
-
         // TODO: skip frames to catch up?
 
         // Do routine updates
-        state.camera.pos += state.v_camera * 0.5f; // TODO: base on time, not frames
+        const float sec_since_update = last_update.elapsed() / 1000.0f;
+        last_update.restart();
+
+        state.camera.pos += state.v_camera * sec_since_update;
         state.v_camera = calculate_v_camera();
 
         // Redraw
         p_widget->update();
 
-        const int64_t t_left = 16 - last_tick.elapsed();
+        const int64_t t_left = t_tick_target - last_tick_end.elapsed();
 
         QTimer::singleShot(std::max(0LL, t_left), this, &wf_viewer::tick);
+        last_tick_end.restart();
     };
 
 private:
+    const uint64_t t_tick_target = 16;
+    const float vbase_camera = 10.0f; // per second
+
     vec3f calculate_v_camera()
     {
-        // TODO: do this more efficiently, ffs
+        float v_zcam = state.controls.back - state.controls.forward;
+        float v_xcam = state.controls.right - state.controls.left;
 
-        vec3f v_camera = { 0, 0, 0 };
-
-        if(state.controls.forward) {
-            v_camera += { 0, 0, -1 };
+        if(v_zcam && v_xcam) {
+            v_zcam /= (float)M_SQRT2;
+            v_xcam /= (float)M_SQRT2;
         }
 
-        if(state.controls.back) {
-            v_camera += { 0, 0, 1 };
-        }
-
-        if(state.controls.left) {
-            v_camera += { -1, 0, 0 }; // TODO: lock L-R movement on the world's horizontal plane!
-        }
-
-        if(state.controls.right) {
-            v_camera += { 1, 0, 0 };
-        }
-
-        return (mx_tx::rotate_xyz(state.camera.orient) * v_camera).unit();
+        return mx_tx::rotate_xyz(state.camera.orient) * vec3f(v_xcam * vbase_camera, 0, v_zcam * vbase_camera);
     }
 
 protected:
