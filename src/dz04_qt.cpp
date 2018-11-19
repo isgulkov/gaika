@@ -361,9 +361,10 @@ protected:
 
         xy_before = mapFromGlobal(QCursor::pos());
 
-        // TODO: use center of the display widget
         xy_center = mapToGlobal(QPoint(width() / 2, height() / 2));
         QCursor::setPos(xy_center);
+
+        r_xprev = r_yprev = 0.0f;
 
         mousetrap_on = state.options.free_look = true;
     }
@@ -379,6 +380,31 @@ protected:
         mousetrap_on = state.options.free_look = false;
     }
 
+    /**
+     * Smooth the angular velocity with a 2-frame moving average. The improvement is noticeable on a 1920-wide viewport.
+     */
+    float r_xprev, r_yprev;
+
+    void update_mousetrap()
+    {
+        const QPoint xy_rel = QCursor::pos() - xy_center;
+
+        vec3f& orient = state.camera.orient;
+
+        const float r_x = calc_x_rotation(xy_rel.x()), r_y = calc_y_rotation(xy_rel.y());
+
+        orient.set_z(
+                orient.z() - (r_xprev + r_x) / 2.0f
+        ).set_x(
+                std::min(std::max(orient.x() - (r_yprev + r_y) / 2.0f, 0.0f), (float)M_PI)
+        );
+
+        r_xprev = r_x;
+        r_yprev = r_y;
+
+        QCursor::setPos(xy_center);
+    }
+
     float calc_x_rotation(int d_x) const
     {
         return 1.0f * d_x * (float)M_PI / state.viewport.width;
@@ -387,21 +413,6 @@ protected:
     float calc_y_rotation(int d_y) const
     {
         return 1.0f * d_y * (float)M_PI / state.viewport.height;
-    }
-
-    void update_mousetrap()
-    {
-        const QPoint xy_rel = QCursor::pos() - xy_center;
-
-        vec3f& orient = state.camera.orient;
-
-        orient.set_z(
-                orient.z() - calc_x_rotation(xy_rel.x())
-        ).set_x(
-                std::min(std::max(orient.x() - calc_y_rotation(xy_rel.y()), 0.0f), (float)M_PI)
-        );
-
-        QCursor::setPos(xy_center);
     }
 
     void mousePressEvent(QMouseEvent* event) override
