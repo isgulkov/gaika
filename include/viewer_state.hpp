@@ -67,7 +67,9 @@ struct wf_state
         bool forward = false,
                 left = false,
                 back = false,
-                right = false;
+                right = false,
+                jump = false,
+                duck = false;
     } controls;
 };
 

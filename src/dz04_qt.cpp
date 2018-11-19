@@ -177,13 +177,11 @@ private:
     {
         float v_zcam = state.controls.back - state.controls.forward;
         float v_xcam = state.controls.right - state.controls.left;
+        float v_zworld = state.controls.jump - state.controls.duck;
 
-        if(v_zcam && v_xcam) {
-            v_zcam /= (float)M_SQRT2;
-            v_xcam /= (float)M_SQRT2;
-        }
+        vec3f v_camera = mx_tx::rotate_xyz(state.camera.orient) * vec3f(v_xcam, 0, v_zcam);
 
-        return mx_tx::rotate_xyz(state.camera.orient) * vec3f(v_xcam * vbase_camera, 0, v_zcam * vbase_camera);
+        return v_camera.set_z(v_camera.z() + v_zworld).normalize() *= vbase_camera;
     }
 
 protected:
@@ -211,6 +209,13 @@ protected:
                 return;
             case Qt::Key_D:
                 state.controls.right = true;
+                return;
+            case Qt::Key_Space:
+                state.controls.jump = true;
+                return;
+            case Qt::Key_Control:
+            case Qt::Key_Meta:
+                state.controls.duck = true;
                 return;
             case Qt::Key_Escape:
                 if(mousetrap_on) {
