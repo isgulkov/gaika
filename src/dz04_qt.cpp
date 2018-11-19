@@ -5,17 +5,19 @@
 #include <cmath>
 
 #include <QApplication>
+#include <QMainWindow>
+#include <QMenuBar>
 #include <QElapsedTimer>
 #include <QKeyEvent>
-#include <QStackedLayout>
-#include <QSlider>
+#include <QShortcut>
+#include <QIcon>
 
 #include "matrices.hpp"
 #include "geometry.hpp"
 #include "viewer_state.hpp"
 #include "display2d.hpp"
 
-class wf_viewer : public QWidget
+class wf_viewer : public QMainWindow
 {
 //    Q_OBJECT
 
@@ -126,17 +128,19 @@ public:
 
         p_widget = new display2d_widget(this, state);
 
-        auto* layout = new QGridLayout;
+        setCentralWidget(p_widget);
 
-        layout->setSpacing(0);
-        layout->setMargin(0);
+        QMenu* m_file = new QMenu(tr("File"));
+        m_file->addAction(tr("Settings"));
+//        m_file->addAction(tr("Exit"));
 
-        layout->addWidget(p_widget, 0, 0);
+        QMenu* m_help = new QMenu(tr("Help"));
+        m_help->addAction(tr("About"));
 
-        layout->setColumnStretch(0, 1);
-        layout->setRowStretch(0, 1);
+        menuBar()->addMenu(m_file);
+        menuBar()->addMenu(m_help);
 
-        setLayout(layout);
+        new QShortcut(QKeySequence::StandardKey::Close, this, SLOT(close()));
 
         last_tick_end.start();
         last_update.start();
@@ -415,6 +419,16 @@ int main(int argc, char* argv[])
     QApplication app(argc, argv);
 
     QApplication::setAttribute(Qt::AA_MacDontSwapCtrlAndMeta);
+
+    QIcon icon_app;
+
+    icon_app.addFile(":/icons/teapot-32.png");
+    icon_app.addFile(":/icons/teapot-128.png");
+    icon_app.addFile(":/icons/teapot-256.png");
+    icon_app.addFile(":/icons/teapot-512.png");
+    icon_app.addFile(":/icons/teapot-1024.png");
+
+    QApplication::setWindowIcon(icon_app);
 
     wf_viewer display;
     display.show();

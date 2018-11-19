@@ -25,17 +25,19 @@ target_include_directories(dz04 PRIVATE ${SDL2_INCLUDE_DIR})
 add_library(dz04_display2d lib/display2d.cpp)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-#set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
 
 #sudo ln -s /usr/local/Cellar/qt/5.11.2/mkspecs/ /usr/local/mkspecs
 #sudo ln -s /usr/local/Cellar/qt/5.11.2/plugins/ /usr/local/plugins
 find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
 target_link_libraries(dz04_display2d Qt5::Core Qt5::Widgets)
 
-set_target_properties(dz04_display2d PROPERTIES AUTOMOC TRUE)
+#set_target_properties(dz04_display2d PROPERTIES AUTOMOC TRUE)
+#set_target_properties(dz04_display2d PROPERTIES AUTOUIC TRUE)
 
-add_executable(dz04_qt src/dz04_qt.cpp)
+add_executable(dz04_qt src/dz04_qt.cpp resources/resources.qrc)
 target_link_libraries(dz04_qt dz04_display2d dz04_matrices dz04_geometry)
 
 set_target_properties(dz04_qt PROPERTIES AUTOMOC TRUE)

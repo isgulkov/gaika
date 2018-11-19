@@ -1,0 +1,9 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource>
+        <file>icons/teapot-32.png</file>
+        <file>icons/teapot-128.png</file>
+        <file>icons/teapot-256.png</file>
+        <file>icons/teapot-512.png</file>
+        <file>icons/teapot-1024.png</file>
+    </qresource>
+</RCC>
