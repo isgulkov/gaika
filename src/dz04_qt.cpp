@@ -14,6 +14,7 @@
 
 #include "matrices.hpp"
 #include "geometry.hpp"
+#include "viewer_state.hpp"
 #include "display2d.hpp"
 
 class wf_viewer : public QWidget
@@ -26,32 +27,32 @@ class wf_viewer : public QWidget
     {
         // TODO: move somewhere reasonable
 
-        /**
-         * A public data structure with the complete state, which is passed by reference to both the updater and
-         * display2d. Inputs are to be processed right in this class, or something.
-         */
+        std::shared_ptr<const th_model> fat = std::make_shared<const th_model>(th_model {
+                {
+                        { -2.5f, -1.5f, 0.0f },
+                        { 2.5f, 1.5f, 0.0f },
+                        { -3.5f, 2.6f, 0.0f },
+                        { -1.5f, 0.5f, 7.5f }
+                }
+        });
 
-        // TODO: auto-center each model's center of mass at its origin
-        const wf_state::th_model fat = {{
-                                                { -2.5f, -1.5f, 0.0f },
-                                                { 2.5f, 1.5f, 0.0f },
-                                                { -3.5f, 2.6f, 0.0f },
-                                                { -1.5f, 0.5f, 7.5f }
-                                        }};
+        std::shared_ptr<const th_model> center = std::make_shared<const th_model>(th_model {
+                {
+                        { -1.0f, -1.0f, 0.0f },
+                        { 0.0f, 1.0f, 0.0f },
+                        { 1.0f, -1.0f, 0.0f },
+                        { 0.0f, 0.0f, 2.5f }
+                }
+        });
 
-        const wf_state::th_model center = {{
-                                                   { -1.0f, -1.0f, 0.0f },
-                                                   { 0.0f, 1.0f, 0.0f },
-                                                   { 1.0f, -1.0f, 0.0f },
-                                                   { 0.0f, 0.0f, 2.5f }
-                                           }};
-
-        const wf_state::th_model skinny = {{
-                                                   { 1.0f, -1.0f, -1.0f },
-                                                   { 1.0f, -1.0f, 1.0f },
-                                                   { 1.0f, 1.0f, 1.0f },
-                                                   { 15.0f, 0.0f, 0.0f }
-                                           }};
+        std::shared_ptr<const th_model> skinny = std::make_shared<const th_model>(th_model {
+                {
+                        { 1.0f, -1.0f, -1.0f },
+                        { 1.0f, -1.0f, 1.0f },
+                        { 1.0f, 1.0f, 1.0f },
+                        { 15.0f, 0.0f, 0.0f }
+                }
+        });
 
         state.th_objects = std::vector<wf_state::th_object> {
                 { fat, QColor::fromRgb(255, 107, 0), { -4, 4, 0 }, { 0, 0, 0 } },

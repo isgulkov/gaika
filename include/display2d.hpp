@@ -22,48 +22,7 @@
 
 #include "matrices.hpp"
 #include "geometry.hpp"
-
-struct wf_state
-{
-    // REMOVE: move to another file?
-
-    // TODO: implement other objects (triangle- and segment-based)
-    struct th_model {
-        // In order A, B, C, P where (A, B, C) is clockwise when looking in P's direction
-        const std::vector<vec3f> vertices;
-    };
-
-    struct th_object {
-        th_model model; // TODO: reference
-        QColor color;
-        vec3f pos, orient;
-    };
-
-    std::vector<th_object> th_objects;
-
-    struct {
-        vec3f pos, orient;
-    } camera;
-
-    vec3f v_camera = { 0, 0, 0 };
-
-    // TODO: orthographic perspectives
-    struct {
-        // TODO: leave the ratio out of here and just use the viewport parameters (theta being the larger side's fov)
-        float theta_w, wh_ratio, z_near, z_far;
-    } perspective;
-
-    struct {
-        int width, height;
-    } viewport;
-
-    struct {
-        bool forward = false,
-                left = false,
-                back = false,
-                right = false;
-    } controls;
-};
+#include "viewer_state.hpp"
 
 class display2d_widget : public QWidget
 {
@@ -110,7 +69,7 @@ protected:
         for(wf_state::th_object object : state.th_objects) {
             const mat_sq4f tx_world = mx_tx::rotate_xyz(object.orient) * mx_tx::translate(object.pos);
 
-            std::vector<vec3f> vertices_camera = tx_camera * tx_world * object.model.vertices;
+            std::vector<vec3f> vertices_camera = tx_camera * tx_world * object.model->vertices;
 
             bool is_behind = false;
 
