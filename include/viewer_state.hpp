@@ -35,9 +35,12 @@ struct wf_state
 
     struct th_object {
         std::shared_ptr<const wf_model> model;
-        QColor color;
-        vec3f pos, orient;
+
         // TODO: cache the object's world coords
+        vec3f pos, orient;
+        float scale;
+
+        QColor color;
     };
 
     std::vector<th_object> th_objects;

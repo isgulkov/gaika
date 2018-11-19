@@ -60,7 +60,7 @@ protected:
 
         painter.setOpacity(0.75);
 
-        const mat_sq4f tx_camera = mx_tx::rotate_xyz(-state.camera.orient) * mx_tx::translate(-state.camera.pos);
+        const mat_sq4f tx_camera = mx_tx::rotate_xyz(state.camera.orient).inverse() * mx_tx::translate(-state.camera.pos);
         const mat_sq4f tx_projection = mx_tx::perspective_z(state.perspective.theta_w,
                                                             state.perspective.wh_ratio,
                                                             state.perspective.z_near,
@@ -68,7 +68,7 @@ protected:
 
         // TODO: benchmark, parallelize between CPU threads
         for(wf_state::th_object object : state.th_objects) {
-            const mat_sq4f tx_world = mx_tx::rotate_xyz(object.orient) * mx_tx::translate(object.pos);
+            const mat_sq4f tx_world = mx_tx::translate(object.pos) * mx_tx::rotate_xyz(object.orient) * mx_tx::scale(object.scale);
 
             std::vector<vec3f> vertices_camera = tx_camera * tx_world * object.model->vertices;
 
@@ -82,7 +82,7 @@ protected:
             }
 
             if(is_behind) {
-                break;
+                continue;
             }
 
             std::vector<vec3f> vertices_projected = tx_projection * vertices_camera;

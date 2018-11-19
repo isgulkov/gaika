@@ -28,16 +28,16 @@ class wf_viewer : public QWidget
         // TODO: move somewhere reasonable
 
         std::shared_ptr<const wf_model> fat = std::make_shared<const wf_model>(wf_model::tetrahedron(
-                { -2.5f, -1.5f, 0.0f },
-                { 2.5f, 1.5f, 0.0f },
-                { -3.5f, 2.6f, 0.0f },
-                { -1.5f, 0.5f, 7.5f }
+                { -1.25f, -2.25f, 0.0f },
+                { 3.75f, 0.75f, 0.0f },
+                { -2.25f, 1.75f, 0.0f },
+                { -0.25f, -0.25f, 7.5f }
         ));
 
         std::shared_ptr<const wf_model> center = std::make_shared<const wf_model>(wf_model::tetrahedron(
-                { -1.0f, -1.0f, 0.0f },
-                { 0.0f, 1.0f, 0.0f },
-                { 1.0f, -1.0f, 0.0f },
+                { -1.0f, -0.67f, 0.0f },
+                { 0.0f, 1.33f, 0.0f },
+                { 1.0f, -1.67f, 0.0f },
                 { 0.0f, 0.0f, 2.5f }
         ));
 
@@ -67,20 +67,22 @@ class wf_viewer : public QWidget
         });
 
         state.th_objects = std::vector<wf_state::th_object> {
-                { fat, QColor::fromRgb(255, 107, 0), { -4, 4, 0 }, { 0, 0, 0 } },
-                { fat, QColor::fromRgb(255, 117, 0), { 4, 4, -1 }, { 3.14f, 0, 0 } },
-                { fat, QColor::fromRgb(255, 127, 0), { 4, -4, -1 }, { 0, 0, 1.57f } },
-                { fat, QColor::fromRgb(255, 137, 0), { -4, -4, 0 }, { 0, 3.14f, 1.57f } },
-                { center, QColor::fromRgb(255, 255, 255), { 0, 0, -1 }, { 0, 0, 0 } },
-                { skinny, QColor::fromRgb(255, 0, 0), { 0, 0, 0 }, { 0, 0, 0 } },
-                { skinny, QColor::fromRgb(0, 255, 0), { 0, 0, 0 }, { 0, 0, 1.57f } },
-                { skinny, QColor::fromRgb(0, 0, 255), { 0, 0, 0 }, { 0, -1.57f, 0 } },
-                { cuboid, QColor::fromRgb(255, 105, 180), { 10, 10, 0 }, { 0, 0, 0 } }
+                { fat, { 3, -3, 0.25f }, { 0, 0, 0.1f }, 0.25f, QColor::fromRgb(255, 150, 0) },
+                { fat, { -4, -4, 0.5f }, { 0, 0, 0.2f }, 1, QColor::fromRgb(255, 190, 0) },
+                { fat, { -5, 5, 0.75f }, { 0, 0, 0.3f }, 1.25f, QColor::fromRgb(255, 230, 0) },
+                { fat, { 7.5f, 7.5f, 0 }, { 0, 0, 0.4f }, 1.5f, QColor::fromRgb(255, 255, 0) },
+                { center, { 0, 0, -1.0f }, { 0, 0, 0.5f }, 1, QColor::fromRgb(255, 255, 255) },
+                { center, { 0, 0, -0.5f }, { 0, 0, 1 }, 1, QColor::fromRgb(255, 255, 255) },
+                { center, { 0, 0, 0 }, { 0, 0, 0 }, 1, QColor::fromRgb(255, 255, 255) },
+                { skinny, { 0, 0, 0 }, { 0, 0, 0 }, 1, QColor::fromRgb(255, 0, 0) },
+                { skinny, { 0, 0, 0 }, { 0, 0, 1.57f }, 1, QColor::fromRgb(0, 255, 0) },
+                { skinny, { 0, 0, 0 }, { 0, -1.57f, 0 }, 1, QColor::fromRgb(0, 0, 255) },
+                { cuboid, { 10, 10, 0 }, { 0, 0, 0 }, 1, QColor::fromRgb(255, 105, 180) }
         };
 
         state.camera = {
-                { 0, 0, 10 }, { 0, 0, 0 }
-//                { 15, 0, 0 }, { 0, 1.57f, 0 }
+//                { 0, 0, 10 }, { 0, 0, 0 }
+                { 15, 0, 0 }, { 1.57f, 1.57f, 0 }
         };
 
         state.perspective = {
