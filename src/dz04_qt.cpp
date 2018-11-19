@@ -212,6 +212,11 @@ protected:
             case Qt::Key_D:
                 state.controls.right = true;
                 return;
+            case Qt::Key_Escape:
+                if(mousetrap_on) {
+                    stop_mousetrap();
+                }
+                return;
             default:
                 QWidget::keyPressEvent(event);
         }
@@ -236,6 +241,13 @@ protected:
             case Qt::Key_D:
                 state.controls.right = false;
                 return;
+            case Qt::Key_Space:
+                state.controls.jump = false;
+                return;
+            case Qt::Key_Control:
+            case Qt::Key_Meta:
+                state.controls.duck = false;
+                return;
             default:
                 QWidget::keyReleaseEvent(event);
         }
@@ -256,43 +268,71 @@ protected:
         }
     }
 
-    bool is_rotating = false;
-    int xrel_prev, yrel_prev;
+    bool mousetrap_on = false;
+    QPoint xy_before, xy_center;
+
+    void reset_to_center()
+    {
+        QCursor::setPos(mapToGlobal(xy_center));
+    }
+
+    void start_mousetrap()
+    {
+        setMouseTracking(true);
+        p_widget->setMouseTracking(true);
+
+        setCursor(Qt::BlankCursor);
+
+        xy_before = mapFromGlobal(QCursor::pos());
+
+        // TODO: use center of the display widget
+        xy_center = QPoint(width() / 2, height() / 2);
+        reset_to_center();
+
+        mousetrap_on = true;
+    }
+
+    void stop_mousetrap()
+    {
+        setMouseTracking(false);
+        p_widget->setMouseTracking(false);
+
+        QCursor::setPos(mapToGlobal(xy_before));
+
+        setCursor(Qt::ArrowCursor);
+        mousetrap_on = false;
+    }
+
+    const float x_sensitivity = 1.0f * (float)M_PI / 640.0f,
+            y_sensitivity = 1.0f * (float)M_PI / 640.0f;
 
     void mouseMoveEvent(QMouseEvent* event) override
     {
-        // TODO: enable tracking, implement fps-like control (toggle with LMB/Esc), figure out sensitivity
+        if(mousetrap_on) {
+            const QPoint xy_rel = event->pos() - xy_center;
 
-        const int xrel = event->x(), yrel = event->y();
-
-        if(is_rotating) {
-            // TODO: a neater way to do this?
             vec3f& orient = state.camera.orient;
 
             orient.set_z(
-                    orient.z() + (xrel - xrel_prev) / 640.0f
+                    orient.z() - xy_rel.x() * x_sensitivity
             ).set_x(
-                    std::min(std::max(orient.x() +  (yrel - yrel_prev) / 640.0f, 0.0f), (float)M_PI)
+                    std::min(std::max(orient.x() - xy_rel.y() * y_sensitivity, 0.0f), (float)M_PI)
             );
-        }
 
-        xrel_prev = xrel;
-        yrel_prev = yrel;
+            reset_to_center();
+        }
     }
 
     void mousePressEvent(QMouseEvent* event) override
     {
-        if(!is_rotating) {
-            is_rotating = true;
-
-            xrel_prev = event->x();
-            yrel_prev = event->y();
+        if(!mousetrap_on) {
+            start_mousetrap();
         }
     }
 
     void mouseReleaseEvent(QMouseEvent* event) override
     {
-        is_rotating = false;
+        // ...
     }
 };
 

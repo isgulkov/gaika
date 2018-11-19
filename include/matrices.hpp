@@ -36,6 +36,7 @@ public:
     vec3f& set_y(float y);
     vec3f& set_z(float z);
 
+    vec3f& operator*=(float x);
     vec3f operator*(float x) const;
 
     vec3f& operator+=(const vec3f& other);
@@ -49,6 +50,8 @@ public:
     vec3f operator-() const;
 
     float norm() const;
+
+    vec3f& normalize();
     vec3f unit() const;
 
     // TODO: now, how do I call this and how should it be implemented?

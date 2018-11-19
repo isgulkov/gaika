@@ -51,6 +51,15 @@ vec3f& vec3f::set_z(float z)
     return *this;
 }
 
+vec3f& vec3f::operator*=(float x)
+{
+    for(int i = 0; i < 3; i++) {
+        _xs[i] *= x;
+    }
+
+    return *this;
+}
+
 vec3f vec3f::operator*(float x) const
 {
     return { _xs[0] * x, _xs[1] * x, _xs[2] * x };
@@ -114,11 +123,18 @@ float vec3f::norm() const
     return std::sqrt(_xs[0] * _xs[0] + _xs[1] * _xs[1] + _xs[2] * _xs[2]);
 }
 
+vec3f& vec3f::normalize()
+{
+    const float n = norm();
+
+    return n ? operator*=(1.0f / n) : *this;
+}
+
 vec3f vec3f::unit() const
 {
     const float n = norm();
 
-    return n != 0.0f ? operator*(1.0f / n) : *this;
+    return n ? operator*(1.0f / n) : *this;
 }
 
 /**
