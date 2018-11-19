@@ -259,7 +259,6 @@ protected:
                 state.controls.jump = true;
                 return;
             case Qt::Key_Control:
-            case Qt::Key_Meta:
                 state.controls.duck = true;
                 return;
             case Qt::Key_Escape:
@@ -295,7 +294,6 @@ protected:
                 state.controls.jump = false;
                 return;
             case Qt::Key_Control:
-            case Qt::Key_Meta:
                 state.controls.duck = false;
                 return;
             default:
@@ -415,6 +413,8 @@ protected:
 int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
+
+    QApplication::setAttribute(Qt::AA_MacDontSwapCtrlAndMeta);
 
     wf_viewer display;
     display.show();
