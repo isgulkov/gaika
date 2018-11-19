@@ -26,10 +26,15 @@ public:
     vec3f() = default;
 
     const std::array<float, 3>& xs() const { return _xs; };
-    float at(size_t i) const { return _xs[i]; }
+
+    float at(int i) const { return _xs[i]; }
     float x() const { return _xs[0]; }
     float y() const { return _xs[1]; }
     float z() const { return _xs[2]; }
+
+    vec3f& set_x(float x);
+    vec3f& set_y(float y);
+    vec3f& set_z(float z);
 
     vec3f operator*(float x) const;
 
@@ -65,6 +70,7 @@ public:
              float i, float j, float k, float l,
              float m, float n, float o, float p) : rows{ a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p } { }
 
+     float at(int i_row, int j_col) const;
 
     static mat_sq4f identity();
 
@@ -77,6 +83,7 @@ private:
     void subtract_rows(int i_row, int j_row, float x);
 
 public:
+    mat_sq4f transpose() const;
     mat_sq4f inverse() const;
 
     friend std::ostream& operator<<(std::ostream& os, const mat_sq4f& m);

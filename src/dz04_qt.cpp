@@ -10,7 +10,6 @@
 #include <QKeyEvent>
 #include <QStackedLayout>
 #include <QSlider>
-#include <include/display2d.hpp>
 
 #include "matrices.hpp"
 #include "geometry.hpp"
@@ -66,6 +65,7 @@ class wf_viewer : public QWidget
                 }
         });
 
+        // TODO: use camera-projection transform (reverse it?) to efficiently draw this up to the horizon
         std::shared_ptr<const wf_model> disco_floor;
 
         {
@@ -74,9 +74,7 @@ class wf_viewer : public QWidget
 
             for(int i = 0; i < 20; i++) {
                 for(int j = 0; j < 20; j++) {
-                    const int x = i - 10, y = j - 10;
-
-                    vertices.emplace_back(x, y, 0);
+                    vertices.emplace_back(10 * (i - 10), 10 * (j - 10), 0);
 
                     const int i_vertex = (int)vertices.size() - 1;
 
@@ -94,6 +92,7 @@ class wf_viewer : public QWidget
         }
 
         state.th_objects = std::vector<wf_state::th_object> {
+                { disco_floor, { 0, 0, 0 }, { 0, 0, 0 }, 1, QColor::fromRgb(0, 127, 0) },
                 { fat, { 3, -3, 0.25f }, { 0, 0, 0.1f }, 0.25f, QColor::fromRgb(255, 150, 0) },
                 { fat, { -4, -4, 0.5f }, { 0, 0, 0.2f }, 1, QColor::fromRgb(255, 190, 0) },
                 { fat, { -5, 5, 0.75f }, { 0, 0, 0.3f }, 1.25f, QColor::fromRgb(255, 230, 0) },
@@ -104,8 +103,7 @@ class wf_viewer : public QWidget
                 { skinny, { 0, 0, 0 }, { 0, 0, 0 }, 1, QColor::fromRgb(255, 0, 0) },
                 { skinny, { 0, 0, 0 }, { 0, 0, 1.57f }, 1, QColor::fromRgb(0, 255, 0) },
                 { skinny, { 0, 0, 0 }, { 0, -1.57f, 0 }, 1, QColor::fromRgb(0, 0, 255) },
-                { cuboid, { 10, 10, 0 }, { 0, 0, 0 }, 1, QColor::fromRgb(255, 105, 180) },
-                { disco_floor, { 0, 0, 0 }, { 0, 0, 0 }, 1, QColor::fromRgb(0, 127, 0) }
+                { cuboid, { 10, 10, 0 }, { 0, 0, 0 }, 1, QColor::fromRgb(255, 105, 180) }
         };
 
         state.camera = {
@@ -270,16 +268,18 @@ protected:
     void mouseMoveEvent(QMouseEvent* event) override
     {
         // TODO: enable tracking, implement fps-like control (toggle with LMB/Esc), figure out sensitivity
-        // TODO: in FPS, left-right turns around world Z, moves along world XY
 
         const int xrel = event->x(), yrel = event->y();
 
         if(is_rotating) {
-            state.camera.orient += {
-                (yrel - yrel_prev) / 640.0f,
-                (xrel - xrel_prev) / 640.0f,
-                0
-            };
+            // TODO: a neater way to do this?
+            vec3f& orient = state.camera.orient;
+
+            orient.set_z(
+                    orient.z() + (xrel - xrel_prev) / 640.0f
+            ).set_x(
+                    std::min(std::max(orient.x() +  (yrel - yrel_prev) / 640.0f, 0.0f), (float)M_PI)
+            );
         }
 
         xrel_prev = xrel;

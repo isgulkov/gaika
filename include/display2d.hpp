@@ -60,7 +60,9 @@ protected:
 
         painter.setOpacity(0.75);
 
-        const mat_sq4f tx_camera = mx_tx::rotate_xyz(state.camera.orient).inverse() * mx_tx::translate(-state.camera.pos);
+        // TODO: find a good explanation for why the order has to be XYZ
+
+        const mat_sq4f tx_camera = mx_tx::rotate_xyz(state.camera.orient).transpose() * mx_tx::translate(-state.camera.pos);
         const mat_sq4f tx_projection = mx_tx::perspective_z(state.perspective.theta_w,
                                                             state.perspective.wh_ratio,
                                                             state.perspective.z_near,
@@ -72,17 +74,11 @@ protected:
 
             std::vector<vec3f> vertices_camera = tx_camera * tx_world * object.model->vertices;
 
-            bool is_behind = false;
+            std::vector<int> is_behind;
+            is_behind.reserve(vertices_camera.size());
 
             for(const vec3f& vertex : vertices_camera) {
-                if(vertex.z() > 0) {
-                    is_behind = true;
-                    break;
-                }
-            }
-
-            if(is_behind) {
-                continue;
+                is_behind.push_back(vertex.z() >= 0);
             }
 
             std::vector<vec3f> vertices_projected = tx_projection * vertices_camera;
@@ -97,6 +93,12 @@ protected:
             painter.setPen(object.color);
 
             for(const auto& segment : object.model->segments) {
+                if(is_behind[segment.first] || is_behind[segment.second]) {
+                    // TODO: partially draw the partially visible segments
+                    // TODO: find intersection with the clipping plane (after projection or in camera space?)
+                    continue;
+                }
+
                 draw_line(painter, vertices_screen[segment.first], vertices_screen[segment.second]);
             }
         }

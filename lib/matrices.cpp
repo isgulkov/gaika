@@ -30,6 +30,27 @@ std::ostream& print_array(std::ostream& os, const std::array<T, N>& xs)
 
 //
 
+vec3f& vec3f::set_x(float x)
+{
+    _xs[0] = x;
+
+    return *this;
+}
+
+vec3f& vec3f::set_y(float y)
+{
+    _xs[1] = y;
+
+    return *this;
+}
+
+vec3f& vec3f::set_z(float z)
+{
+    _xs[2] = z;
+
+    return *this;
+}
+
 vec3f vec3f::operator*(float x) const
 {
     return { _xs[0] * x, _xs[1] * x, _xs[2] * x };
@@ -121,6 +142,11 @@ std::ostream& operator<<(std::ostream& os, const vec3f& v)
 
 //
 
+float mat_sq4f::at(int i_row, int j_col) const
+{
+    return rows[i_row][j_col];
+}
+
 mat_sq4f mat_sq4f::identity()
 {
     return {
@@ -194,6 +220,16 @@ void mat_sq4f::subtract_rows(int i_row, int j_row, float x)
     for(int i_col = 0; i_col < 4; i_col++) {
         rows[i_row][i_col] -= rows[j_row][i_col] * x;
     }
+}
+
+mat_sq4f mat_sq4f::transpose() const
+{
+    return {
+        rows[0][0], rows[1][0], rows[2][0], rows[3][0],
+        rows[0][1], rows[1][1], rows[2][1], rows[3][1],
+        rows[0][2], rows[1][2], rows[2][2], rows[3][2],
+        rows[0][3], rows[1][3], rows[2][3], rows[3][3]
+    };
 }
 
 mat_sq4f mat_sq4f::inverse() const

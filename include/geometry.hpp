@@ -12,8 +12,11 @@ mat_sq4f rotate_x(float theta);
 mat_sq4f rotate_y(float theta);
 mat_sq4f rotate_z(float theta);
 mat_sq4f rotate_xyz(const vec3f& thetas);
+mat_sq4f rotate_zyx(const vec3f& thetas);
 mat_sq4f perspective_z(float theta_w, float wh_ratio);
 mat_sq4f perspective_z(float theta_w, float wh_ratio, float z_near, float z_far);
+
+vec3f rotate_to_eul(const mat_sq4f& mx_rotate);
 
 }
 
