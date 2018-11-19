@@ -63,7 +63,8 @@ class wf_viewer : public QMainWindow
                     { 0, 1 }, { 1, 2 }, { 2, 3 }, { 0, 3 },
                     { 4, 5 }, { 5, 6 }, { 6, 7 }, { 4, 7 },
                     { 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 }
-                }
+                },
+                { }
         });
 
         // TODO: use camera-projection transform (reverse it?) to efficiently draw this up to the horizon
@@ -89,7 +90,7 @@ class wf_viewer : public QMainWindow
                 }
             }
 
-            disco_floor = std::make_shared<const wf_model>(wf_model { vertices, segments });
+            disco_floor = std::make_shared<const wf_model>(wf_model { vertices, segments, { } });
         }
 
         state.th_objects = std::vector<wf_state::th_object> {
@@ -455,7 +456,10 @@ int main(int argc, char* argv[])
     wf_viewer display;
     display.show();
 
-    // TODO: loop on processEvents instead?
+    /**
+     * It is indeed tempting to avoid blocking here by using processEvents(), but according to the official docs, this
+     * pattern should *never* be used.
+     */
     return QApplication::exec();
 }
 

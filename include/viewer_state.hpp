@@ -12,6 +12,7 @@
 struct wf_model {
     std::vector<vec3f> vertices;
     std::vector<std::pair<uint32_t, uint32_t>> segments;
+    std::vector<std::tuple<uint32_t, uint32_t, uint32_t>> triangles;
 
     static wf_model tetrahedron(vec3f a, vec3f b, vec3f c, vec3f p)
     {
@@ -19,7 +20,8 @@ struct wf_model {
 
         return {
                 { a, b, c, p },
-                { { 0, 1 }, { 1, 2 }, { 0, 2 }, { 0, 3 }, { 1, 3 }, { 2, 3 } }
+                { },
+                { { 0, 1, 2 }, { 1, 0, 3 }, { 2, 1, 3 }, { 0, 2, 3 } }
         };
     }
 };

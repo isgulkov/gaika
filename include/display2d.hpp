@@ -2,6 +2,7 @@
 #ifndef DZ_GAIKA_DISPLAY2D_HPP
 #define DZ_GAIKA_DISPLAY2D_HPP
 
+#include <utility>
 #include <cmath>
 
 #include <QString>
@@ -82,8 +83,6 @@ protected:
 //        painter.eraseRect(0, 0, width, height);
         painter.fillRect(0, 0, state.viewport.width, state.viewport.height, Qt::black);
 
-        painter.setOpacity(0.75);
-
         mat_sq4f tx_camera = mx_tx::translate(-state.camera.pos);
 
         if(!state.projection.is_orthographic()) {
@@ -134,7 +133,21 @@ protected:
                     continue;
                 }
 
+                painter.setOpacity(0.75);
+
                 draw_line(painter, vertices_screen[segment.first], vertices_screen[segment.second]);
+            }
+
+            for(const auto& triangle : object.model->triangles) {
+                if(is_behind_camera[std::get<0>(triangle)] || is_behind_camera[std::get<1>(triangle)] || is_behind_camera[std::get<2>(triangle)]) {
+                    continue;
+                }
+
+                painter.setOpacity(0.375); // Every segment gets drawn twice
+
+                draw_line(painter, vertices_screen[std::get<0>(triangle)], vertices_screen[std::get<1>(triangle)]);
+                draw_line(painter, vertices_screen[std::get<0>(triangle)], vertices_screen[std::get<2>(triangle)]);
+                draw_line(painter, vertices_screen[std::get<1>(triangle)], vertices_screen[std::get<2>(triangle)]);
             }
         }
 
