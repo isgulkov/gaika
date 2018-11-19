@@ -41,6 +41,8 @@ struct wf_state
         float scale;
 
         QColor color;
+
+        // TODO: animation through passing time delta to an object's callback?
     };
 
     std::vector<th_object> th_objects;

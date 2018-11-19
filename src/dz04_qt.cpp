@@ -66,6 +66,33 @@ class wf_viewer : public QWidget
                 }
         });
 
+        std::shared_ptr<const wf_model> disco_floor;
+
+        {
+            std::vector<vec3f> vertices;
+            std::vector<std::pair<uint32_t, uint32_t>> segments;
+
+            for(int i = 0; i < 20; i++) {
+                for(int j = 0; j < 20; j++) {
+                    const int x = i - 10, y = j - 10;
+
+                    vertices.emplace_back(x, y, 0);
+
+                    const int i_vertex = (int)vertices.size() - 1;
+
+                    if(j != 0) {
+                        segments.emplace_back(i_vertex, i_vertex - 1);
+                    }
+
+                    if(i != 0) {
+                        segments.emplace_back(i_vertex, i_vertex - 20);
+                    }
+                }
+            }
+
+            disco_floor = std::make_shared<const wf_model>(wf_model { vertices, segments });
+        }
+
         state.th_objects = std::vector<wf_state::th_object> {
                 { fat, { 3, -3, 0.25f }, { 0, 0, 0.1f }, 0.25f, QColor::fromRgb(255, 150, 0) },
                 { fat, { -4, -4, 0.5f }, { 0, 0, 0.2f }, 1, QColor::fromRgb(255, 190, 0) },
@@ -77,12 +104,13 @@ class wf_viewer : public QWidget
                 { skinny, { 0, 0, 0 }, { 0, 0, 0 }, 1, QColor::fromRgb(255, 0, 0) },
                 { skinny, { 0, 0, 0 }, { 0, 0, 1.57f }, 1, QColor::fromRgb(0, 255, 0) },
                 { skinny, { 0, 0, 0 }, { 0, -1.57f, 0 }, 1, QColor::fromRgb(0, 0, 255) },
-                { cuboid, { 10, 10, 0 }, { 0, 0, 0 }, 1, QColor::fromRgb(255, 105, 180) }
+                { cuboid, { 10, 10, 0 }, { 0, 0, 0 }, 1, QColor::fromRgb(255, 105, 180) },
+                { disco_floor, { 0, 0, 0 }, { 0, 0, 0 }, 1, QColor::fromRgb(0, 127, 0) }
         };
 
         state.camera = {
-//                { 0, 0, 10 }, { 0, 0, 0 }
-                { 15, 0, 0 }, { 1.57f, 1.57f, 0 }
+                { 0, 0, 10 }, { 0, 0, 0 }
+//                { 15, 0, 0 }, { 1.57f, 1.57f, 0 }
         };
 
         state.perspective = {
