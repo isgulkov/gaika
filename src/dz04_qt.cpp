@@ -166,6 +166,18 @@ public slots:
         const float sec_since_update = last_update.elapsed() / 1000.0f;
         last_update.restart();
 
+        if(mousetrap_on) {
+            /**
+             * Mouse look has to be updated in the game loop, simultaneously with position, instead of on mouse move
+             * events -- otherwise, a noticeable jitter appears when circle-strafing, etc.
+             *
+             * Amusingly, the google result where I've got this was about Unity scripting.
+             *
+             * TODO: try applying a moving average over several frames
+             */
+            update_mousetrap();
+        }
+
         state.camera.pos += state.v_camera * sec_since_update;
         state.v_camera = calculate_v_camera();
 
@@ -340,11 +352,6 @@ protected:
     bool mousetrap_on = false;
     QPoint xy_before, xy_center;
 
-    void reset_to_center()
-    {
-        QCursor::setPos(mapToGlobal(xy_center));
-    }
-
     void start_mousetrap()
     {
         setMouseTracking(true);
@@ -355,8 +362,8 @@ protected:
         xy_before = mapFromGlobal(QCursor::pos());
 
         // TODO: use center of the display widget
-        xy_center = QPoint(width() / 2, height() / 2);
-        reset_to_center();
+        xy_center = mapToGlobal(QPoint(width() / 2, height() / 2));
+        QCursor::setPos(xy_center);
 
         mousetrap_on = state.options.free_look = true;
     }
@@ -372,32 +379,29 @@ protected:
         mousetrap_on = state.options.free_look = false;
     }
 
-    float x_sensitivity() const
+    float calc_x_rotation(int d_x) const
     {
-        return 1.0f * (float)M_PI / state.viewport.width;
+        return 1.0f * d_x * (float)M_PI / state.viewport.width;
     }
 
-    float y_sensitivity() const
+    float calc_y_rotation(int d_y) const
     {
-        return 1.0f * (float)M_PI / state.viewport.height;
+        return 1.0f * d_y * (float)M_PI / state.viewport.height;
     }
 
-    void mouseMoveEvent(QMouseEvent* event) override
+    void update_mousetrap()
     {
-        if(mousetrap_on) {
-            // TODO: fix jittery motion on high resolutions (presumably a result of large angle increments)
-            const QPoint xy_rel = event->pos() - xy_center;
+        const QPoint xy_rel = QCursor::pos() - xy_center;
 
-            vec3f& orient = state.camera.orient;
+        vec3f& orient = state.camera.orient;
 
-            orient.set_z(
-                    orient.z() - xy_rel.x() * x_sensitivity()
-            ).set_x(
-                    std::min(std::max(orient.x() - xy_rel.y() * y_sensitivity(), 0.0f), (float)M_PI)
-            );
+        orient.set_z(
+                orient.z() - calc_x_rotation(xy_rel.x())
+        ).set_x(
+                std::min(std::max(orient.x() - calc_y_rotation(xy_rel.y()), 0.0f), (float)M_PI)
+        );
 
-            reset_to_center();
-        }
+        QCursor::setPos(xy_center);
     }
 
     void mousePressEvent(QMouseEvent* event) override
