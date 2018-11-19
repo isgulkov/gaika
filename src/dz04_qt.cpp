@@ -379,6 +379,7 @@ protected:
     void mouseMoveEvent(QMouseEvent* event) override
     {
         if(mousetrap_on) {
+            // TODO: fix jittery motion on high resolutions (presumably a result of large angle increments)
             const QPoint xy_rel = event->pos() - xy_center;
 
             vec3f& orient = state.camera.orient;

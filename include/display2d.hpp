@@ -51,6 +51,25 @@ protected:
         painter.drawLine(a.x(), a.y(), b.x(), b.y());
     }
 
+    /**
+     * Map @param x from [-1; 1] to [0; @param x_size], where 0 becomes @code{x_size / 2}
+     */
+    static int scale_screen(float x, int x_size)
+    {
+        return (int16_t)((x / 2.0f + 0.5f) * x_size);
+    }
+
+    vec2i to_screen(const vec3f& v)
+    {
+        return { scale_screen(v.x(), state.viewport.width), scale_screen(-v.y(), state.viewport.height) };
+    }
+
+    vec3f from_screen(const vec2i& v)
+    {
+        // TODO: write a vec2f for this?
+        return { 2.0f * v.x() / state.viewport.width - 1.0f, -2.0f * y() / state.viewport.height + 1.0f, 0 };
+    }
+
     void paintEvent(QPaintEvent* event) override
     {
         QPainter painter;
@@ -105,7 +124,7 @@ protected:
             vertices_screen.reserve(vertices_projected.size());
 
             for(const vec3f& vertex : vertices_projected) {
-                vertices_screen.emplace_back(vertex.onto_xy_screen(state.viewport.width, state.viewport.height));
+                vertices_screen.emplace_back(to_screen(vertex));
             }
 
             painter.setPen(object.color);
