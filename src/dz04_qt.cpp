@@ -3,7 +3,6 @@
 #include <array>
 #include <list>
 #include <cmath>
-#include <iostream>  // REMOVE: !
 
 #include <QApplication>
 #include <QElapsedTimer>
@@ -112,7 +111,7 @@ class wf_viewer : public QWidget
         };
 
         state.projection = {
-                (float)(M_PI * 2 / 3), 0.1f, 100.0f
+                (float)(M_PI * 2 / 3), 1, 0.1f, 100.0f
         };
 
         state.viewport = { 640, 640 };
@@ -127,11 +126,15 @@ public:
 
         p_widget = new display2d_widget(this, state);
 
-        auto* layout = new QHBoxLayout;
+        auto* layout = new QGridLayout;
+
         layout->setSpacing(0);
         layout->setMargin(0);
 
-        layout->addWidget(p_widget);
+        layout->addWidget(p_widget, 0, 0);
+
+        layout->setColumnStretch(0, 1);
+        layout->setRowStretch(0, 1);
 
         setLayout(layout);
 
@@ -147,7 +150,7 @@ public:
 public slots:
     void tick()
     {
-        // TODO: skip frames to catch up?
+        // TODO: skip rendering frames to catch up?
 
         // Do routine updates
         const float sec_since_update = last_update.elapsed() / 1000.0f;
@@ -361,8 +364,15 @@ protected:
         mousetrap_on = state.options.free_look = false;
     }
 
-    const float x_sensitivity = 1.0f * (float)M_PI / 640.0f,
-            y_sensitivity = 1.0f * (float)M_PI / 640.0f;
+    float x_sensitivity() const
+    {
+        return 1.0f * (float)M_PI / state.viewport.width;
+    }
+
+    float y_sensitivity() const
+    {
+        return 1.0f * (float)M_PI / state.viewport.height;
+    }
 
     void mouseMoveEvent(QMouseEvent* event) override
     {
@@ -372,9 +382,9 @@ protected:
             vec3f& orient = state.camera.orient;
 
             orient.set_z(
-                    orient.z() - xy_rel.x() * x_sensitivity
+                    orient.z() - xy_rel.x() * x_sensitivity()
             ).set_x(
-                    std::min(std::max(orient.x() - xy_rel.y() * y_sensitivity, 0.0f), (float)M_PI)
+                    std::min(std::max(orient.x() - xy_rel.y() * y_sensitivity(), 0.0f), (float)M_PI)
             );
 
             reset_to_center();
@@ -391,6 +401,14 @@ protected:
     void mouseReleaseEvent(QMouseEvent* event) override
     {
         // ...
+    }
+
+    void resizeEvent(QResizeEvent* event) override
+    {
+        state.viewport.width = p_widget->size().width();
+        state.viewport.height = p_widget->size().height();
+
+        state.projection.set_wh_ratio((float)state.viewport.width / state.viewport.height);
     }
 };
 

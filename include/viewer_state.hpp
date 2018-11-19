@@ -3,6 +3,7 @@
 #define DZ_GAIKA_VIEWER_STATE_HPP
 
 #include <vector>
+#include <cmath>
 #include <QColor>
 
 #include "matrices.hpp"
@@ -37,14 +38,14 @@ private:
     ortho_axis _axis = X;
 
     struct {
-        float theta, z_near, z_far;
-    } perspective = { (float)M_PI * 2 / 3, 0, 1 };
+        float theta, wh_ratio, z_near, z_far;
+    } perspective = { (float)M_PI * 2 / 3, 1, 0, 1 };
 
     float _scale = 0.1f;
 
 public:
     wf_projection() = default;
-    wf_projection(float theta, float z_near, float z_far) : perspective({ theta, z_near, z_far }) { }
+    wf_projection(float theta, float wh_ratio, float z_near, float z_far) : perspective({ theta, wh_ratio, z_near, z_far }) { }
 
     bool is_perspective() const { return type == PERSPECTIVE; }
 
@@ -52,7 +53,35 @@ public:
     float z_near() const { return perspective.z_near; }
     float z_far() const { return perspective.z_far; }
 
+private:
+    static float calculate_theta_b(float theta_a, float ba_ratio)
+    {
+        return 2 * std::atan(std::tan(theta_a / 2.0f) * ba_ratio);
+    }
+
+public:
+    float theta_w() const
+    {
+        if(perspective.wh_ratio >= 1) {
+            return theta();
+        }
+        else {
+            return calculate_theta_b(theta(), perspective.wh_ratio);
+        }
+    }
+
+    float theta_h() const
+    {
+        if(perspective.wh_ratio <= 1) {
+            return theta();
+        }
+        else {
+            return calculate_theta_b(theta(), 1.0f / perspective.wh_ratio);
+        }
+    }
+
     void set_theta(float theta) { perspective.theta = theta; }
+    void set_wh_ratio(float wh_ratio) { perspective.wh_ratio = wh_ratio; }
 
     bool is_parallel() const { return type == PARALLEL; }
     bool is_orthographic() const { return type == ORTHOGRAPHIC; }
@@ -65,7 +94,7 @@ public:
     mat_sq4f tx_project() const
     {
         if(is_perspective()) {
-            return mx_tx::project_perspective_z(theta(), theta(), z_near(), z_far());
+            return mx_tx::project_perspective_z(theta_w(), theta_h(), z_near(), z_far());
         }
 
         return mx_tx::project_ortho_z() * mx_tx::scale(scale());

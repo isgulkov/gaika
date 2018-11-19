@@ -3,7 +3,6 @@
 #define DZ_GAIKA_DISPLAY2D_HPP
 
 #include <cmath>
-#include <iostream> // REMOVE: !
 
 #include <QString>
 #include <QTextStream>
@@ -34,8 +33,15 @@ public:
 //    display2d_widget(QWidget* parent, const wf_state& state) : state(state)
     display2d_widget(QWidget* parent, wf_state& state) : state(state)
     {
-        setFixedSize(state.viewport.width, state.viewport.height);
+        // ...
     }
+
+    QSize sizeHint() const override
+    {
+        return { state.viewport.width, state.viewport.height };
+    }
+
+//    void resizeEvent(QResizeEvent* event) override { }
 
     bool hud_camera = true, hud_projection = true, hud_viewport = true;
 
@@ -198,8 +204,8 @@ protected:
 
         painter.drawText(QRect(5, y, 150, 55), Qt::AlignHCenter, "Perspective");
 
-        const float thw_deg = state.projection.theta() / (float)M_PI * 180;
-        const float thh_deg = thw_deg / state.viewport.height * state.viewport.width;
+        const float thw_deg = state.projection.theta_w() / (float)M_PI * 180;
+        const float thh_deg = state.projection.theta_h() / (float)M_PI * 180;
 
         s_text.setRealNumberPrecision(1);
         s_text << thw_deg << QString::fromUtf8("°") << " "
