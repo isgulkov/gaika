@@ -147,7 +147,6 @@ int scaled(float x, int x_size)
 
 vec2i vec3f::onto_xy_screen(int x_size, int y_size) const
 {
-    // TODO: now, how do I call this and how should it be implemented?
     return { scaled(x(), x_size), scaled(-y(), y_size) };
 }
 

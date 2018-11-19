@@ -5,14 +5,26 @@
 
 namespace mx_tx {
 
-mat_sq4f scale(float s)
+namespace {
+mat_sq4f diag(float a, float b, float c, float d)
 {
     return {
-            s, 0.0f, 0.0f, 0.0f,
-            0.0f, s, 0.0f, 0.0f,
-            0.0f, 0.0f, s, 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f
+            a, 0.0f, 0.0f, 0.0f,
+            0.0f, b, 0.0f, 0.0f,
+            0.0f, 0.0f, c, 0.0f,
+            0.0f, 0.0f, 0.0f, d
     };
+}
+}
+
+mat_sq4f scale(float s)
+{
+    return diag(1, 1, 1, 1.0f / s);
+}
+
+mat_sq4f scale_xyz(float sx, float sy, float sz)
+{
+    return diag(sx, sy, sz, 1);
 }
 
 mat_sq4f translate(const vec3f& xs)
@@ -71,18 +83,31 @@ mat_sq4f rotate_zyx(const vec3f& thetas)
     return rotate_x(thetas.x()) * rotate_y(thetas.y()) * rotate_z(thetas.z());
 }
 
-mat_sq4f perspective_z(float theta_w, float wh_ratio)
+mat_sq4f project_ortho_x()
 {
-    return perspective_z(theta_w, wh_ratio, 0, 1);
+    return diag(0, 1, 1, 1);
 }
 
-mat_sq4f perspective_z(float theta_w, float wh_ratio, float z_near, float z_far)
+mat_sq4f project_ortho_y()
 {
-    const float half_theta_w = theta_w / 2.0f;
+    return diag(1, 0, 1, 1);
+}
 
+mat_sq4f project_ortho_z()
+{
+    return diag(1, 1, 0, 1);
+}
+
+mat_sq4f project_perspective_z(float theta_w, float theta_h)
+{
+    return project_perspective_z(theta_w, theta_h, 0, 1);
+}
+
+mat_sq4f project_perspective_z(float theta_w, float theta_h, float z_near, float z_far)
+{
     return {
-            1.0f / std::tan(half_theta_w), 0.0f, 0.0f, 0.0f,
-            0.0f, 1.0f / std::tan(half_theta_w / wh_ratio), 0.0f, 0.0f,
+            1.0f / std::tan(theta_w / 2.0f), 0.0f, 0.0f, 0.0f,
+            0.0f, 1.0f / std::tan(theta_h / 2.0f), 0.0f, 0.0f,
             0.0f, 0.0f, z_far / (z_far - z_near), -1.0f,
             0.0f, 0.0f, -z_near * z_far / (z_far - z_near), 0.0f
     };

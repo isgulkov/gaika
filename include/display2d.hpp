@@ -37,8 +37,7 @@ public:
         setFixedSize(state.viewport.width, state.viewport.height);
     }
 
-    bool hud_camera = true;
-    bool hud_perspective = true;
+    bool hud_camera = true, hud_projection = true, hud_viewport = true;
 
 protected:
     static void draw_line(QPainter& painter, vec2i a, vec2i b)
@@ -60,25 +59,38 @@ protected:
 
         painter.setOpacity(0.75);
 
-        // TODO: find a good explanation for why the order has to be XYZ
+        mat_sq4f tx_camera = mx_tx::translate(-state.camera.pos);
 
-        const mat_sq4f tx_camera = mx_tx::rotate_xyz(state.camera.orient).transpose() * mx_tx::translate(-state.camera.pos);
-        const mat_sq4f tx_projection = mx_tx::perspective_z(state.perspective.theta_w,
-                                                            state.perspective.wh_ratio,
-                                                            state.perspective.z_near,
-                                                            state.perspective.z_far);
+        if(!state.projection.is_orthographic()) {
+            tx_camera = mx_tx::rotate_xyz(state.camera.orient).transpose() * tx_camera;
+        }
+        else {
+            switch(state.projection.axis()) {
+                case wf_projection::X:
+                    tx_camera = mx_tx::rotate_z(-(float)M_PI_2) * mx_tx::rotate_y(-(float)M_PI_2) * tx_camera;
+                    break;
+                case wf_projection::Y:
+                    tx_camera = mx_tx::rotate_x(-(float)M_PI_2) * tx_camera;
+                    break;
+                case wf_projection::Z:
+                    break;
+            }
+        }
 
-        // TODO: benchmark, parallelize between CPU threads
+        const mat_sq4f tx_projection = state.projection.tx_project();
+
+        // TODO: benchmark, split up between CPU threads
         for(wf_state::th_object object : state.th_objects) {
-            const mat_sq4f tx_world = mx_tx::translate(object.pos) * mx_tx::rotate_xyz(object.orient) * mx_tx::scale(object.scale);
+            const mat_sq4f tx_world = mx_tx::translate(object.pos) * mx_tx::rotate_xyz(object.orient) *
+                    mx_tx::scale(object.scale);
 
             std::vector<vec3f> vertices_camera = tx_camera * tx_world * object.model->vertices;
 
-            std::vector<int> is_behind;
-            is_behind.reserve(vertices_camera.size());
+            std::vector<int> is_behind_camera;
+            is_behind_camera.reserve(vertices_camera.size());
 
             for(const vec3f& vertex : vertices_camera) {
-                is_behind.push_back(vertex.z() >= 0);
+                is_behind_camera.push_back(!state.projection.is_orthographic() && vertex.z() >= 0);
             }
 
             std::vector<vec3f> vertices_projected = tx_projection * vertices_camera;
@@ -93,9 +105,7 @@ protected:
             painter.setPen(object.color);
 
             for(const auto& segment : object.model->segments) {
-                if(is_behind[segment.first] || is_behind[segment.second]) {
-                    // TODO: partially draw the partially visible segments
-                    // TODO: find intersection with the clipping plane (after projection or in camera space?)
+                if(is_behind_camera[segment.first] || is_behind_camera[segment.second]) {
                     continue;
                 }
 
@@ -110,8 +120,12 @@ protected:
             y_hud += draw_camera_hud(painter, 5, y_hud);
         }
 
-        if(hud_perspective) {
-            y_hud += draw_perspective_hud(painter, 5, y_hud);
+        if(hud_projection) {
+            y_hud += draw_projection_hud(painter, 5, y_hud);
+        }
+
+        if(hud_viewport) {
+            y_hud += draw_viewport_hud(painter, 5, y_hud);
         }
 
         painter.end();
@@ -123,7 +137,7 @@ protected:
     int draw_camera_hud(QPainter& painter, int x, int y)
     {
         painter.setFont(f_hud);
-        painter.setPen(QPen(Qt::white, 1));
+        painter.setPen(Qt::white);
 
         QString text;
 
@@ -131,55 +145,117 @@ protected:
         s_text.setRealNumberNotation(QTextStream::RealNumberNotation::FixedNotation);
         s_text.setRealNumberPrecision(2);
 
-        painter.drawText(QRect(x, y, 90, 55), Qt::AlignHCenter, "Camera");
+        if(state.options.free_look) {
+            painter.setPen(QColor::fromRgb(255, 255, 0));
+            painter.drawText(QRect(5, y, 150, 55), Qt::AlignHCenter, "FREE LOOK");
+            painter.setPen(Qt::white);
+        }
+        else {
+            painter.drawText(QRect(x, y, 150, 55), Qt::AlignHCenter, "Camera");
+        }
 
         s_text << state.camera.pos.x() << '\n'
                << state.camera.pos.y() << '\n'
                << state.camera.pos.z();
-        painter.drawText(QRect(x, y + 20, 90, 55), Qt::AlignLeft, text);
+        painter.drawText(QRect(x, y + 20, 150, 55), Qt::AlignLeft, text);
 
         text = "";
         s_text.setRealNumberPrecision(1);
         s_text << state.camera.orient.x() / (float)M_PI * 180 << QString::fromUtf8("°") << '\n'
                << state.camera.orient.y() / (float)M_PI * 180 << QString::fromUtf8("°") << '\n'
                << state.camera.orient.z() / (float)M_PI * 180 << QString::fromUtf8("°");
-        painter.drawText(QRect(x, y + 20, 90, 55), Qt::AlignRight, text);
+        painter.drawText(QRect(x, y + 20, 150, 55), Qt::AlignRight, text);
 
         text = "";
         s_text.setRealNumberPrecision(2);
         s_text << state.v_camera.x() << '\n'
                << state.v_camera.y() << '\n'
                << state.v_camera.z();
-        painter.drawText(QRect(x, y + 20, 150, 55), Qt::AlignRight, text);
+        painter.drawText(QRect(x, y + 20, 150, 55), Qt::AlignHCenter, text);
 
-        return 75;
+        return 70;
     }
 
-    int draw_perspective_hud(QPainter& painter, int x, int y)
+    int draw_projection_hud(QPainter& painter, int x, int y)
     {
         painter.setFont(f_hud);
-        painter.setPen(QPen(Qt::white, 1));
+        painter.setPen(Qt::white);
 
-        // TODO: draw vectors as columns
+        if(state.projection.is_perspective()) {
+            return draw_proj_perspective(painter, x, y);
+        }
+        else {
+            return draw_proj_parallel(painter, x, y);
+        }
+    }
+
+    int draw_proj_perspective(QPainter& painter, int x, int y)
+    {
+        QString text;
+
+        QTextStream s_text(&text);
+        s_text.setRealNumberNotation(QTextStream::RealNumberNotation::FixedNotation);
+
+        painter.drawText(QRect(5, y, 150, 55), Qt::AlignHCenter, "Perspective");
+
+        const float thw_deg = state.projection.theta() / (float)M_PI * 180;
+        const float thh_deg = thw_deg / state.viewport.height * state.viewport.width;
+
+        s_text.setRealNumberPrecision(1);
+        s_text << thw_deg << QString::fromUtf8("°") << " "
+               << thh_deg << QString::fromUtf8("°") << '\n';
+        s_text.setRealNumberPrecision(2);
+        s_text << "[" << state.projection.z_near() << ", " << state.projection.z_far() << "]";
+        painter.drawText(QRect(5, y + 20, 150, 55), Qt::AlignHCenter, text);
+
+        return 60;
+    }
+
+    int draw_proj_parallel(QPainter& painter, int x, int y)
+    {
+//        painter.setPen(QColor::fromRgb(255, 140, 0));
 
         QString text;
 
         QTextStream s_text(&text);
         s_text.setRealNumberNotation(QTextStream::RealNumberNotation::FixedNotation);
 
-        painter.drawText(QRect(5, y, 90, 55), Qt::AlignHCenter, "Perspective");
+        painter.drawText(QRect(5, y, 150, 55), Qt::AlignHCenter, state.projection.is_parallel() ? "Parallel" : "Orthographic");
 
-        float thw_deg = state.perspective.theta_w / (float)M_PI * 180;
-        float thh_deg = thw_deg / state.perspective.wh_ratio;
+        if(state.projection.is_parallel()) {
+            s_text << "- - -";
+        }
+        else {
+            wf_projection::ortho_axis axis = state.projection.axis();
 
-        s_text.setRealNumberPrecision(1);
-        s_text << thw_deg << QString::fromUtf8("°") << " "
-               << thh_deg << QString::fromUtf8("°") << '\n';
-        s_text.setRealNumberPrecision(0);
-        s_text << "[" << state.perspective.z_near << "," << state.perspective.z_far << "]";
-        painter.drawText(QRect(5, y + 20, 90, 55), Qt::AlignHCenter, text);
+            s_text << (axis == wf_projection::ortho_axis::X ? "X" : "-") << " "
+                   << (axis == wf_projection::ortho_axis::Y ? "Y" : "-") << " "
+                   << (axis == wf_projection::ortho_axis::Z ? "Z" : "-");
+        }
+        s_text.setRealNumberPrecision(4);
+        s_text << "  " << state.projection.scale() << "x";
+        painter.drawText(QRect(5, y + 20, 150, 55), Qt::AlignHCenter, text);
 
         return 40;
+    }
+
+    int draw_viewport_hud(QPainter& painter, int x, int y)
+    {
+        painter.setFont(f_hud);
+        painter.setPen(Qt::white);
+
+        QString text;
+
+        QTextStream s_text(&text);
+        s_text.setRealNumberNotation(QTextStream::RealNumberNotation::FixedNotation);
+
+        painter.drawText(QRect(5, y, 150, 55), Qt::AlignHCenter, "Viewport");
+
+        s_text.setRealNumberPrecision(0);
+        s_text << state.viewport.width << " x " << state.viewport.height;
+        painter.drawText(QRect(5, y + 20, 150, 55), Qt::AlignHCenter, text);
+
+        return 60;
     }
 };
 

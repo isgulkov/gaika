@@ -140,10 +140,10 @@ public:
 //                                                             z_max,
 //                                                             z_min);
 
-        const mat_sq4f tx_perspective = mx_tx::perspective_z(perspective.theta_w,
-                                                             perspective.wh_ratio,
-                                                             -1.0f,
-                                                             1.0f);
+        const mat_sq4f tx_perspective = mx_tx::project_perspective_z(perspective.theta_w,
+                                                                     perspective.wh_ratio,
+                                                                     -1.0f,
+                                                                     1.0f);
 
 //        const mat_sq4f tx_perspective = mat_sq4f(
 //                1.0f, 0.0f, 0.0f, 0.0f,

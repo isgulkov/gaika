@@ -54,7 +54,7 @@ public:
     vec3f& normalize();
     vec3f unit() const;
 
-    // TODO: now, how do I call this and how should it be implemented?
+    // TODO: have this as a pair of functions in the renderer class
     vec2i onto_xy_screen(int x_size, int y_size) const;
 
     friend std::ostream& operator<<(std::ostream& os, const vec3f& v);

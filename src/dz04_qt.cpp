@@ -111,8 +111,8 @@ class wf_viewer : public QWidget
 //                { 15, 0, 0 }, { 1.57f, 1.57f, 0 }
         };
 
-        state.perspective = {
-                (float)(M_PI * 2 / 3), 1.0f, 0.1f, 100.f
+        state.projection = {
+                (float)(M_PI * 2 / 3), 0.1f, 100.0f
         };
 
         state.viewport = { 640, 640 };
@@ -138,10 +138,6 @@ public:
         last_tick_end.start();
         last_update.start();
         QTimer::singleShot(0, this, &wf_viewer::tick);
-
-        // TODO: make the world and camera coords right-handed (X right, Y up, Z towards the viewer)
-        // TODO: in OpenGL, it's the perspective transform that makes it left-handed
-        // https://stackoverflow.com/a/12336360
     }
 
     display2d_widget* p_widget;
@@ -175,20 +171,60 @@ private:
 
     vec3f calculate_v_camera()
     {
-        float v_zcam = state.controls.back - state.controls.forward;
-        float v_xcam = state.controls.right - state.controls.left;
-        float v_zworld = state.controls.jump - state.controls.duck;
+        const float v_long = state.controls.forward - state.controls.back;
+        const float v_lat = state.controls.right - state.controls.left;
 
-        vec3f v_camera = mx_tx::rotate_xyz(state.camera.orient) * vec3f(v_xcam, 0, v_zcam);
+        if(!state.projection.is_orthographic()) {
+            const float v_zcam = -v_long;
+            const float v_xcam = v_lat;
+            const float v_zworld = state.controls.jump - state.controls.duck;
 
-        return v_camera.set_z(v_camera.z() + v_zworld).normalize() *= vbase_camera;
+            vec3f v_camera = mx_tx::rotate_xyz(state.camera.orient) * vec3f(v_xcam, 0, v_zcam);
+
+            return v_camera.set_z(v_camera.z() + v_zworld).normalize() *= vbase_camera;
+        }
+
+        switch(state.projection.axis()) {
+            case wf_projection::X:
+                return { 0, v_lat * vbase_camera, v_long * vbase_camera };
+            case wf_projection::Y:
+                return { v_lat * vbase_camera, 0, v_long * vbase_camera,  };
+            case wf_projection::Z:
+                return { v_lat * vbase_camera, v_long * vbase_camera, 0 };
+        }
+
+        return { 0, 0, 0 };
     }
 
 protected:
+    void switch_projection()
+    {
+        if(state.projection.is_perspective()) {
+            state.projection.set_parallel();
+        }
+        else if(state.projection.is_parallel()) {
+            state.projection.set_orthographic(wf_projection::X);
+            stop_mousetrap();
+        }
+        else {
+            switch(state.projection.axis()) {
+                case wf_projection::X:
+                    state.projection.set_orthographic(wf_projection::Y);
+                    break;
+                case wf_projection::Y:
+                    state.projection.set_orthographic(wf_projection::Z);
+                    break;
+                case wf_projection::Z:
+                    state.projection.set_perspective();
+                    break;
+            }
+        }
+    }
+
     void keyPressEvent(QKeyEvent* event) override
     {
         if(event->isAutoRepeat()) {
-            return; // TODO: keep this in mind for new keys
+            return; // NOTE: keep this in mind for new keys
         }
 
         switch(event->key()) {
@@ -196,7 +232,13 @@ protected:
                 p_widget->hud_camera = !p_widget->hud_camera;
                 return;
             case Qt::Key_2:
-                p_widget->hud_perspective = !p_widget->hud_perspective;
+                p_widget->hud_projection = !p_widget->hud_projection;
+                return;
+            case Qt::Key_3:
+                p_widget->hud_viewport = !p_widget->hud_viewport;
+                return;
+            case Qt::Key_Equal:
+                switch_projection();
                 return;
             case Qt::Key_W:
                 state.controls.forward = true;
@@ -260,16 +302,27 @@ protected:
 
     void wheelEvent(QWheelEvent* event) override
     {
-        float& theta_w = state.perspective.theta_w;
+        if(state.projection.is_perspective()) {
+            float theta = state.projection.theta();
 
-        theta_w += event->angleDelta().y() / 1000.f;
+            theta += event->angleDelta().y() / 1000.f;
 
-        if(theta_w < 0.0f) {
-            theta_w = 0.0f;
+            if(theta < 0.0f) {
+                theta = 0.0f;
+            }
+
+            if(theta > (float)M_PI) {
+                theta = (float)M_PI;
+            }
+
+            state.projection.set_theta(theta);
         }
+        else {
+            float scale = state.projection.scale();
 
-        if(theta_w > (float)M_PI) {
-            theta_w = (float)M_PI;
+            scale *= std::pow(1.005f, -event->angleDelta().y());
+
+            state.projection.set_scale(scale);
         }
     }
 
@@ -294,7 +347,7 @@ protected:
         xy_center = QPoint(width() / 2, height() / 2);
         reset_to_center();
 
-        mousetrap_on = true;
+        mousetrap_on = state.options.free_look = true;
     }
 
     void stop_mousetrap()
@@ -305,7 +358,7 @@ protected:
         QCursor::setPos(mapToGlobal(xy_before));
 
         setCursor(Qt::ArrowCursor);
-        mousetrap_on = false;
+        mousetrap_on = state.options.free_look = false;
     }
 
     const float x_sensitivity = 1.0f * (float)M_PI / 640.0f,
@@ -330,7 +383,7 @@ protected:
 
     void mousePressEvent(QMouseEvent* event) override
     {
-        if(!mousetrap_on) {
+        if(!mousetrap_on && !state.projection.is_orthographic()) {
             start_mousetrap();
         }
     }
@@ -348,7 +401,7 @@ int main(int argc, char* argv[])
     wf_viewer display;
     display.show();
 
-    // TODO: loop on processEvents instead, or some shit?
+    // TODO: loop on processEvents instead?
     return QApplication::exec();
 }
 
