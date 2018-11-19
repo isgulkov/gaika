@@ -66,6 +66,7 @@ protected:
                                                             state.perspective.z_near,
                                                             state.perspective.z_far);
 
+        // TODO: benchmark, parallelize between CPU threads
         for(wf_state::th_object object : state.th_objects) {
             const mat_sq4f tx_world = mx_tx::rotate_xyz(object.orient) * mx_tx::translate(object.pos);
 
@@ -94,12 +95,10 @@ protected:
             }
 
             painter.setPen(object.color);
-            draw_line(painter, vertices_screen[0], vertices_screen[1]);
-            draw_line(painter, vertices_screen[1], vertices_screen[2]);
-            draw_line(painter, vertices_screen[0], vertices_screen[2]);
-            draw_line(painter, vertices_screen[0], vertices_screen[3]);
-            draw_line(painter, vertices_screen[1], vertices_screen[3]);
-            draw_line(painter, vertices_screen[2], vertices_screen[3]);
+
+            for(const auto& segment : object.model->segments) {
+                draw_line(painter, vertices_screen[segment.first], vertices_screen[segment.second]);
+            }
         }
 
         painter.setOpacity(1.0);

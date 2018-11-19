@@ -27,30 +27,42 @@ class wf_viewer : public QWidget
     {
         // TODO: move somewhere reasonable
 
-        std::shared_ptr<const th_model> fat = std::make_shared<const th_model>(th_model {
-                {
-                        { -2.5f, -1.5f, 0.0f },
-                        { 2.5f, 1.5f, 0.0f },
-                        { -3.5f, 2.6f, 0.0f },
-                        { -1.5f, 0.5f, 7.5f }
-                }
-        });
+        std::shared_ptr<const wf_model> fat = std::make_shared<const wf_model>(wf_model::tetrahedron(
+                { -2.5f, -1.5f, 0.0f },
+                { 2.5f, 1.5f, 0.0f },
+                { -3.5f, 2.6f, 0.0f },
+                { -1.5f, 0.5f, 7.5f }
+        ));
 
-        std::shared_ptr<const th_model> center = std::make_shared<const th_model>(th_model {
-                {
-                        { -1.0f, -1.0f, 0.0f },
-                        { 0.0f, 1.0f, 0.0f },
-                        { 1.0f, -1.0f, 0.0f },
-                        { 0.0f, 0.0f, 2.5f }
-                }
-        });
+        std::shared_ptr<const wf_model> center = std::make_shared<const wf_model>(wf_model::tetrahedron(
+                { -1.0f, -1.0f, 0.0f },
+                { 0.0f, 1.0f, 0.0f },
+                { 1.0f, -1.0f, 0.0f },
+                { 0.0f, 0.0f, 2.5f }
+        ));
 
-        std::shared_ptr<const th_model> skinny = std::make_shared<const th_model>(th_model {
+        std::shared_ptr<const wf_model> skinny = std::make_shared<const wf_model>(wf_model::tetrahedron(
+                { 1.0f, -1.0f, -1.0f },
+                { 1.0f, -1.0f, 1.0f },
+                { 1.0f, 1.0f, 1.0f },
+                { 15.0f, 0.0f, 0.0f }
+        ));
+
+        std::shared_ptr<const wf_model> cuboid = std::make_shared<const wf_model>(wf_model {
                 {
-                        { 1.0f, -1.0f, -1.0f },
-                        { 1.0f, -1.0f, 1.0f },
-                        { 1.0f, 1.0f, 1.0f },
-                        { 15.0f, 0.0f, 0.0f }
+                        { 0, -2, -2 },
+                        { 0, -2, 2 },
+                        { 0, 2, 2 },
+                        { 0, 2, -2 },
+                        { 10, -2, -2 },
+                        { 10, -2, 2 },
+                        { 10, 2, 2 },
+                        { 10, 2, -2 }
+                },
+                {
+                    { 0, 1 }, { 1, 2 }, { 2, 3 }, { 0, 3 },
+                    { 4, 5 }, { 5, 6 }, { 6, 7 }, { 4, 7 },
+                    { 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 }
                 }
         });
 
@@ -62,11 +74,13 @@ class wf_viewer : public QWidget
                 { center, QColor::fromRgb(255, 255, 255), { 0, 0, -1 }, { 0, 0, 0 } },
                 { skinny, QColor::fromRgb(255, 0, 0), { 0, 0, 0 }, { 0, 0, 0 } },
                 { skinny, QColor::fromRgb(0, 255, 0), { 0, 0, 0 }, { 0, 0, 1.57f } },
-                { skinny, QColor::fromRgb(0, 0, 255), { 0, 0, 0 }, { 0, -1.57f, 0 } }
+                { skinny, QColor::fromRgb(0, 0, 255), { 0, 0, 0 }, { 0, -1.57f, 0 } },
+                { cuboid, QColor::fromRgb(255, 105, 180), { 10, 10, 0 }, { 0, 0, 0 } }
         };
 
         state.camera = {
                 { 0, 0, 10 }, { 0, 0, 0 }
+//                { 15, 0, 0 }, { 0, 1.57f, 0 }
         };
 
         state.perspective = {
@@ -226,6 +240,7 @@ protected:
     void mouseMoveEvent(QMouseEvent* event) override
     {
         // TODO: enable tracking, implement fps-like control (toggle with LMB/Esc), figure out sensitivity
+        // TODO: in FPS, left-right turns around world Z, moves along world XY
 
         const int xrel = event->x(), yrel = event->y();
 

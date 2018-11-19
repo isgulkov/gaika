@@ -7,11 +7,21 @@
 
 #include "matrices.hpp"
 
-// TODO: implement other models (triangle- and segment-based)
+// TODO: implement triangle meshes as well
 // TODO: auto-center each model's center of mass at its origin
-struct th_model {
-    // In order A, B, C, P where (A, B, C) is clockwise when looking in P's direction
+struct wf_model {
     std::vector<vec3f> vertices;
+    std::vector<std::pair<uint32_t, uint32_t>> segments;
+
+    static wf_model tetrahedron(vec3f a, vec3f b, vec3f c, vec3f p)
+    {
+        // In order A, B, C, P where (A, B, C) is clockwise when looking in P's direction
+
+        return {
+                { a, b, c, p },
+                { { 0, 1 }, { 1, 2 }, { 0, 2 }, { 0, 3 }, { 1, 3 }, { 2, 3 } }
+        };
+    }
 };
 
 struct wf_state
@@ -24,9 +34,10 @@ struct wf_state
      */
 
     struct th_object {
-        std::shared_ptr<const th_model> model;
+        std::shared_ptr<const wf_model> model;
         QColor color;
         vec3f pos, orient;
+        // TODO: cache the object's world coords
     };
 
     std::vector<th_object> th_objects;
