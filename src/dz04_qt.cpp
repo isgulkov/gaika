@@ -117,6 +117,12 @@ class wf_viewer : public QMainWindow
         };
 
         state.viewport = { 640, 640 };
+
+        // REMOVE:
+        state.perf_stats.n = 7709;
+        state.perf_stats.sum_frame = 89789.109f;
+        state.perf_stats.sum_transform = 67899.79f;
+        state.perf_stats.sum_lines = 10990.88f;
     }
 
 public:

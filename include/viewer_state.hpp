@@ -150,6 +150,11 @@ struct wf_state
     struct {
         bool free_look = false;
     } options;
+
+    struct {
+        int n = 0;
+        float sum_frame = 0, sum_transform = 0, sum_lines = 0;
+    } perf_stats;
 };
 
 #endif //DZ_GAIKA_VIEWER_STATE_HPP
