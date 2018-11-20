@@ -230,7 +230,10 @@ protected:
         }
         else if(state.projection.is_parallel()) {
             state.projection.set_orthographic(wf_projection::X);
-            stop_mousetrap();
+
+            if(mousetrap_on) {
+                stop_mousetrap();
+            }
         }
         else {
             switch(state.projection.axis()) {
