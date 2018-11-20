@@ -83,12 +83,14 @@ protected:
 //        painter.eraseRect(0, 0, width, height);
         painter.fillRect(0, 0, state.viewport.width, state.viewport.height, Qt::black);
 
+        //const
         mat_sq4f tx_camera = mx_tx::translate(-state.camera.pos);
 
         if(!state.projection.is_orthographic()) {
             tx_camera = mx_tx::rotate_xyz(state.camera.orient).transpose() * tx_camera;
         }
         else {
+            // TODO: why isn't this done inside tx_project? (the necessity of the latter is itself questionable, though)
             switch(state.projection.axis()) {
                 case wf_projection::X:
                     tx_camera = mx_tx::rotate_z(-(float)M_PI_2) * mx_tx::rotate_y(-(float)M_PI_2) * tx_camera;
@@ -99,6 +101,18 @@ protected:
                 case wf_projection::Z:
                     break;
             }
+        }
+
+        if(!state.projection.is_perspective()) {
+            /**
+             * Squeeze along the horizontal axis (camera's X) to compensate for distortion from displaying the square
+             * visibility box on a non-square viewport.
+             *
+             * This doesn't apply to perspective projection, where the relationship between horizontal and vertical
+             * angles of view is a bit more complex.
+             */
+
+            tx_camera = mx_tx::scale_xyz((float)state.viewport.height / state.viewport.width, 1, 1) * tx_camera;
         }
 
         const mat_sq4f tx_projection = state.projection.tx_project();
