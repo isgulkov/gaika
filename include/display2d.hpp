@@ -151,7 +151,12 @@ protected:
         const QPoint p_cursor = mapFromGlobal(QCursor::pos());
         const vec2i p{ p_cursor.x(), p_cursor.y() };
 
-        // TODO: benchmark, split up between CPU threads
+        /**
+         * TODO: benchmark, investigate possible CPU parallelism
+         *
+         * 1. Split by object
+         * 2. Merge all vertices into one large vector (transforming index collections), then split in chunks
+         */
         for(const wf_state::th_object& object : state.th_objects) {
             const mat_sq4f tx_world = mx_tx::translate(object.pos) * mx_tx::rotate_xyz(object.orient) *
                     mx_tx::scale(object.scale);
@@ -161,8 +166,10 @@ protected:
             std::vector<int> is_behind_camera;
             is_behind_camera.reserve(vertices_camera.size());
 
+            const float z_clip = state.projection.is_perspective() ? -state.projection.z_near() : 0;
+
             for(const vec3f& vertex : vertices_camera) {
-                is_behind_camera.push_back(!state.projection.is_orthographic() && vertex.z() >= 0);
+                is_behind_camera.push_back(!state.projection.is_orthographic() && vertex.z() > z_clip);
             }
 
             std::vector<vec3f> vertices_projected = tx_projection * vertices_camera;
@@ -170,6 +177,7 @@ protected:
             std::vector<vec2i> vertices_screen;
             vertices_screen.reserve(vertices_projected.size());
 
+            // TODO: isn't there an STL algorithm for this?
             for(const vec3f& vertex : vertices_projected) {
                 vertices_screen.emplace_back(to_screen(vertex));
             }
@@ -191,14 +199,44 @@ protected:
 
             object.hovered = false;
 
+            painter.setOpacity(0.75);
+
             for(const auto& segment : object.model->segments) {
-                if(is_behind_camera[segment.first] || is_behind_camera[segment.second]) {
+                /**
+                 * This is partially broken for perspective projection — artifacts appear with varying frequency,
+                 * depending on z_near.
+                 *
+                 * As it turns out, it's best to do the clipping after multiplying by the perspective matrix, but before
+                 * dividing the coords by w. Ouch! So, I now have to either
+                 *   - rewrite vec3f into vec4f, which frankly seems wasteful, or
+                 *   - rework the camera->screen process into two steps specifically for perspective, which would,
+                 *     besides looking stupid, require a ton of refactoring due to perspective's exclusivity.
+                 *
+                 * TODO: fix for perspective, then set default z_near to 0.1
+                 */
+
+                if(is_behind_camera[segment.first] && is_behind_camera[segment.second]) {
                     continue;
                 }
 
-                painter.setOpacity(0.75);
+                if(!is_behind_camera[segment.first] && !is_behind_camera[segment.second]) {
+                    draw_line(painter, vertices_screen[segment.first], vertices_screen[segment.second]);
 
-                draw_line(painter, vertices_screen[segment.first], vertices_screen[segment.second]);
+                    continue;
+                }
+
+                uint32_t i_a = segment.first, i_b = segment.second;
+
+                if(is_behind_camera[i_a]) {
+                    std::swap(i_a, i_b);
+                }
+
+                const vec3f& a = vertices_camera[i_a], b = vertices_camera[i_b];
+
+                const float t = (z_clip - a.z()) / (b.z() - a.z());
+                const vec3f c = { a.x() + t * (b.x() - a.x()), a.y() + t * (b.y() - a.y()), z_clip };
+
+                draw_line(painter, vertices_screen[i_a], to_screen(tx_projection * c));
             }
 
             for(const auto& triangle : object.model->triangles) {

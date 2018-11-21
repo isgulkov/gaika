@@ -84,6 +84,8 @@ public:
 
     void set_theta(float theta) { perspective.theta = theta; }
     void set_wh_ratio(float wh_ratio) { perspective.wh_ratio = wh_ratio; }
+    void set_z_near(float z_near) { perspective.z_near = z_near; }
+    void set_z_far(float z_far) { perspective.z_far = z_far; }
 
     bool is_parallel() const { return type == PARALLEL; }
     bool is_orthographic() const { return type == ORTHOGRAPHIC; }

@@ -108,8 +108,8 @@ mat_sq4f project_perspective_z(float theta_w, float theta_h, float z_near, float
     return {
             1.0f / std::tan(theta_w / 2.0f), 0.0f, 0.0f, 0.0f,
             0.0f, 1.0f / std::tan(theta_h / 2.0f), 0.0f, 0.0f,
-            0.0f, 0.0f, z_far / (z_far - z_near), -1.0f,
-            0.0f, 0.0f, -z_near * z_far / (z_far - z_near), 0.0f
+            0.0f, 0.0f, -z_far / (z_far - z_near), -z_near * z_far / (z_far - z_near),
+            0.0f, 0.0f, -1.0f, 0.0f
     };
 }
 

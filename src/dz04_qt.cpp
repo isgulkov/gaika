@@ -93,6 +93,37 @@ class wf_viewer : public QMainWindow
             disco_floor = std::make_shared<const wf_model>(wf_model { vertices, segments, { } });
         }
 
+        std::shared_ptr<const wf_model> cage;
+
+        {
+            std::vector<vec3f> vertices;
+            std::vector<std::pair<uint32_t, uint32_t>> segments;
+
+            for(int i = 0; i < 4; i++) {
+                for(int j = 0; j < 4; j++) {
+                    for(int k = 0; k < 4; k++) {
+                        vertices.emplace_back(3 * i, 3 * j, 3 * k);
+
+                        const int i_vertex = (int)vertices.size() - 1;
+
+                        if(i != 0) {
+                            segments.emplace_back(i_vertex, i_vertex - 4 * 4);
+                        }
+
+                        if(j != 0) {
+                            segments.emplace_back(i_vertex, i_vertex - 4);
+                        }
+
+                        if(k != 0) {
+                            segments.emplace_back(i_vertex, i_vertex - 1);
+                        }
+                    }
+                }
+            }
+
+            cage = std::make_shared<const wf_model>(wf_model { vertices, segments, { } });
+        }
+
         state.th_objects = std::vector<wf_state::th_object> {
                 { disco_floor, { 0, 0, 0 }, { 0, 0, 0 }, 1, false, false, QColor::fromRgb(0, 127, 0) },
                 { fat, { 3, -3, 0.25f }, { 0, 0, 0.1f }, 0.25f, true, false, QColor::fromRgb(255, 150, 0) },
@@ -105,7 +136,8 @@ class wf_viewer : public QMainWindow
                 { skinny, { 0, 0, 0 }, { 0, 0, 0 }, 1, false, false, QColor::fromRgb(255, 0, 0) },
                 { skinny, { 0, 0, 0 }, { 0, 0, 1.57f }, 1, false, false, QColor::fromRgb(0, 255, 0) },
                 { skinny, { 0, 0, 0 }, { 0, -1.57f, 0 }, 1, false, false, QColor::fromRgb(0, 0, 255) },
-                { cuboid, { 10, 10, 0 }, { 0, 0, 0 }, 1, false, false, QColor::fromRgb(255, 105, 180) }
+                { cuboid, { 10, 10, 0 }, { 0, 0, 0 }, 1, false, false, QColor::fromRgb(255, 105, 180) },
+                { cage, { -25, -25, 0 }, { 0, 0, 0 }, 1, false, false, QColor::fromRgb(127, 127, 180) }
         };
 
         state.camera = {
@@ -114,7 +146,7 @@ class wf_viewer : public QMainWindow
         };
 
         state.projection = {
-                (float)(M_PI * 2 / 3), 1, 0.1f, 100.0f
+                (float)(M_PI * 2 / 3), 1, 1.0f, 100.0f
         };
 
         state.viewport = { 640, 640 };
@@ -311,6 +343,18 @@ protected:
                 if(mousetrap_on) {
                     stop_mousetrap();
                 }
+                return;
+            case Qt::Key_I:
+                state.projection.set_z_near(state.projection.z_near() / 10.0f);
+                return;
+            case Qt::Key_O:
+                state.projection.set_z_near(state.projection.z_near() * 10.0f);
+                return;
+            case Qt::Key_K:
+                state.projection.set_z_far(state.projection.z_far() / 10.0f);
+                return;
+            case Qt::Key_L:
+                state.projection.set_z_far(state.projection.z_far() * 10.0f);
                 return;
             default:
                 QWidget::keyPressEvent(event);
