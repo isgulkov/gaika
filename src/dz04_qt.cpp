@@ -60,9 +60,9 @@ class wf_viewer : public QMainWindow
                         { 10, 2, -2 }
                 },
                 {
-                    { 0, 1 }, { 1, 2 }, { 2, 3 }, { 0, 3 },
-                    { 4, 5 }, { 5, 6 }, { 6, 7 }, { 4, 7 },
-                    { 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 }
+                        { 0, 1 }, { 1, 2 }, { 2, 3 }, { 0, 3 },
+                        { 4, 5 }, { 5, 6 }, { 6, 7 }, { 4, 7 },
+                        { 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 }
                 },
                 { }
         });
@@ -258,8 +258,9 @@ private:
             const float v_zworld = state.controls.jump - state.controls.duck;
 
             vec3f v_camera = mx_tx::rotate_xyz(state.camera.orient) * vec3f(v_xcam, 0, v_zcam);
+            v_camera.z += v_zworld;
 
-            return v_camera.set_z(v_camera.z() + v_zworld).normalize() *= vbase_camera;
+            return v_camera.normalize() *= vbase_camera;
         }
 
         switch(state.projection.axis()) {
@@ -472,11 +473,17 @@ protected:
 
         const float r_x = calc_x_rotation(xy_rel.x()), r_y = calc_y_rotation(xy_rel.y());
 
-        orient.set_z(
-                orient.z() - (r_xprev + r_x) / 2.0f
-        ).set_x(
-                std::min(std::max(orient.x() - (r_yprev + r_y) / 2.0f, 0.0f), (float)M_PI)
-        );
+        orient.x -= (r_yprev + r_y) / 2.0f;
+
+        if(orient.x < 0) {
+            orient.x = 0.0f;
+        }
+
+        if(orient.x > (float)M_PI) {
+            orient.x = (float)M_PI;
+        }
+
+        orient.z -= (r_xprev + r_x) / 2.0f;
 
         r_xprev = r_x;
         r_yprev = r_y;

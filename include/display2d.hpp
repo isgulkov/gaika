@@ -45,16 +45,16 @@ public:
 //    void resizeEvent(QResizeEvent* event) override { }
 
     bool hud_crosshair = true,
-            hud_camera = true,
+            hud_camera = false,
             hud_projection = true,
-            hud_viewport = true,
-            hud_geometry = true,
-            hud_performance = true;
+            hud_viewport = false,
+            hud_geometry = false,
+            hud_performance = false;
 
 protected:
     static void draw_line(QPainter& painter, vec2i a, vec2i b)
     {
-        painter.drawLine(a.x(), a.y(), b.x(), b.y());
+        painter.drawLine(a.x, a.y, b.x, b.y);
     }
 
     /**
@@ -67,29 +67,29 @@ protected:
 
     vec2i to_screen(const vec3f& v)
     {
-        return { scale_screen(v.x(), state.viewport.width), scale_screen(-v.y(), state.viewport.height) };
+        return { scale_screen(v.x, state.viewport.width), scale_screen(-v.y, state.viewport.height) };
     }
 
     vec3f from_screen(const vec2i& v)
     {
         // TODO: write a vec2f for this?
-        return { 2.0f * v.x() / state.viewport.width - 1.0f, -2.0f * y() / state.viewport.height + 1.0f, 0 };
+        return { 2.0f * v.x / state.viewport.width - 1.0f, -2.0f * y() / state.viewport.height + 1.0f, 0 };
     }
 
     static bool test_p_in_triangle(const vec2i& p, const vec2i& a, const vec2i& b, const vec2i& c)
     {
         // TODO: figure out how this works and document
-        const int x_ap = p.x() - a.x();
-        const int y_ap = p.y() - a.y();
+        const int x_ap = p.x - a.x;
+        const int y_ap = p.y - a.y;
 
-        const bool dp_ab = (b.x() - a.x()) * y_ap - (b.y() - a.y()) * x_ap > 0;
-        const bool dp_ac = (c.x() - a.x()) * y_ap - (c.y() - a.y()) * x_ap > 0;
+        const bool dp_ab = (b.x - a.x) * y_ap - (b.y - a.y) * x_ap > 0;
+        const bool dp_ac = (c.x - a.x) * y_ap - (c.y - a.y) * x_ap > 0;
 
         if(dp_ab == dp_ac) {
             return false;
         }
 
-        const bool gandon = (c.x() - b.x()) * (p.y() - b.y()) - (c.y() - b.y()) * (p.x() - b.x()) > 0;
+        const bool gandon = (c.x - b.x) * (p.y - b.y) - (c.y - b.y) * (p.x - b.x) > 0;
 
         return gandon == dp_ab;
     }
@@ -158,8 +158,7 @@ protected:
          * 2. Merge all vertices into one large vector (transforming index collections), then split in chunks
          */
         for(const wf_state::th_object& object : state.th_objects) {
-            const mat_sq4f tx_world = mx_tx::translate(object.pos) * mx_tx::rotate_xyz(object.orient) *
-                    mx_tx::scale(object.scale);
+            const mat_sq4f tx_world = mx_tx::translate(object.pos) * mx_tx::rotate_xyz(object.orient) * mx_tx::scale(object.scale);
 
             std::vector<vec3f> vertices_camera = tx_camera * tx_world * object.model->vertices;
 
@@ -169,7 +168,7 @@ protected:
             const float z_clip = state.projection.is_perspective() ? -state.projection.z_near() : 0;
 
             for(const vec3f& vertex : vertices_camera) {
-                is_behind_camera.push_back(!state.projection.is_orthographic() && vertex.z() > z_clip);
+                is_behind_camera.push_back(!state.projection.is_orthographic() && vertex.z > z_clip);
             }
 
             std::vector<vec3f> vertices_projected = tx_projection * vertices_camera;
@@ -233,8 +232,8 @@ protected:
 
                 const vec3f& a = vertices_camera[i_a], b = vertices_camera[i_b];
 
-                const float t = (z_clip - a.z()) / (b.z() - a.z());
-                const vec3f c = { a.x() + t * (b.x() - a.x()), a.y() + t * (b.y() - a.y()), z_clip };
+                const float t = (z_clip - a.z) / (b.z - a.z);
+                const vec3f c = { a.x + t * (b.x - a.x), a.y + t * (b.y - a.y), z_clip };
 
                 draw_line(painter, vertices_screen[i_a], to_screen(tx_projection * c));
             }
@@ -290,7 +289,11 @@ protected:
             y_hud += draw_viewport_hud(painter, 5, y_hud);
         }
 
-        if(true) {
+        if(hud_geometry) {
+            y_hud += draw_geometry_hud(painter, 5, y_hud);
+        }
+
+        if(hud_performance) {
             y_hud += draw_perf_hud(painter, 5, y_hud);
         }
 
@@ -332,23 +335,23 @@ protected:
             painter.drawText(QRect(x, y, 150, 55), Qt::AlignHCenter, "Camera");
         }
 
-        s_text << state.camera.pos.x() << '\n'
-               << state.camera.pos.y() << '\n'
-               << state.camera.pos.z();
+        s_text << state.camera.pos.x << '\n'
+               << state.camera.pos.y << '\n'
+               << state.camera.pos.z;
         painter.drawText(QRect(x, y + 20, 150, 55), Qt::AlignLeft, text);
 
         text = "";
         s_text.setRealNumberPrecision(1);
-        s_text << state.camera.orient.x() / (float)M_PI * 180 << QString::fromUtf8("°") << '\n'
-               << state.camera.orient.y() / (float)M_PI * 180 << QString::fromUtf8("°") << '\n'
-               << state.camera.orient.z() / (float)M_PI * 180 << QString::fromUtf8("°");
+        s_text << state.camera.orient.x / (float)M_PI * 180 << QString::fromUtf8("°") << '\n'
+               << state.camera.orient.y / (float)M_PI * 180 << QString::fromUtf8("°") << '\n'
+               << state.camera.orient.z / (float)M_PI * 180 << QString::fromUtf8("°");
         painter.drawText(QRect(x, y + 20, 150, 55), Qt::AlignRight, text);
 
         text = "";
         s_text.setRealNumberPrecision(2);
-        s_text << state.v_camera.x() << '\n'
-               << state.v_camera.y() << '\n'
-               << state.v_camera.z();
+        s_text << state.v_camera.x << '\n'
+               << state.v_camera.y << '\n'
+               << state.v_camera.z;
         painter.drawText(QRect(x, y + 20, 150, 55), Qt::AlignHCenter, text);
 
         return 70;
@@ -434,6 +437,32 @@ protected:
         painter.drawText(QRect(5, y + 20, 150, 55), Qt::AlignHCenter, text);
 
         return 45;
+    }
+
+    int draw_geometry_hud(QPainter& painter, int x, int y)
+    {
+        painter.setFont(f_hud);
+        painter.setPen(Qt::white);
+
+        painter.drawText(QRect(x, y, 150, 55), Qt::AlignHCenter, "Geometry");
+
+        QString text;
+
+        QTextStream s_text(&text);
+
+        painter.setPen(Qt::gray);
+        text = "";
+        s_text << "vertices" << '\n' << "segments" << '\n' << "triangles";
+        painter.drawText(QRect(x, y + 20, 150, 55), Qt::AlignLeft, text);
+
+        painter.setPen(Qt::white);
+        text = "";
+        s_text << 7777 << " / " << 9999 << '\n'
+               << 7777 << " / " << 9999 << '\n'
+               << 7777 << " / " << 9999;
+        painter.drawText(QRect(x, y + 20, 150, 55), Qt::AlignRight, text);
+
+        return 70;
     }
 
     int draw_perf_hud(QPainter& painter, int x, int y)

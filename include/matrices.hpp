@@ -5,39 +5,21 @@
 #include <array>
 #include <ostream>
 
-class vec2i
+struct vec2i
 {
-    int _x, _y;
-
-public:
-    vec2i(int x, int y) : _x(x), _y(y) { }
-
-    int x() const { return _x; }
-    int y() const { return _y; }
+    int x, y;
 };
 
-class vec3f
+struct vec3f
 {
-    std::array<float, 3> _xs;
+    float x, y, z;
 
 public:
-//    vec3f(std::array<float, 3> xs) : _xs(xs) { }
-    vec3f(float x, float y, float z) : _xs{x, y, z} { }
+    vec3f(float x, float y, float z) : x(x), y(y), z(z) { }
     vec3f() = default;
 
-    const std::array<float, 3>& xs() const { return _xs; };
-
-    float at(int i) const { return _xs[i]; }
-    float x() const { return _xs[0]; }
-    float y() const { return _xs[1]; }
-    float z() const { return _xs[2]; }
-
-    vec3f& set_x(float x);
-    vec3f& set_y(float y);
-    vec3f& set_z(float z);
-
-    vec3f& operator*=(float x);
-    vec3f operator*(float x) const;
+    vec3f& operator*=(float u);
+    vec3f operator*(float u) const;
 
     vec3f& operator+=(const vec3f& other);
     vec3f operator+(const vec3f& other) const;
@@ -54,7 +36,7 @@ public:
     vec3f& normalize();
     vec3f unit() const;
 
-    friend std::ostream& operator<<(std::ostream& os, const vec3f& v);
+    std::string to_string() const;
 };
 
 class mat_sq4f
@@ -86,7 +68,7 @@ public:
     mat_sq4f transpose() const;
     mat_sq4f inverse() const;
 
-    friend std::ostream& operator<<(std::ostream& os, const mat_sq4f& m);
+    std::string to_string() const;
 };
 
 #endif //DZ_GAIKA_MATRICES_HPP

@@ -30,9 +30,9 @@ mat_sq4f scale_xyz(float sx, float sy, float sz)
 mat_sq4f translate(const vec3f& xs)
 {
     return {
-            1.0f, 0.0f, 0.0f, xs.x(),
-            0.0f, 1.0f, 0.0f, xs.y(),
-            0.0f, 0.0f, 1.0f, xs.z(),
+            1.0f, 0.0f, 0.0f, xs.x,
+            0.0f, 1.0f, 0.0f, xs.y,
+            0.0f, 0.0f, 1.0f, xs.z,
             0.0f, 0.0f, 0.0f, 1.0f
     };
 }
@@ -75,12 +75,12 @@ mat_sq4f rotate_z(float theta)
 
 mat_sq4f rotate_xyz(const vec3f& thetas)
 {
-    return rotate_z(thetas.z()) * rotate_y(thetas.y()) * rotate_x(thetas.x());
+    return rotate_z(thetas.z) * rotate_y(thetas.y) * rotate_x(thetas.x);
 }
 
 mat_sq4f rotate_zyx(const vec3f& thetas)
 {
-    return rotate_x(thetas.x()) * rotate_y(thetas.y()) * rotate_z(thetas.z());
+    return rotate_x(thetas.x) * rotate_y(thetas.y) * rotate_z(thetas.z);
 }
 
 mat_sq4f project_ortho_x()

@@ -7,69 +7,25 @@
 
 #include <iostream> // REMOVE: !
 
-template <typename T, size_t N>
-std::ostream& print_array(std::ostream& os, const std::array<T, N>& xs)
+vec3f& vec3f::operator*=(float u)
 {
-    // TODO: move all this print shit into a separate module
-
-    bool prepend_comma = false;
-
-    for(T x : xs) {
-        if(prepend_comma) {
-            os << ", ";
-        }
-        else {
-            prepend_comma = true;
-        }
-
-        os << x;
-    }
-
-    return os;
-}
-
-//
-
-vec3f& vec3f::set_x(float x)
-{
-    _xs[0] = x;
+    x *= u;
+    y *= u;
+    z *= u;
 
     return *this;
 }
 
-vec3f& vec3f::set_y(float y)
+vec3f vec3f::operator*(float u) const
 {
-    _xs[1] = y;
-
-    return *this;
-}
-
-vec3f& vec3f::set_z(float z)
-{
-    _xs[2] = z;
-
-    return *this;
-}
-
-vec3f& vec3f::operator*=(float x)
-{
-    for(int i = 0; i < 3; i++) {
-        _xs[i] *= x;
-    }
-
-    return *this;
-}
-
-vec3f vec3f::operator*(float x) const
-{
-    return { _xs[0] * x, _xs[1] * x, _xs[2] * x };
+    return { x * u, y * u, z * u };
 }
 
 vec3f& vec3f::operator+=(const vec3f& other)
 {
-    for(int i = 0; i < 3; i++) {
-        _xs[i] += other._xs[i];
-    }
+    x += other.x;
+    y += other.y;
+    z += other.z;
 
     return *this;
 }
@@ -83,9 +39,9 @@ vec3f vec3f::operator+(const vec3f& other) const
 
 vec3f& vec3f::operator*=(const vec3f& other)
 {
-    for(int i = 0; i < 3; i++) {
-        _xs[i] *= other._xs[i];
-    }
+    x *= other.x;
+    y *= other.y;
+    z *= other.z;
 
     return *this;
 }
@@ -99,9 +55,9 @@ vec3f vec3f::operator*(const vec3f& other) const
 
 vec3f& vec3f::operator-=(const vec3f& other)
 {
-    for(int i = 0; i < 3; i++) {
-        _xs[i] -= other._xs[i];
-    }
+    x -= other.x;
+    y -= other.y;
+    z -= other.z;
 
     return *this;
 }
@@ -115,31 +71,32 @@ vec3f vec3f::operator-(const vec3f& other) const
 
 vec3f vec3f::operator-() const
 {
-    return { -x(), -y(), -z() };
+    return { -x, -y, -z };
 }
 
 float vec3f::norm() const
 {
-    return std::sqrt(_xs[0] * _xs[0] + _xs[1] * _xs[1] + _xs[2] * _xs[2]);
+    return std::sqrt(x * x + y * y + z * z);
 }
 
 vec3f& vec3f::normalize()
 {
     const float n = norm();
 
-    return n ? operator*=(1.0f / n) : *this;
+    return n != 0 ? operator*=(1.0f / n) : *this;
 }
 
 vec3f vec3f::unit() const
 {
     const float n = norm();
 
-    return n ? operator*(1.0f / n) : *this;
+    return n != 0 ? operator*(1.0f / n) : *this;
 }
 
-std::ostream& operator<<(std::ostream& os, const vec3f& v)
+std::string vec3f::to_string() const
 {
-    return print_array(os << "(", v.xs()) << ")";
+    // TODO: format the floats
+    return "(" + std::to_string(x) + "," + std::to_string(y) + "," + std::to_string(z) + ")";
 }
 
 //
@@ -178,23 +135,13 @@ mat_sq4f mat_sq4f::operator*(const mat_sq4f& other) const
 
 vec3f mat_sq4f::operator*(const vec3f& v) const
 {
-    std::array<float, 3> new_xs;
+    const float x = rows[0][0] * v.x + rows[0][1] * v.y + rows[0][2] * v.z + rows[0][3];
+    const float y = rows[1][0] * v.x + rows[1][1] * v.y + rows[1][2] * v.z + rows[1][3];
+    const float z = rows[2][0] * v.x + rows[2][1] * v.y + rows[2][2] * v.z + rows[2][3];
 
-    for(size_t i = 0; i < 3; i++) {
-        new_xs[i] = rows[i][3];
+    const float w = rows[3][0] * v.x + rows[3][1] * v.y + rows[3][2] * v.z + rows[3][3];
 
-        for(size_t j = 0; j < 3; j++) {
-            new_xs[i] += rows[i][j] * v.at(j);
-        }
-    }
-
-    float w = rows[3][3];
-
-    for(size_t i = 0; i < 3; i++) {
-        w += rows[3][i] * v.at(i);
-    }
-
-    return { new_xs[0] / w, new_xs[1] / w, new_xs[2] / w };
+    return { x / w, y / w, z / w };
 }
 
 std::vector<vec3f> mat_sq4f::operator*(const std::vector<vec3f>& vs) const
@@ -202,10 +149,6 @@ std::vector<vec3f> mat_sq4f::operator*(const std::vector<vec3f>& vs) const
     std::vector<vec3f> new_vs(vs.size());
 
     std::transform(vs.begin(), vs.end(), new_vs.begin(), [this](const vec3f& v){ return operator*(v); });
-
-//        for(size_t i = 0; i < vs.size(); i++) {
-//            new_vs[i] = operator*(vs[i]);
-//        }
 
     return new_vs;
 }
@@ -257,22 +200,11 @@ mat_sq4f mat_sq4f::inverse() const
     return b;
 }
 
-std::ostream& operator<<(std::ostream& os, const mat_sq4f& m)
+std::string mat_sq4f::to_string() const
 {
-    os << "[";
+    std::string s = "[";
 
-    bool prepend_comma = false;
+    s += "TBI";
 
-    for(const std::array<float, 4>& row : m.rows) {
-        if(prepend_comma) {
-            os << ", ";
-        }
-        else {
-            prepend_comma = true;
-        }
-
-        print_array(os << "(", row) << ")";
-    }
-
-    return os << "]";
+    return s += "]";
 }
