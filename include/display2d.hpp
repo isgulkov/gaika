@@ -145,7 +145,17 @@ protected:
          * This doesn't make sense for perspective projection, where the the image plane's aspect ratio translates
          * into a non-linear relationship between horizontal and vertical angles of view
          */
-        return mx_tx::scale(state.projection.scale()) * mx_tx::scale((float)state.viewport.height / state.viewport.width, 1, 1);
+        mat_sq4f tx_project = mx_tx::scale(state.projection.scale()) * mx_tx::scale((float)state.viewport.height / state.viewport.width, 1, 1);
+
+        if(state.projection.is_parallel()) {
+            /**
+             * Rescale the Z axis from [near; far] like in perspective (for clipping)
+             */
+            tx_project = mx_tx::scale(1, 1, -1.0f / (state.projection.z_far() - state.projection.z_near()))
+                    * mx_tx::translate(0, 0, state.projection.z_near()) * tx_project;
+        }
+
+        return tx_project;
     }
 
     void paintEvent(QPaintEvent* event) override
