@@ -93,9 +93,9 @@ protected:
             return false;
         }
 
-        const bool gandon = (c.x - b.x) * (p.y - b.y) - (c.y - b.y) * (p.x - b.x) > 0;
+        const bool whatever = (c.x - b.x) * (p.y - b.y) - (c.y - b.y) * (p.x - b.x) > 0;
 
-        return gandon == dp_ab;
+        return whatever == dp_ab;
     }
 
 public:

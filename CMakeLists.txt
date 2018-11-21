@@ -11,6 +11,10 @@ target_include_directories(dz04_geometry PUBLIC include)
 # TODO: <- I do need this when hpp/cpp are separated, right?
 #target_link_libraries(dz04_geometry dz04_matrices)
 
+add_library(dz04_obj_io lib/obj_io.cpp)
+target_include_directories(dz04_obj_io PUBLIC include)
+target_link_libraries(dz04_obj_io dz04_matrices)
+
 add_library(dz04_display2d lib/display2d.cpp)
 target_include_directories(dz04_display2d PUBLIC include)
 
@@ -28,6 +32,6 @@ target_link_libraries(dz04_display2d Qt5::Core Qt5::Widgets)
 #set_target_properties(dz04_display2d PROPERTIES AUTOUIC TRUE)
 
 add_executable(dz04_qt src/dz04_qt.cpp resources/resources.qrc)
-target_link_libraries(dz04_qt dz04_display2d dz04_matrices dz04_geometry)
+target_link_libraries(dz04_qt dz04_display2d dz04_matrices dz04_geometry dz04_obj_io)
 
 set_target_properties(dz04_qt PROPERTIES AUTOMOC TRUE)
