@@ -98,11 +98,6 @@ mat_sq4f project_ortho_z()
     return diag(1, 1, 0, 1);
 }
 
-mat_sq4f project_perspective_z(float theta_w, float theta_h)
-{
-    return project_perspective_z(theta_w, theta_h, 0, 1);
-}
-
 mat_sq4f project_perspective_z(float theta_w, float theta_h, float z_near, float z_far)
 {
     return {

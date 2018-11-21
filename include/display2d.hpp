@@ -99,26 +99,15 @@ public:
     bool hovered_multiple;
 
 protected:
-    void paintEvent(QPaintEvent* event) override
+    mat_sq4f create_tx_camera()
     {
-        QPainter painter;
-
-        painter.begin(this);
-        painter.setRenderHint(QPainter::Antialiasing);
-
-//        painter.setBrush(QBrush(Qt::white));
-
-//        painter.eraseRect(0, 0, width, height);
-        painter.fillRect(0, 0, state.viewport.width, state.viewport.height, Qt::black);
-
-        //const
         mat_sq4f tx_camera = mx_tx::translate(-state.camera.pos);
 
         if(!state.projection.is_orthographic()) {
             tx_camera = mx_tx::rotate_xyz(state.camera.orient).transpose() * tx_camera;
         }
         else {
-            // TODO: why isn't this done inside tx_project? (the necessity of the latter is itself questionable, though)
+            // TODO: write row-swap matrices manually (or swap rows on existing ones)
             switch(state.projection.axis()) {
                 case wf_projection::X:
                     tx_camera = mx_tx::rotate_z(-(float)M_PI_2) * mx_tx::rotate_y(-(float)M_PI_2) * tx_camera;
@@ -131,19 +120,56 @@ protected:
             }
         }
 
-        if(!state.projection.is_perspective()) {
-            /**
-             * Squeeze along the horizontal axis (camera's X) to compensate for distortion from displaying the square
-             * visibility box on a non-square viewport.
-             *
-             * This doesn't make sense for perspective projection, where the the image plane's aspect ratio translates
-             * into a non-linear relationship between horizontal and vertical angles of view.
-             */
+        return tx_camera;
+    }
 
-            tx_camera = mx_tx::scale_xyz((float)state.viewport.height / state.viewport.width, 1, 1) * tx_camera;
+    mat_sq4f create_tx_projection()
+    {
+        if(state.projection.is_perspective()) {
+            return mx_tx::project_perspective_z(
+                    state.projection.theta_w(),
+                    state.projection.theta_h(),
+                    state.projection.z_near(),
+                    state.projection.z_far()
+            );
         }
 
-        const mat_sq4f tx_projection = state.projection.tx_project();
+        /**
+         * Squeeze along the horizontal axis (camera's X) to compensate for distortion from displaying the square
+         * visibility box on a non-square viewport.
+         *
+         * This doesn't make sense for perspective projection, where the the image plane's aspect ratio translates
+         * into a non-linear relationship between horizontal and vertical angles of view.
+         */
+         // TODO: we don't do ortho_z here!
+        return mx_tx::project_ortho_z() * mx_tx::scale(state.projection.scale()) * mx_tx::scale_xyz((float)state.viewport.height / state.viewport.width, 1, 1);
+    }
+
+    void paintEvent(QPaintEvent* event) override
+    {
+        QPainter painter;
+
+        painter.begin(this);
+        painter.setRenderHint(QPainter::Antialiasing);
+
+//        painter.setBrush(QBrush(Qt::white));
+
+//        painter.eraseRect(0, 0, width, height);
+        painter.fillRect(0, 0, state.viewport.width, state.viewport.height, Qt::black);
+
+        /**
+         * Camera:
+         *   - cam. rotation | special rotations (orthos, each)
+         *   - none (perspective) | scale for aspect ratio
+         * Projection:
+         *   - for perspective -- mx into (x, y, z, w), just Z=0 for everything else
+         *
+         * Plane clip:
+         *   - z_near | 0 | none
+         */
+
+        const mat_sq4f tx_camera = create_tx_camera();
+        const mat_sq4f tx_projection = create_tx_projection();
 
         hovered_object = nullptr;
         hovered_multiple = false;
