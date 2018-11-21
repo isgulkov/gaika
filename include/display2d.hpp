@@ -193,42 +193,26 @@ protected:
             }
 
             const std::vector<vec3f> vertices_camera = tx_camera * object.vertices_world;
+            const std::vector<vec4f> vertices_clipping = tx_projection.mul_homo(vertices_camera);
 
-            // TODO: rewrite all this clipping
-            std::vector<int> is_behind_camera;
-            is_behind_camera.reserve(vertices_camera.size());
-
-            const float z_clip = state.projection.is_perspective() ? -state.projection.z_near() : 0;
-
-            for(const vec3f& vertex : vertices_camera) {
-                is_behind_camera.push_back(!state.projection.is_orthographic() && vertex.z > z_clip);
-            }
-
-            std::vector<vec3f> vertices_normal;
-
-            if(state.projection.is_perspective()) {
-                const std::vector<vec4f> vertices_clipping = tx_projection.mul_homo(vertices_camera);
-
-                for(const vec4f& v : vertices_clipping) {
-                    vertices_normal.push_back(v.to_cartesian());
-                }
-            }
-            else {
-                std::vector<vec3f> vertices_clipping = tx_projection * vertices_camera;
-
-                // TODO: these need clipping as well -- at least the parallel projection
-                vertices_normal = std::move(vertices_clipping);
-            }
-
+            std::vector<uint8_t> vertex_outcodes(vertices_clipping.size(), 0);
             std::vector<vec2i> vertices_screen;
-            vertices_screen.reserve(vertices_normal.size());
+            vertices_screen.reserve(vertices_clipping.size());
 
-            std::transform(vertices_normal.begin(), vertices_normal.end(),
-                    std::back_inserter(vertices_screen),
-                    [this](const vec3f& v) {
-                        return to_screen(v);
-                    }
-            );
+            for(const vec4f& vertex : vertices_clipping) {
+                uint8_t outcode = 0;
+
+                outcode |= (vertex.y > vertex.w);
+                outcode |= (vertex.y < -vertex.w) << 1;
+                outcode |= (vertex.x > vertex.w) << 2;
+                outcode |= (vertex.x < -vertex.w) << 3;
+                outcode |= (vertex.z > vertex.w) << 4;
+                outcode |= (vertex.z < -vertex.w) << 5;
+
+                vertex_outcodes[vertices_screen.size()] = outcode;
+
+                vertices_screen.push_back(to_screen(vertex.to_cartesian()));
+            }
 
             if(!object.hovered || state.options.hovering_disabled) {
                 painter.setPen(object.color);
@@ -250,49 +234,32 @@ protected:
             painter.setOpacity(0.75);
 
             for(const auto& segment : object.model->segments) {
-                /**
-                 * This is partially broken for perspective projection — artifacts appear with varying frequency,
-                 * depending on z_near.
-                 *
-                 * As it turns out, it's best to do the clipping after multiplying by the perspective matrix, but before
-                 * dividing the coords by w. Ouch! So, I now have to either
-                 *   - rewrite vec3f into vec4f, which frankly seems wasteful, or
-                 *   - rework the camera->screen process into two steps specifically for perspective, which would,
-                 *     besides looking stupid, require a ton of refactoring due to perspective's exclusivity.
-                 *
-                 * TODO: fix for perspective, then set default z_near to 0.1
-                 */
-
-                if(is_behind_camera[segment.first] && is_behind_camera[segment.second]) {
+                if(vertex_outcodes[segment.first] != 0 || vertex_outcodes[segment.second] != 0) {
                     continue;
                 }
 
-                if(!is_behind_camera[segment.first] && !is_behind_camera[segment.second]) {
-                    draw_line(painter, vertices_screen[segment.first], vertices_screen[segment.second]);
+                draw_line(painter, vertices_screen[segment.first], vertices_screen[segment.second]);
 
-                    continue;
-                }
-
-                uint32_t i_a = segment.first, i_b = segment.second;
-
-                if(is_behind_camera[i_a]) {
-                    std::swap(i_a, i_b);
-                }
-
-                const vec3f& a = vertices_camera[i_a], b = vertices_camera[i_b];
-
-                const float t = (z_clip - a.z) / (b.z - a.z);
-                const vec3f c = { a.x + t * (b.x - a.x), a.y + t * (b.y - a.y), z_clip };
-
-                draw_line(painter, vertices_screen[i_a], to_screen(tx_projection * c));
+//                uint32_t i_a = segment.first, i_b = segment.second;
+//
+//                if(is_behind_camera[i_a]) {
+//                    std::swap(i_a, i_b);
+//                }
+//
+//                const vec3f& a = vertices_camera[i_a], b = vertices_camera[i_b];
+//
+//                const float t = (z_clip - a.z) / (b.z - a.z);
+//                const vec3f c = { a.x + t * (b.x - a.x), a.y + t * (b.y - a.y), z_clip };
+//
+//                draw_line(painter, vertices_screen[i_a], to_screen(tx_projection * c));
             }
 
+            painter.setOpacity(0.375); // Every segment gets drawn twice
+
             for(const auto& triangle : object.model->triangles) {
-                if(is_behind_camera[std::get<0>(triangle)] || is_behind_camera[std::get<1>(triangle)] || is_behind_camera[std::get<2>(triangle)]) {
+                if(vertex_outcodes[std::get<0>(triangle)] != 0 || vertex_outcodes[std::get<1>(triangle)] != 0 || vertex_outcodes[std::get<2>(triangle)] != 0) {
                     continue;
                 }
-
-                painter.setOpacity(0.375); // Every segment gets drawn twice
 
                 const vec2i a = vertices_screen[std::get<0>(triangle)],
                         b = vertices_screen[std::get<1>(triangle)],
