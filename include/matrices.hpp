@@ -25,8 +25,9 @@ struct vec3f
     vec3f& operator+=(const vec3f& other);
     vec3f operator+(const vec3f& other) const;
 
-    vec3f& operator*=(const vec3f& other);
-    vec3f operator*(const vec3f& other) const;
+//    vec3f& operator*=(const vec3f& other);
+    float operator*(const vec3f& other) const;
+    vec3f cross(const vec3f& other) const;
 
     vec3f& operator-=(const vec3f& other);
     vec3f operator-(const vec3f& other) const;

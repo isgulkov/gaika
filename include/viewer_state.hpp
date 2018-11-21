@@ -161,6 +161,8 @@ struct wf_state
         bool free_look = false;
         bool hovering_disabled = false;
         bool hovering_limited = false;
+
+        bool use_backface_cull = true;
     } options;
 
     struct {

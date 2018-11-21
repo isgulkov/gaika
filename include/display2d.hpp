@@ -52,6 +52,7 @@ public:
             hud_projection = true,
             hud_viewport = false,
             hud_geometry = false,
+            hud_render_options = true,
             hud_performance = false;
 
 protected:
@@ -192,6 +193,22 @@ protected:
                 object.vertices_world = tx_world * object.model->vertices;
             }
 
+            // TODO: decide whether to copy stuff over instead of setting flags
+            std::vector<char> tri_culled;
+
+            if(state.options.use_backface_cull) {
+                tri_culled.resize(object.model->triangles.size(), false);
+                size_t i_triangle = tri_culled.size() - 1;
+
+                for(const auto& triangle : object.model->triangles) {
+                    const vec3f& a = object.vertices_world[std::get<0>(triangle)],
+                            b = object.vertices_world[std::get<1>(triangle)],
+                            c = object.vertices_world[std::get<2>(triangle)];
+
+                    tri_culled[i_triangle--] = (state.camera.pos - a) * (b - a).cross(c - a) >= 0;
+                }
+            }
+
             const std::vector<vec4f> vertices_clipping = tx_projection.mul_homo(tx_camera * object.vertices_world);
 
             std::vector<uint8_t> vertex_outcodes(vertices_clipping.size(), 0);
@@ -253,9 +270,12 @@ protected:
 //                draw_line(painter, vertices_screen[i_a], to_screen(tx_projection * c));
             }
 
-            painter.setOpacity(0.375); // Every segment gets drawn twice
-
             for(const auto& triangle : object.model->triangles) {
+                if(state.options.use_backface_cull) {
+                    painter.setOpacity(tri_culled.back() ? 0.25 : 0.75);
+                    tri_culled.pop_back();
+                }
+
                 if(vertex_outcodes[std::get<0>(triangle)] != 0 || vertex_outcodes[std::get<1>(triangle)] != 0 || vertex_outcodes[std::get<2>(triangle)] != 0) {
                     continue;
                 }
@@ -306,6 +326,10 @@ protected:
 
         if(hud_geometry) {
             y_hud += draw_geometry_hud(painter, 5, y_hud);
+        }
+
+        if(hud_render_options) {
+            y_hud += draw_render_options_hud(painter, 5, y_hud);
         }
 
         if(hud_performance) {
@@ -475,6 +499,29 @@ protected:
         s_text << 7777 << " / " << 9999 << '\n'
                << 7777 << " / " << 9999 << '\n'
                << 7777 << " / " << 9999;
+        painter.drawText(QRect(x, y + 20, 150, 55), Qt::AlignRight, text);
+
+        return 70;
+    }
+
+    int draw_render_options_hud(QPainter& painter, int x, int y)
+    {
+        painter.setFont(f_hud);
+        painter.setPen(Qt::white);
+
+        painter.drawText(QRect(x, y, 150, 55), Qt::AlignHCenter, "Render options");
+
+        QString text;
+
+        QTextStream s_text(&text);
+
+        text = "";
+        s_text << "Backface cull" << '\n' << "Segment clip" << '\n' << "Polygon clip";
+        painter.drawText(QRect(x, y + 20, 150, 55), Qt::AlignLeft, text);
+
+        painter.setPen(Qt::white);
+        text = "";
+        s_text << (state.options.use_backface_cull ? "ON" : "off") << '\n' << "--" << '\n' << "--";
         painter.drawText(QRect(x, y + 20, 150, 55), Qt::AlignRight, text);
 
         return 70;
