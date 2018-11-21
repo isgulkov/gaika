@@ -347,6 +347,17 @@ protected:
         }
     }
 
+    void focusOutEvent(QFocusEvent* event) override
+    {
+        state.controls.forward = state.controls.left
+                = state.controls.back = state.controls.right
+                = state.controls.jump = state.controls.duck = false;
+
+        if(mousetrap_on) {
+            stop_mousetrap();
+        }
+    }
+
     void wheelEvent(QWheelEvent* event) override
     {
         if(state.projection.is_perspective()) {
