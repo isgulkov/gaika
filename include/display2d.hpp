@@ -148,14 +148,72 @@ protected:
         mat_sq4f tx_project = mx_tx::scale(state.projection.scale()) * mx_tx::scale((float)state.viewport.height / state.viewport.width, 1, 1);
 
         if(state.projection.is_parallel()) {
-            /**
-             * Rescale the Z axis from [near; far] like in perspective (for clipping)
-             */
-            tx_project = mx_tx::scale(1, 1, -1.0f / (state.projection.z_far() - state.projection.z_near()))
-                    * mx_tx::translate(0, 0, state.projection.z_near()) * tx_project;
+            // TODO: reconcile the scale with the Z mapping (right now the far plane is a bit close)
+            return mx_tx::scale(1, 1, -1.0f / (state.projection.z_far() - state.projection.z_near()))
+                         * mx_tx::translate(0, 0, -state.projection.z_near())
+                         * mx_tx::scale(state.projection.scale(), state.projection.scale(), 1)
+                         * mx_tx::scale((float)state.viewport.height / state.viewport.width, 1, 1);
         }
 
+        // TODO: for orthographic -- don't Z-clip, fix culling direction
         return tx_project;
+    }
+
+    bool intersect_line_frustum(uint8_t outcode, const vec4f& a, const vec4f& b, vec4f& p_result)
+    {
+        // TODO: t_in and t_out
+        const vec4f d = b - a;
+
+        float t;
+
+        do {
+            if(outcode & 1) {
+                t = (a.w - a.x) / (d.x - d.w);
+                if(t > 0 && t < 1) {
+                    break;
+                }
+            }
+
+            if((outcode >>= 1) & 1) {
+                t = -(a.w + a.x) / (d.x + d.w);
+                if(t > 0 && t < 1) {
+                    break;
+                }
+            }
+
+            if((outcode >>= 1) & 1) {
+                t = (a.w - a.y) / (d.y - d.w);
+                if(t > 0 && t < 1) {
+                    break;
+                }
+            }
+
+            if((outcode >>= 1) & 1) {
+                t = -(a.w + a.y) / (d.y + d.w);
+                if(t > 0 && t < 1) {
+                    break;
+                }
+            }
+
+            if((outcode >>= 1) & 1) {
+                t = (a.w - a.z) / (d.z - d.w);
+                if(t > 0 && t < 1) {
+                    break;
+                }
+            }
+
+            if((outcode >>= 1) & 1) {
+                t = -a.z / d.z;
+                if(t > 0 && t < 1) {
+                    break;
+                }
+            }
+
+            return false;
+        } while(false);
+
+        p_result = a + d * t;
+        return true;
     }
 
     void paintEvent(QPaintEvent* event) override
@@ -169,17 +227,6 @@ protected:
 
 //        painter.eraseRect(0, 0, width, height);
         painter.fillRect(0, 0, state.viewport.width, state.viewport.height, Qt::black);
-
-        /**
-         * Camera:
-         *   - cam. rotation | special rotations (orthos, each)
-         *   - none (perspective) | scale for aspect ratio
-         * Projection:
-         *   - for perspective -- mx into (x, y, z, w), just Z=0 for everything else
-         *
-         * Plane clip:
-         *   - z_near | 0 | none
-         */
 
         const mat_sq4f tx_camera = create_tx_camera();
         const mat_sq4f tx_projection = create_tx_projection();
@@ -228,12 +275,12 @@ protected:
             for(const vec4f& vertex : vertices_clipping) {
                 uint8_t outcode = 0;
 
-                outcode |= (vertex.y > vertex.w);
-                outcode |= (vertex.y < -vertex.w) << 1;
-                outcode |= (vertex.x > vertex.w) << 2;
-                outcode |= (vertex.x < -vertex.w) << 3;
+                outcode |= (vertex.x > vertex.w);
+                outcode |= (vertex.x < -vertex.w) << 1;
+                outcode |= (vertex.y > vertex.w) << 2;
+                outcode |= (vertex.y < -vertex.w) << 3;
                 outcode |= (vertex.z > vertex.w) << 4;
-                outcode |= (vertex.z < -vertex.w) << 5;
+                outcode |= (vertex.z < 0) << 5;
 
                 vertex_outcodes[vertices_screen.size()] = outcode;
 
@@ -260,24 +307,41 @@ protected:
             painter.setOpacity(0.75);
 
             for(const auto& segment : object.model->segments) {
-                if(vertex_outcodes[segment.first] != 0 || vertex_outcodes[segment.second] != 0) {
+                if(vertex_outcodes[segment.first] & vertex_outcodes[segment.second]) {
                     continue;
                 }
 
-                draw_line(painter, vertices_screen[segment.first], vertices_screen[segment.second]);
+                const uint8_t ab_out = vertex_outcodes[segment.first] | vertex_outcodes[segment.second];
 
-//                uint32_t i_a = segment.first, i_b = segment.second;
-//
-//                if(is_behind_camera[i_a]) {
-//                    std::swap(i_a, i_b);
-//                }
-//
-//                const vec3f& a = vertices_camera[i_a], b = vertices_camera[i_b];
-//
-//                const float t = (z_clip - a.z) / (b.z - a.z);
-//                const vec3f c = { a.x + t * (b.x - a.x), a.y + t * (b.y - a.y), z_clip };
-//
-//                draw_line(painter, vertices_screen[i_a], to_screen(tx_projection * c));
+                if(!ab_out) {
+                    draw_line(painter, vertices_screen[segment.first], vertices_screen[segment.second]);
+                    continue;
+                }
+
+                // TODO: refactor with t_in and t_out
+                // TODO: there are still occasional artifacts as well
+                uint32_t i_a = segment.first, i_b = segment.second;
+
+                if(vertex_outcodes[i_a]) {
+                    std::swap(i_a, i_b);
+                }
+
+                vec4f b = vertices_clipping[i_b];
+
+                if(!intersect_line_frustum(ab_out, vertices_clipping[i_a], b, b)) {
+                    continue;
+                }
+
+                if(!vertex_outcodes[i_a]) {
+                    draw_line(painter, vertices_screen[i_a], to_screen(b.to_cartesian()));
+                    continue;
+                }
+
+                vec4f a = vertices_clipping[i_a];
+
+                if(intersect_line_frustum(ab_out, b, a, a)) {
+                    draw_line(painter, to_screen(a.to_cartesian()), to_screen(b.to_cartesian()));
+                }
             }
 
             for(const auto& triangle : object.model->triangles) {

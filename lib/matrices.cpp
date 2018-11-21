@@ -41,9 +41,9 @@ vec3f& vec3f::operator+=(const vec3f& other)
 
 vec3f vec3f::operator+(const vec3f& other) const
 {
-    vec3f product = *this;
+    vec3f result = *this;
 
-    return product += other;
+    return result += other;
 }
 
 float vec3f::operator*(const vec3f& other) const
@@ -98,9 +98,52 @@ std::string vec3f::to_string() const
 
 //
 
+vec4f& vec4f::operator*=(float u)
+{
+    x *= u;
+    y *= u;
+    z *= u;
+    w *= u;
+
+    return *this;
+}
+
+vec4f vec4f::operator*(float u) const
+{
+    return { x * u, y * u, z * u, w * u };
+}
+
+vec4f& vec4f::operator+=(const vec4f& other)
+{
+    x += other.x;
+    y += other.y;
+    z += other.z;
+    w += other.w;
+
+    return *this;
+}
+
+vec4f vec4f::operator+(const vec4f& other) const
+{
+    return { x + other.x, y + other.y, z + other.z, w + other.w };
+}
+
+vec4f vec4f::operator-(const vec4f& other) const
+{
+    return { x - other.x, y - other.y, z - other.z, w - other.w };
+}
+
 vec3f vec4f::to_cartesian() const
 {
     return { x / w, y / w, z / w };
+}
+
+std::string vec4f::to_string() const
+{
+    return (
+            std::stringstream() << std::fixed << std::setprecision(2)
+                                << "(" << x << "," << y << "," << z << "," << w << ")"
+    ).str();
 }
 
 //

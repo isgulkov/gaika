@@ -45,7 +45,17 @@ struct vec4f
 {
     float x, y, z, w;
 
+    vec4f& operator*=(float u);
+    vec4f operator*(float u) const;
+
+    vec4f& operator+=(const vec4f& other);
+    vec4f operator+(const vec4f& other) const;
+
+    vec4f operator-(const vec4f& other) const;
+
     vec3f to_cartesian() const;
+
+    std::string to_string() const;
 };
 
 class mat_sq4f
