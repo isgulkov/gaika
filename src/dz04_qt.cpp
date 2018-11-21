@@ -94,18 +94,18 @@ class wf_viewer : public QMainWindow
         }
 
         state.th_objects = std::vector<wf_state::th_object> {
-                { disco_floor, { 0, 0, 0 }, { 0, 0, 0 }, 1, QColor::fromRgb(0, 127, 0) },
-                { fat, { 3, -3, 0.25f }, { 0, 0, 0.1f }, 0.25f, QColor::fromRgb(255, 150, 0) },
-                { fat, { -4, -4, 0.5f }, { 0, 0, 0.2f }, 1, QColor::fromRgb(255, 190, 0) },
-                { fat, { -5, 5, 0.75f }, { 0, 0, 0.3f }, 1.25f, QColor::fromRgb(255, 230, 0) },
-                { fat, { 7.5f, 7.5f, 0 }, { 0, 0, 0.4f }, 1.5f, QColor::fromRgb(255, 255, 0) },
-                { center, { 0, 0, -1.0f }, { 0, 0, 0.5f }, 1, QColor::fromRgb(255, 255, 255) },
-                { center, { 0, 0, -0.5f }, { 0, 0, 1 }, 1, QColor::fromRgb(255, 255, 255) },
-                { center, { 0, 0, 0 }, { 0, 0, 0 }, 1, QColor::fromRgb(255, 255, 255) },
-                { skinny, { 0, 0, 0 }, { 0, 0, 0 }, 1, QColor::fromRgb(255, 0, 0) },
-                { skinny, { 0, 0, 0 }, { 0, 0, 1.57f }, 1, QColor::fromRgb(0, 255, 0) },
-                { skinny, { 0, 0, 0 }, { 0, -1.57f, 0 }, 1, QColor::fromRgb(0, 0, 255) },
-                { cuboid, { 10, 10, 0 }, { 0, 0, 0 }, 1, QColor::fromRgb(255, 105, 180) }
+                { disco_floor, { 0, 0, 0 }, { 0, 0, 0 }, 1, false, false, QColor::fromRgb(0, 127, 0) },
+                { fat, { 3, -3, 0.25f }, { 0, 0, 0.1f }, 0.25f, true, false, QColor::fromRgb(255, 150, 0) },
+                { fat, { -4, -4, 0.5f }, { 0, 0, 0.2f }, 1, true, false, QColor::fromRgb(255, 190, 0) },
+                { fat, { -5, 5, 0.75f }, { 0, 0, 0.3f }, 1.25f, true, false, QColor::fromRgb(255, 230, 0) },
+                { fat, { 7.5f, 7.5f, 0 }, { 0, 0, 0.4f }, 1.5f, true, false, QColor::fromRgb(255, 255, 0) },
+                { center, { 0, 0, -1.0f }, { 0, 0, 0.5f }, 1, true, false, QColor::fromRgb(255, 255, 255) },
+                { center, { 0, 0, -0.5f }, { 0, 0, 1 }, 1, true, false, QColor::fromRgb(255, 255, 255) },
+                { center, { 0, 0, 0 }, { 0, 0, 0 }, 1, true, false, QColor::fromRgb(255, 255, 255) },
+                { skinny, { 0, 0, 0 }, { 0, 0, 0 }, 1, false, false, QColor::fromRgb(255, 0, 0) },
+                { skinny, { 0, 0, 0 }, { 0, 0, 1.57f }, 1, false, false, QColor::fromRgb(0, 255, 0) },
+                { skinny, { 0, 0, 0 }, { 0, -1.57f, 0 }, 1, false, false, QColor::fromRgb(0, 0, 255) },
+                { cuboid, { 10, 10, 0 }, { 0, 0, 0 }, 1, false, false, QColor::fromRgb(255, 105, 180) }
         };
 
         state.camera = {
@@ -161,9 +161,9 @@ public:
 public slots:
     void tick()
     {
-        // TODO: skip rendering frames to catch up?
-
-        // Do routine updates
+        /**
+         * 1. Perform (regular) state updates
+         */
         const float sec_since_update = last_update.elapsed() / 1000.0f;
         last_update.restart();
 
@@ -173,8 +173,6 @@ public slots:
              * events -- otherwise, a noticeable jitter appears when circle-strafing, etc.
              *
              * Amusingly, the google result where I've got this was about Unity scripting.
-             *
-             * TODO: try applying a moving average over several frames
              */
             update_mousetrap();
         }
@@ -182,9 +180,31 @@ public slots:
         state.camera.pos += state.v_camera * sec_since_update;
         state.v_camera = calculate_v_camera();
 
-        // Redraw
+        /**
+         * 2. Redraw
+         *
+         * TODO: skip frames to catch up?
+         */
+
+        /**
+         * For marking objects under the mouse pointer the triangles' screen coords are good enough, so it's done
+         * immediately in the renderer's paint method
+         *
+         * Processing is placed before the update() call to emphasise that the results are from the previous frame
+         *
+         * TODO: investigate the sensitivity issue that the hovering code seems to cause -- probably has to do with FPS
+         */
+        if(!(state.options.hovering_disabled = !state.projection.is_orthographic() && !mousetrap_on)) {
+            state.options.hovering_limited = p_widget->hovered_multiple;
+        }
+
+        // TODO: ... do something with the hovered object ...
+
         p_widget->update();
 
+        /**
+         * 3. Schedule the next iteration
+         */
         const int64_t t_left = t_tick_target - last_tick_end.elapsed();
 
         QTimer::singleShot(std::max(0LL, t_left), this, &wf_viewer::tick);
@@ -385,7 +405,7 @@ protected:
     }
 
     /**
-     * Smooth the angular velocity with a 2-frame moving average. The improvement is noticeable on a 1920-wide viewport.
+     * Smooth the angular velocity with a 2-frame moving average. The improvement is noticeable on a 1920-wide viewport
      */
     float r_xprev, r_yprev;
 

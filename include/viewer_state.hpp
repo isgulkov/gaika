@@ -122,6 +122,9 @@ struct wf_state
         vec3f pos, orient;
         float scale;
 
+        bool hoverable;
+        mutable bool hovered;
+
         QColor color;
     };
 
@@ -151,6 +154,8 @@ struct wf_state
 
     struct {
         bool free_look = false;
+        bool hovering_disabled = false;
+        bool hovering_limited = false;
     } options;
 
     struct {

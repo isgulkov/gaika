@@ -44,7 +44,12 @@ public:
 
 //    void resizeEvent(QResizeEvent* event) override { }
 
-    bool hud_camera = true, hud_projection = true, hud_viewport = true;
+    bool hud_crosshair = true,
+            hud_camera = true,
+            hud_projection = true,
+            hud_viewport = true,
+            hud_geometry = true,
+            hud_performance = true;
 
 protected:
     static void draw_line(QPainter& painter, vec2i a, vec2i b)
@@ -71,6 +76,29 @@ protected:
         return { 2.0f * v.x() / state.viewport.width - 1.0f, -2.0f * y() / state.viewport.height + 1.0f, 0 };
     }
 
+    static bool test_p_in_triangle(const vec2i& p, const vec2i& a, const vec2i& b, const vec2i& c)
+    {
+        // TODO: figure out how this works and document
+        const int x_ap = p.x() - a.x();
+        const int y_ap = p.y() - a.y();
+
+        const bool dp_ab = (b.x() - a.x()) * y_ap - (b.y() - a.y()) * x_ap > 0;
+        const bool dp_ac = (c.x() - a.x()) * y_ap - (c.y() - a.y()) * x_ap > 0;
+
+        if(dp_ab == dp_ac) {
+            return false;
+        }
+
+        const bool gandon = (c.x() - b.x()) * (p.y() - b.y()) - (c.y() - b.y()) * (p.x() - b.x()) > 0;
+
+        return gandon == dp_ab;
+    }
+
+public:
+    const wf_state::th_object* hovered_object;
+    bool hovered_multiple;
+
+protected:
     void paintEvent(QPaintEvent* event) override
     {
         QPainter painter;
@@ -108,8 +136,8 @@ protected:
              * Squeeze along the horizontal axis (camera's X) to compensate for distortion from displaying the square
              * visibility box on a non-square viewport.
              *
-             * This doesn't apply to perspective projection, where the relationship between horizontal and vertical
-             * angles of view is a bit more complex.
+             * This doesn't make sense for perspective projection, where the the image plane's aspect ratio translates
+             * into a non-linear relationship between horizontal and vertical angles of view.
              */
 
             tx_camera = mx_tx::scale_xyz((float)state.viewport.height / state.viewport.width, 1, 1) * tx_camera;
@@ -117,8 +145,14 @@ protected:
 
         const mat_sq4f tx_projection = state.projection.tx_project();
 
+        hovered_object = nullptr;
+        hovered_multiple = false;
+
+        const QPoint p_cursor = mapFromGlobal(QCursor::pos());
+        const vec2i p{ p_cursor.x(), p_cursor.y() };
+
         // TODO: benchmark, split up between CPU threads
-        for(wf_state::th_object object : state.th_objects) {
+        for(const wf_state::th_object& object : state.th_objects) {
             const mat_sq4f tx_world = mx_tx::translate(object.pos) * mx_tx::rotate_xyz(object.orient) *
                     mx_tx::scale(object.scale);
 
@@ -140,7 +174,22 @@ protected:
                 vertices_screen.emplace_back(to_screen(vertex));
             }
 
-            painter.setPen(object.color);
+            if(!object.hovered || state.options.hovering_disabled) {
+                painter.setPen(object.color);
+            }
+            else {
+                if(state.options.hovering_limited) {
+                    QPen pen(object.color);
+                    pen.setDashPattern({ 1, 5 });
+
+                    painter.setPen(pen);
+                }
+                else {
+                    painter.setPen(QPen(object.color, 3, Qt::DashLine));
+                }
+            }
+
+            object.hovered = false;
 
             for(const auto& segment : object.model->segments) {
                 if(is_behind_camera[segment.first] || is_behind_camera[segment.second]) {
@@ -159,10 +208,33 @@ protected:
 
                 painter.setOpacity(0.375); // Every segment gets drawn twice
 
-                draw_line(painter, vertices_screen[std::get<0>(triangle)], vertices_screen[std::get<1>(triangle)]);
-                draw_line(painter, vertices_screen[std::get<0>(triangle)], vertices_screen[std::get<2>(triangle)]);
-                draw_line(painter, vertices_screen[std::get<1>(triangle)], vertices_screen[std::get<2>(triangle)]);
+                const vec2i a = vertices_screen[std::get<0>(triangle)],
+                        b = vertices_screen[std::get<1>(triangle)],
+                        c = vertices_screen[std::get<2>(triangle)];
+
+                draw_line(painter, a, b);
+                draw_line(painter, a, c);
+                draw_line(painter, b, c);
+
+                if(state.options.hovering_disabled) {
+                    continue;
+                }
+
+                if(!object.hovered && object.hoverable && test_p_in_triangle(p, a, b, c)) {
+                    object.hovered = true;
+
+                    if(!hovered_multiple && hovered_object != nullptr) {
+                        hovered_multiple = true;
+                        hovered_object = nullptr;
+                    }
+
+                    hovered_object = &object;
+                }
             }
+        }
+
+        if(hud_crosshair) {
+            draw_crosshair(painter);
         }
 
         painter.setOpacity(1.0);
@@ -185,6 +257,18 @@ protected:
         }
 
         painter.end();
+    }
+
+    void draw_crosshair(QPainter& painter)
+    {
+        if(!state.options.free_look) {
+            return;
+        }
+
+        painter.setOpacity(0.75);
+        painter.setPen(QPen(Qt::white, 1, Qt::DotLine));
+
+        painter.drawArc(state.viewport.width / 2 - 2, state.viewport.height / 2 - 2, 5, 5, 0, 16 * 360);
     }
 
     QFont f_hud{"Courier"};
