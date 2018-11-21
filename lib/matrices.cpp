@@ -100,6 +100,13 @@ std::string vec3f::to_string() const
 
 //
 
+vec3f vec4f::to_cartesian() const
+{
+    return { x / w, y / w, z / w };
+}
+
+//
+
 float mat_sq4f::at(int i_row, int j_col) const
 {
     return rows[i_row][j_col];
@@ -143,11 +150,30 @@ vec3f mat_sq4f::operator*(const vec3f& v) const
     return { x / w, y / w, z / w };
 }
 
+vec4f mat_sq4f::mul_homo(const vec3f& v) const
+{
+    const float x = rows[0][0] * v.x + rows[0][1] * v.y + rows[0][2] * v.z + rows[0][3];
+    const float y = rows[1][0] * v.x + rows[1][1] * v.y + rows[1][2] * v.z + rows[1][3];
+    const float z = rows[2][0] * v.x + rows[2][1] * v.y + rows[2][2] * v.z + rows[2][3];
+    const float w = rows[3][0] * v.x + rows[3][1] * v.y + rows[3][2] * v.z + rows[3][3];
+
+    return { x, y, z, w };
+}
+
 std::vector<vec3f> mat_sq4f::operator*(const std::vector<vec3f>& vs) const
 {
     std::vector<vec3f> new_vs(vs.size());
 
     std::transform(vs.begin(), vs.end(), new_vs.begin(), [this](const vec3f& v){ return operator*(v); });
+
+    return new_vs;
+}
+
+std::vector<vec4f> mat_sq4f::mul_homo(const std::vector<vec3f>& vs) const
+{
+    std::vector<vec4f> new_vs(vs.size());
+
+    std::transform(vs.begin(), vs.end(), new_vs.begin(), [this](const vec3f& v){ return mul_homo(v); });
 
     return new_vs;
 }

@@ -3,6 +3,8 @@
 #define DZ_GAIKA_DISPLAY2D_HPP
 
 #include <utility>
+#include <algorithm>
+#include <iterator>
 #include <cmath>
 
 #include <QString>
@@ -190,8 +192,9 @@ protected:
                 object.vertices_world = tx_world * object.model->vertices;
             }
 
-            std::vector<vec3f> vertices_camera = tx_camera * object.vertices_world;
+            const std::vector<vec3f> vertices_camera = tx_camera * object.vertices_world;
 
+            // TODO: rewrite all this clipping
             std::vector<int> is_behind_camera;
             is_behind_camera.reserve(vertices_camera.size());
 
@@ -201,15 +204,31 @@ protected:
                 is_behind_camera.push_back(!state.projection.is_orthographic() && vertex.z > z_clip);
             }
 
-            std::vector<vec3f> vertices_clipping = tx_projection * vertices_camera;
+            std::vector<vec3f> vertices_normal;
+
+            if(state.projection.is_perspective()) {
+                const std::vector<vec4f> vertices_clipping = tx_projection.mul_homo(vertices_camera);
+
+                for(const vec4f& v : vertices_clipping) {
+                    vertices_normal.push_back(v.to_cartesian());
+                }
+            }
+            else {
+                std::vector<vec3f> vertices_clipping = tx_projection * vertices_camera;
+
+                // TODO: these need clipping as well -- at least the parallel projection
+                vertices_normal = std::move(vertices_clipping);
+            }
 
             std::vector<vec2i> vertices_screen;
-            vertices_screen.reserve(vertices_clipping.size());
+            vertices_screen.reserve(vertices_normal.size());
 
-            // TODO: isn't there an STL algorithm for this?
-            for(const vec3f& vertex : vertices_clipping) {
-                vertices_screen.emplace_back(to_screen(vertex));
-            }
+            std::transform(vertices_normal.begin(), vertices_normal.end(),
+                    std::back_inserter(vertices_screen),
+                    [this](const vec3f& v) {
+                        return to_screen(v);
+                    }
+            );
 
             if(!object.hovered || state.options.hovering_disabled) {
                 painter.setPen(object.color);

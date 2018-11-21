@@ -3,10 +3,12 @@
 #define DZ_GAIKA_MATRICES_HPP
 
 #include <array>
-#include <ostream>
+
+// TODO: put each of the classes into a separate file
 
 struct vec2i
 {
+    // REMOVE: just use Qt's point for this? it's only ever screen coords, anyway
     int x, y;
 };
 
@@ -14,7 +16,6 @@ struct vec3f
 {
     float x, y, z;
 
-public:
     vec3f(float x, float y, float z) : x(x), y(y), z(z) { }
     vec3f() = default;
 
@@ -39,6 +40,13 @@ public:
     std::string to_string() const;
 };
 
+struct vec4f
+{
+    float x, y, z, w;
+
+    vec3f to_cartesian() const;
+};
+
 class mat_sq4f
 {
     std::array<std::array<float, 4>, 4> rows;
@@ -57,8 +65,12 @@ public:
     static mat_sq4f identity();
 
     mat_sq4f operator*(const mat_sq4f& other) const;
+
     vec3f operator*(const vec3f& v) const;
+    vec4f mul_homo(const vec3f& v) const;
+
     std::vector<vec3f> operator*(const std::vector<vec3f>& vs) const;
+    std::vector<vec4f> mul_homo(const std::vector<vec3f>& vs) const;
 
 private:
     void multiply_row(int i_row, float x);
