@@ -192,8 +192,7 @@ protected:
                 object.vertices_world = tx_world * object.model->vertices;
             }
 
-            const std::vector<vec3f> vertices_camera = tx_camera * object.vertices_world;
-            const std::vector<vec4f> vertices_clipping = tx_projection.mul_homo(vertices_camera);
+            const std::vector<vec4f> vertices_clipping = tx_projection.mul_homo(tx_camera * object.vertices_world);
 
             std::vector<uint8_t> vertex_outcodes(vertices_clipping.size(), 0);
             std::vector<vec2i> vertices_screen;
