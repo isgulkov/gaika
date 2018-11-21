@@ -19,6 +19,7 @@
 #include <QPen>
 #include <QApplication>
 #include <QSurfaceFormat>
+#include <QDebug>
 
 #include "matrices.hpp"
 #include "geometry.hpp"
@@ -136,13 +137,12 @@ protected:
 
         /**
          * Squeeze along the horizontal axis (camera's X) to compensate for distortion from displaying the square
-         * visibility box on a non-square viewport.
+         * visibility box on a non-square viewport
          *
          * This doesn't make sense for perspective projection, where the the image plane's aspect ratio translates
-         * into a non-linear relationship between horizontal and vertical angles of view.
+         * into a non-linear relationship between horizontal and vertical angles of view
          */
-         // TODO: we don't do ortho_z here!
-        return mx_tx::project_ortho_z() * mx_tx::scale(state.projection.scale()) * mx_tx::scale_xyz((float)state.viewport.height / state.viewport.width, 1, 1);
+        return mx_tx::scale(state.projection.scale()) * mx_tx::scale((float)state.viewport.height / state.viewport.width, 1, 1);
     }
 
     void paintEvent(QPaintEvent* event) override
@@ -201,13 +201,13 @@ protected:
                 is_behind_camera.push_back(!state.projection.is_orthographic() && vertex.z > z_clip);
             }
 
-            std::vector<vec3f> vertices_projected = tx_projection * vertices_camera;
+            std::vector<vec3f> vertices_clipping = tx_projection * vertices_camera;
 
             std::vector<vec2i> vertices_screen;
-            vertices_screen.reserve(vertices_projected.size());
+            vertices_screen.reserve(vertices_clipping.size());
 
             // TODO: isn't there an STL algorithm for this?
-            for(const vec3f& vertex : vertices_projected) {
+            for(const vec3f& vertex : vertices_clipping) {
                 vertices_screen.emplace_back(to_screen(vertex));
             }
 

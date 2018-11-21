@@ -22,19 +22,24 @@ mat_sq4f scale(float s)
     return diag(1, 1, 1, 1.0f / s);
 }
 
-mat_sq4f scale_xyz(float sx, float sy, float sz)
+mat_sq4f scale(float sx, float sy, float sz)
 {
     return diag(sx, sy, sz, 1);
 }
 
-mat_sq4f translate(const vec3f& xs)
+mat_sq4f translate(float dx, float dy, float dz)
 {
     return {
-            1.0f, 0.0f, 0.0f, xs.x,
-            0.0f, 1.0f, 0.0f, xs.y,
-            0.0f, 0.0f, 1.0f, xs.z,
+            1.0f, 0.0f, 0.0f, dx,
+            0.0f, 1.0f, 0.0f, dy,
+            0.0f, 0.0f, 1.0f, dz,
             0.0f, 0.0f, 0.0f, 1.0f
     };
+}
+
+mat_sq4f translate(const vec3f& xs)
+{
+    return translate(xs.x, xs.y, xs.z);
 }
 
 mat_sq4f rotate_x(float theta)

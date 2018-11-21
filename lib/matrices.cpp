@@ -4,8 +4,8 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
-
-#include <iostream> // REMOVE: !
+#include <sstream>
+#include <iomanip>
 
 vec3f& vec3f::operator*=(float u)
 {
@@ -95,8 +95,7 @@ vec3f vec3f::unit() const
 
 std::string vec3f::to_string() const
 {
-    // TODO: format the floats
-    return "(" + std::to_string(x) + "," + std::to_string(y) + "," + std::to_string(z) + ")";
+    return (std::stringstream() << std::fixed << std::setprecision(2) << "(" << x << "," << y << "," << z << ")").str();
 }
 
 //
@@ -202,9 +201,29 @@ mat_sq4f mat_sq4f::inverse() const
 
 std::string mat_sq4f::to_string() const
 {
-    std::string s = "[";
+    std::stringstream ss;
 
-    s += "TBI";
+    ss << "[" << std::fixed << std::setprecision(2);
 
-    return s += "]";
+    for(const std::array<float, 4>& row : rows) {
+        ss << "(";
+        bool comma = false;
+
+        for(float x : row) {
+            if(comma) {
+                ss << ",";
+            }
+            else {
+                comma = true;
+            }
+
+            ss << x;
+        }
+
+        ss << ")";
+    }
+
+    ss << "]";
+
+    return ss.str();
 }
