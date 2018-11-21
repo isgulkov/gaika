@@ -139,27 +139,23 @@ protected:
         }
 
         /**
-         * Squeeze along the horizontal axis (camera's X) to compensate for distortion from displaying the square
-         * visibility box on a non-square viewport
-         *
-         * This doesn't make sense for perspective projection, where the the image plane's aspect ratio translates
-         * into a non-linear relationship between horizontal and vertical angles of view
+         * - To avoid distortion on non-square viewport, the hor. axis (camera's X) is squeezed by its aspect ratio
+         * - For orthographic projections, near-far clipping is prevented by fixing Z
          */
-        mat_sq4f tx_project = mx_tx::scale(state.projection.scale()) * mx_tx::scale((float)state.viewport.height / state.viewport.width, 1, 1);
+         const float hw_ratio = (float)state.viewport.height / state.viewport.width;
 
-        if(state.projection.is_parallel()) {
-            // TODO: reconcile the scale with the Z mapping (right now the far plane is a bit close)
-            return mx_tx::scale(1, 1, -1.0f / (state.projection.z_far() - state.projection.z_near()))
-                         * mx_tx::translate(0, 0, -state.projection.z_near())
-                         * mx_tx::scale(state.projection.scale(), state.projection.scale(), 1)
-                         * mx_tx::scale((float)state.viewport.height / state.viewport.width, 1, 1);
+        if(state.projection.is_orthographic()) {
+            return mx_tx::scale(state.projection.scale()) * mx_tx::scale(hw_ratio, 1, 0);
         }
 
-        // TODO: for orthographic -- don't Z-clip, fix culling direction
-        return tx_project;
+        // TODO: reconcile the scale with the Z mapping (right now the far plane seems a bit close)
+        return mx_tx::scale(1, 1, -1.0f / (state.projection.z_far() - state.projection.z_near()))
+                     * mx_tx::translate(0, 0, -state.projection.z_near())
+                     * mx_tx::scale(state.projection.scale(), state.projection.scale(), 1)
+                     * mx_tx::scale(hw_ratio, 1, 1);
     }
 
-    bool intersect_line_frustum(uint8_t outcode, const vec4f& a, const vec4f& b, vec4f& p_result)
+    bool intersect_line_frustum(const uint8_t outcode, const vec4f& a, const vec4f& b, vec4f& p_result)
     {
         // TODO: t_in and t_out
         const vec4f d = b - a;
@@ -174,35 +170,35 @@ protected:
                 }
             }
 
-            if((outcode >>= 1) & 1) {
+            if(outcode & 2) {
                 t = -(a.w + a.x) / (d.x + d.w);
                 if(t > 0 && t < 1) {
                     break;
                 }
             }
 
-            if((outcode >>= 1) & 1) {
+            if(outcode & 4) {
                 t = (a.w - a.y) / (d.y - d.w);
                 if(t > 0 && t < 1) {
                     break;
                 }
             }
 
-            if((outcode >>= 1) & 1) {
+            if(outcode & 8) {
                 t = -(a.w + a.y) / (d.y + d.w);
                 if(t > 0 && t < 1) {
                     break;
                 }
             }
 
-            if((outcode >>= 1) & 1) {
+            if(outcode & 16) {
                 t = (a.w - a.z) / (d.z - d.w);
                 if(t > 0 && t < 1) {
                     break;
                 }
             }
 
-            if((outcode >>= 1) & 1) {
+            if(outcode & 32) {
                 t = -a.z / d.z;
                 if(t > 0 && t < 1) {
                     break;
@@ -223,9 +219,6 @@ protected:
         painter.begin(this);
         painter.setRenderHint(QPainter::Antialiasing);
 
-//        painter.setBrush(QBrush(Qt::white));
-
-//        painter.eraseRect(0, 0, width, height);
         painter.fillRect(0, 0, state.viewport.width, state.viewport.height, Qt::black);
 
         const mat_sq4f tx_camera = create_tx_camera();
@@ -237,12 +230,7 @@ protected:
         const QPoint p_cursor = mapFromGlobal(QCursor::pos());
         const vec2i p{ p_cursor.x(), p_cursor.y() };
 
-        /**
-         * TODO: benchmark, investigate possible CPU parallelism
-         *
-         * 1. Split by object
-         * 2. Merge all vertices into one large vector (transforming index collections), then split in chunks
-         */
+        // TODO: benchmark, investigate possible CPU parallelism (both SIMD and threads)
         for(const wf_state::th_object& object : state.th_objects) {
             if(object.vertices_world.empty()) {
                 const mat_sq4f tx_world = mx_tx::translate(object.pos) * mx_tx::rotate_xyz(object.orient) * mx_tx::scale(object.scale);
@@ -262,7 +250,27 @@ protected:
                             b = object.vertices_world[std::get<1>(triangle)],
                             c = object.vertices_world[std::get<2>(triangle)];
 
-                    tri_culled[i_triangle--] = (state.camera.pos - a) * (b - a).cross(c - a) >= 0;
+                    // TODO: extract this mess
+                    vec3f dir_out;
+
+                    if(!state.projection.is_orthographic()) {
+                        dir_out = state.camera.pos - a;
+                    }
+                    else {
+                        switch(state.projection.axis()) {
+                            case wf_projection::X:
+                                dir_out = vec3f(-1, 0, 0);
+                                break;
+                            case wf_projection::Y:
+                                dir_out = vec3f(0, -1, 0);
+                                break;
+                            case wf_projection::Z:
+                                dir_out = vec3f(0, 0, -1);
+                                break;
+                        }
+                    }
+
+                    tri_culled[i_triangle--] = dir_out * (b - a).cross(c - a) >= 0;
                 }
             }
 
@@ -318,7 +326,7 @@ protected:
                     continue;
                 }
 
-                // TODO: refactor with t_in and t_out
+                // TODO: refactor using t_in and t_out
                 // TODO: there are still occasional artifacts as well
                 uint32_t i_a = segment.first, i_b = segment.second;
 
@@ -590,12 +598,12 @@ protected:
         QTextStream s_text(&text);
 
         text = "";
-        s_text << "Backface cull" << '\n' << "Segment clip" << '\n' << "Polygon clip";
+        s_text << "Backface cull" << '\n' << "Hidden line rem.";
         painter.drawText(QRect(x, y + 20, 150, 55), Qt::AlignLeft, text);
 
         painter.setPen(Qt::white);
         text = "";
-        s_text << (state.options.use_backface_cull ? "ON" : "off") << '\n' << "--" << '\n' << "--";
+        s_text << (state.options.use_backface_cull ? "ON" : "off") << '\n' << "--";
         painter.drawText(QRect(x, y + 20, 150, 55), Qt::AlignRight, text);
 
         return 70;
