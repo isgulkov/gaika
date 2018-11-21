@@ -124,6 +124,9 @@ struct wf_state
         vec3f pos, orient;
         float scale;
 
+        // TODO: cached world-transformed vertices -- don't forget to update for animated models or moving objects
+        mutable std::vector<vec3f> vertices_world;
+
         bool hoverable;
         mutable bool hovered;
 

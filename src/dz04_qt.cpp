@@ -125,19 +125,19 @@ class wf_viewer : public QMainWindow
         }
 
         state.th_objects = std::vector<wf_state::th_object> {
-                { disco_floor, { 0, 0, 0 }, { 0, 0, 0 }, 1, false, false, QColor::fromRgb(0, 127, 0) },
-                { fat, { 3, -3, 0.25f }, { 0, 0, 0.1f }, 0.25f, true, false, QColor::fromRgb(255, 150, 0) },
-                { fat, { -4, -4, 0.5f }, { 0, 0, 0.2f }, 1, true, false, QColor::fromRgb(255, 190, 0) },
-                { fat, { -5, 5, 0.75f }, { 0, 0, 0.3f }, 1.25f, true, false, QColor::fromRgb(255, 230, 0) },
-                { fat, { 7.5f, 7.5f, 0 }, { 0, 0, 0.4f }, 1.5f, true, false, QColor::fromRgb(255, 255, 0) },
-                { center, { 0, 0, -1.0f }, { 0, 0, 0.5f }, 1, true, false, QColor::fromRgb(255, 255, 255) },
-                { center, { 0, 0, -0.5f }, { 0, 0, 1 }, 1, true, false, QColor::fromRgb(255, 255, 255) },
-                { center, { 0, 0, 0 }, { 0, 0, 0 }, 1, true, false, QColor::fromRgb(255, 255, 255) },
-                { skinny, { 0, 0, 0 }, { 0, 0, 0 }, 1, false, false, QColor::fromRgb(255, 0, 0) },
-                { skinny, { 0, 0, 0 }, { 0, 0, 1.57f }, 1, false, false, QColor::fromRgb(0, 255, 0) },
-                { skinny, { 0, 0, 0 }, { 0, -1.57f, 0 }, 1, false, false, QColor::fromRgb(0, 0, 255) },
-                { cuboid, { 10, 10, 0 }, { 0, 0, 0 }, 1, false, false, QColor::fromRgb(255, 105, 180) },
-                { cage, { -25, -25, 0 }, { 0, 0, 0 }, 1, false, false, QColor::fromRgb(127, 127, 180) }
+                { disco_floor, { 0, 0, 0 }, { 0, 0, 0 }, 1, {}, false, false, QColor::fromRgb(0, 127, 0) },
+                { fat, { 3, -3, 0.25f }, { 0, 0, 0.1f }, 0.25f, {}, true, false, QColor::fromRgb(255, 150, 0) },
+                { fat, { -4, -4, 0.5f }, { 0, 0, 0.2f }, 1, {}, true, false, QColor::fromRgb(255, 190, 0) },
+                { fat, { -5, 5, 0.75f }, { 0, 0, 0.3f }, 1.25f, {}, true, false, QColor::fromRgb(255, 230, 0) },
+                { fat, { 7.5f, 7.5f, 0 }, { 0, 0, 0.4f }, 1.5f, {}, true, false, QColor::fromRgb(255, 255, 0) },
+                { center, { 0, 0, -1.0f }, { 0, 0, 0.5f }, 1, {}, true, false, QColor::fromRgb(255, 255, 255) },
+                { center, { 0, 0, -0.5f }, { 0, 0, 1 }, 1, {}, true, false, QColor::fromRgb(255, 255, 255) },
+                { center, { 0, 0, 0 }, { 0, 0, 0 }, 1, {}, true, false, QColor::fromRgb(255, 255, 255) },
+                { skinny, { 0, 0, 0 }, { 0, 0, 0 }, 1, {}, false, false, QColor::fromRgb(255, 0, 0) },
+                { skinny, { 0, 0, 0 }, { 0, 0, 1.57f }, 1, {}, false, false, QColor::fromRgb(0, 255, 0) },
+                { skinny, { 0, 0, 0 }, { 0, -1.57f, 0 }, 1, {}, false, false, QColor::fromRgb(0, 0, 255) },
+                { cuboid, { 10, 10, 0 }, { 0, 0, 0 }, 1, {}, false, false, QColor::fromRgb(255, 105, 180) },
+                { cage, { -25, -25, 0 }, { 0, 0, 0 }, 1, {}, false, false, QColor::fromRgb(127, 127, 180) }
         };
 
         state.camera = {

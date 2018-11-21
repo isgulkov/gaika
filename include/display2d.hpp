@@ -158,9 +158,13 @@ protected:
          * 2. Merge all vertices into one large vector (transforming index collections), then split in chunks
          */
         for(const wf_state::th_object& object : state.th_objects) {
-            const mat_sq4f tx_world = mx_tx::translate(object.pos) * mx_tx::rotate_xyz(object.orient) * mx_tx::scale(object.scale);
+            if(object.vertices_world.empty()) {
+                const mat_sq4f tx_world = mx_tx::translate(object.pos) * mx_tx::rotate_xyz(object.orient) * mx_tx::scale(object.scale);
 
-            std::vector<vec3f> vertices_camera = tx_camera * tx_world * object.model->vertices;
+                object.vertices_world = tx_world * object.model->vertices;
+            }
+
+            std::vector<vec3f> vertices_camera = tx_camera * object.vertices_world;
 
             std::vector<int> is_behind_camera;
             is_behind_camera.reserve(vertices_camera.size());
