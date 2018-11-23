@@ -162,11 +162,11 @@ def icosahedron(l_edge):
 
 	faces = []
 	for i in xrange(2, 11, 2):
-		faces.append(((i + 1) % 10, i - 1, 0))
-		faces.append(((i + 1) % 10, i, i - 1))
+		faces.append(((i + 1) % 10, 0, i - 1))
+		faces.append(((i + 1) % 10, i - 1, i))
 
-		faces.append((i, (i + 1) % 10, (i + 1) % 10 + 1))
-		faces.append((i, i % 10 + 2, 11))
+		faces.append((i, (i + 1) % 10 + 1, (i + 1) % 10))
+		faces.append((i, 11, i % 10 + 2))
 
 	return tuple(tuple(vertex) for vertex in vx), tuple(faces)
 
@@ -190,6 +190,8 @@ def stddev(l_expected, ls):
 
 
 def print_obj(name, l_edge, vx, faces):
+	stderr.write("Will print model of \x1b[1m{}\x1b[0m.\n".format(name))
+
 	print "o {}\n".format(name)
 
 	for x, y, z in vx:
