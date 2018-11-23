@@ -30,8 +30,8 @@ class wf_viewer : public QMainWindow
 
         std::shared_ptr<const wf_model> fat = std::make_shared<const wf_model>(wf_model::tetrahedron(
                 { -1.25f, -2.25f, 0.0f },
-                { 3.75f, 0.75f, 0.0f },
                 { -2.25f, 1.75f, 0.0f },
+                { 3.75f, 0.75f, 0.0f },
                 { -0.25f, -0.25f, 7.5f }
         ));
 

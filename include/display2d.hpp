@@ -254,7 +254,7 @@ protected:
                     vec3f dir_out;
 
                     if(!state.projection.is_orthographic()) {
-                        dir_out = state.camera.pos - a;
+                        dir_out = a - state.camera.pos;
                     }
                     else {
                         switch(state.projection.axis()) {
