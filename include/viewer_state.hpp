@@ -10,6 +10,8 @@
 #include "geometry.hpp"
 
 struct wf_model {
+    std::string name;
+
     std::vector<vec3f> vertices;
     std::vector<std::pair<uint32_t, uint32_t>> segments;
     std::vector<std::tuple<uint32_t, uint32_t, uint32_t>> triangles;
@@ -19,6 +21,7 @@ struct wf_model {
         // In order A, B, C, P where (A, B, C) is clockwise when looking in P's direction
 
         return {
+                "Tetrahedron",
                 { a, b, c, p },
                 { },
                 { { 0, 1, 2 }, { 1, 0, 3 }, { 2, 1, 3 }, { 0, 2, 3 } }

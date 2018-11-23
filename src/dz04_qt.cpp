@@ -50,6 +50,7 @@ class wf_viewer : public QMainWindow
         ));
 
         std::shared_ptr<const wf_model> cuboid = std::make_shared<const wf_model>(wf_model {
+                "Cuboid",
                 {
                         { 0, -2, -2 },
                         { 0, -2, 2 },
@@ -91,12 +92,13 @@ class wf_viewer : public QMainWindow
                 }
             }
 
-            disco_floor = std::make_shared<const wf_model>(wf_model { vertices, segments, { } });
+            disco_floor = std::make_shared<const wf_model>(wf_model { "DiscoFloor", vertices, segments, { } });
         }
 
         obj_file sphere_crude_obj = obj_file::read_file("../resources/meshes/simple/sphere_crude.obj");
 
         std::shared_ptr<const wf_model> sphere_crude = std::make_shared<const wf_model>(wf_model {
+                "Sphere",
                 sphere_crude_obj.vertices,
                 { },
                 sphere_crude_obj.triangles
@@ -105,6 +107,7 @@ class wf_viewer : public QMainWindow
         obj_file dodecahedron_obj = obj_file::read_file("../resources/meshes/simple/dodecahedron.obj");
 
         std::shared_ptr<const wf_model> dodecahedron = std::make_shared<const wf_model>(wf_model {
+                "Dodecahedron",
                 dodecahedron_obj.vertices,
                 { },
                 dodecahedron_obj.triangles
@@ -113,6 +116,7 @@ class wf_viewer : public QMainWindow
         obj_file icosahedron_obj = obj_file::read_file("../resources/meshes/simple/icosahedron.obj");
 
         std::shared_ptr<const wf_model> icosahedron = std::make_shared<const wf_model>(wf_model {
+                "Icosahedron",
                 icosahedron_obj.vertices,
                 { },
                 icosahedron_obj.triangles
@@ -146,12 +150,13 @@ class wf_viewer : public QMainWindow
                 }
             }
 
-            cage = std::make_shared<const wf_model>(wf_model { vertices, segments, { } });
+            cage = std::make_shared<const wf_model>(wf_model { "WireCage", vertices, segments, { } });
         }
 
-        obj_file torus_obj = obj_file::read_file("../resources/meshes/simple/torus.obj");
+        obj_file torus_obj = obj_file::read_file("../resources/meshes/simple/torus100.obj");
 
         std::shared_ptr<const wf_model> torus = std::make_shared<const wf_model>(wf_model {
+                "Torus",
                 torus_obj.vertices,
                 { },
                 torus_obj.triangles
@@ -160,6 +165,7 @@ class wf_viewer : public QMainWindow
         obj_file tomato_obj = obj_file::read_file("../resources/meshes/simple/tomato.obj");
 
         std::shared_ptr<const wf_model> tomato = std::make_shared<const wf_model>(wf_model {
+                "Tomato",
                 tomato_obj.vertices,
                 { },
                 tomato_obj.triangles
@@ -182,8 +188,8 @@ class wf_viewer : public QMainWindow
                 { dodecahedron, { 17, -15, 0 }, { 0, 0, 0 }, 5.0f, {}, true, false, QColor::fromRgb(255, 228, 181) },
                 { icosahedron, { 1.5f, -20, 0 }, { 0, 0, 0 }, 5.0f, {}, true, false, QColor::fromRgb(255, 20, 147) },
                 { sphere_crude, { -6.5f, -15, 0 }, { 0, 0, 0 }, 0.2f, {}, true, false, QColor::fromRgb(255, 185, 15) },
-                { torus, { 75, 75, 25 }, { 1.57f, 0, 0 }, 20.0f, {}, true, false, QColor::fromRgb(224, 102, 255) },
-                { tomato, { 40, 40, 5 }, { 0, 1.57f, 0 }, 0.25f, {}, true, false, QColor::fromRgb(255, 0, 0) }
+                { torus, { 30, 30, 10 }, { 1.57f, 0, 0 }, 10.0f, {}, true, false, QColor::fromRgb(224, 102, 255) },
+                { tomato, { 45, -30, 5 }, { 0, 0, 0 }, 0.25f, {}, true, false, QColor::fromRgb(255, 0, 0) }
         };
 
         state.camera = {

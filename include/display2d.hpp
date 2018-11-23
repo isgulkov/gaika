@@ -306,7 +306,7 @@ protected:
                     painter.setPen(pen);
                 }
                 else {
-                    painter.setPen(QPen(object.color, 3, Qt::DashLine));
+                    painter.setPen(QPen(object.color, 2, Qt::DashLine));
                 }
             }
 
@@ -354,7 +354,7 @@ protected:
 
             for(const auto& triangle : object.model->triangles) {
                 if(state.options.use_backface_cull) {
-                    painter.setOpacity(tri_culled.back() ? 0.25 : 0.75);
+                    painter.setOpacity(tri_culled.back() ? 0.2 : 0.75);
                     tri_culled.pop_back();
                 }
 
