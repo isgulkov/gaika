@@ -192,13 +192,13 @@ class wf_viewer : public QMainWindow
                 { skinny, { 0, 0, 0 }, { 0, -1.57f, 0 }, 1, {}, false, false, QColor::fromRgb(0, 0, 255) },
                 { cuboid, { 10, 10, 0 }, { 0, 0, 0 }, 1, {}, false, false, QColor::fromRgb(255, 105, 180) },
                 { cage, { -25, -25, 0 }, { 0, 0, 0 }, 1, {}, false, false, QColor::fromRgb(127, 127, 180) },
-                { tetrahedron, { 1.5f, -70, 0 }, { 0, 0, 15 }, 15.0f, {}, true, false, QColor::fromRgb(255, 255, 90) },
-                { hexahedron, { 1.5f, -60, 0 }, { 0, 0, 15 }, 15.0f, {}, true, false, QColor::fromRgb(255, 255, 140) },
-                { icosahedron, { 1.5f, -50, 0 }, { 0, 0, 15 }, 15.0f, {}, true, false, QColor::fromRgb(255, 255, 175) },
-                { dodecahedron, { 17, -15, 0 }, { 0, 0, 0 }, 5.0f, {}, true, false, QColor::fromRgb(255, 255, 255) },
-                { icosahedron, { 1.5f, -30, 0 }, { 0, 0, 15 }, 15.0f, {}, true, false, QColor::fromRgb(255, 255, 224) },
+                { tetrahedron, { 20, -80, 0 }, { 0, 0, 15 }, 1, {}, true, false, QColor::fromRgb(255, 255, 90) },
+                { hexahedron, { 30, -65, 0 }, { 0, 0, 15 }, 1, {}, true, false, QColor::fromRgb(255, 255, 140) },
+                { octahedron, { 40, -50, 0 }, { 0, 0, 15 }, 1, {}, true, false, QColor::fromRgb(255, 255, 175) },
+                { dodecahedron, { 50, -35, 0 }, { 0, 0, 0 }, 1, {}, true, false, QColor::fromRgb(255, 255, 255) },
+                { icosahedron, { 60, -20, 0 }, { 0, 0, 15 }, 1, {}, true, false, QColor::fromRgb(255, 255, 224) },
                 { torus, { 30, 30, 10 }, { 1.57f, 0, 0 }, 10.0f, {}, true, false, QColor::fromRgb(224, 102, 255) },
-                { tomato, { 45, -30, 5 }, { 0, 0, 0 }, 0.25f, {}, true, false, QColor::fromRgb(255, 0, 0) }
+                { tomato, { -45, -30, 5 }, { 0, 0, 0 }, 0.25f, {}, true, false, QColor::fromRgb(255, 0, 0) }
         };
 
         state.camera = {
