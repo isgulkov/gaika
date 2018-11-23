@@ -26,10 +26,10 @@ def tetrahedron(l_edge):
 	)
 
 	faces = (
-		(2, 1, 0),
-		(0, 1, 3),
-		(1, 2, 3),
-		(2, 0, 3),
+		(2, 0, 1),
+		(0, 3, 1),
+		(1, 3, 2),
+		(2, 3, 0),
 	)
 
 	return vx, faces
@@ -56,7 +56,7 @@ def hexahedron(l_edge):
 		(4, 5, 6, 7)
 	)
 
-	return vx, faces
+	return vx, tuple(tuple(reversed(face_vx)) for face_vx in faces)
 
 
 def octahedron(l_edge):
@@ -73,14 +73,14 @@ def octahedron(l_edge):
 	)
 
 	faces = (
-		(0, 2, 1),
-		(0, 3, 2),
-		(0, 4, 3),
-		(0, 1, 4),
-		(1, 2, 5),
-		(2, 3, 5),
-		(3, 4, 5),
-		(4, 1, 5),
+		(0, 1, 2),
+		(0, 2, 3),
+		(0, 3, 4),
+		(0, 4, 1),
+		(1, 5, 2),
+		(2, 5, 3),
+		(3, 5, 4),
+		(4, 5, 1),
 	)
 
 	return vx, faces
@@ -132,7 +132,7 @@ def dodecahedron(l_edge):
 		(13, 16, 19, 18, 15),
 	)
 
-	return vx, faces
+	return vx, tuple(tuple(reversed(face_vx)) for face_vx in faces)
 
 
 import numpy as np

@@ -270,6 +270,10 @@ protected:
                         }
                     }
 
+                    /**
+                     * This DISCARDS triangles with COUNTERCLOCKWISE order of vertices. This is apparently how OpenGL
+                     * does it.
+                     */
                     tri_culled[i_triangle--] = dir_out * (b - a).cross(c - a) >= 0;
                 }
             }
