@@ -135,52 +135,40 @@ def dodecahedron(l_edge):
 	return vx, faces
 
 
+import numpy as np
+import scipy.optimize
+from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+
 def icosahedron(l_edge):
-	# https://en.wikipedia.org/wiki/Regular_icosahedron#Cartesian_coordinates
-	phi = (1.0 + sqrt(5)) / 2
+	# 1. Start with an equilatral pentagon at origin with side length `l_edge`. Its side is also a chord of the
+	#    circumscribed circle, which gives us
+	#      l_edge = 2 R sin(alpha / 2)
+	#    and lets solve for R.
+	r = l_edge / np.sin(np.pi / 5) / 2
 
-	big = phi * l_edge / 2
-	reg = l_edge / 2.0
+	vx_middle = []
+	for angle in [np.pi * (0.5 + 0.2 * i) for i in xrange(10)]:
+		vx_middle.append(np.array([r * np.cos(angle), r * np.sin(angle), 0]))
 
-	vx = (
-		(0, -reg, -big),
-		(0, reg, -big),
-		(-big, 0, -reg),
-		(big, 0, -reg),
-		(-reg, -big, 0),
-		(-reg, big, 0),
-		(reg, big, 0),
-		(reg, -big, 0),
-		(-big, 0, reg),
-		(big, 0, reg),
-		(0, -reg, big),
-		(0, reg, big),
-	)
+	# 2. Given that the pyramid's side faces are equilateral, find its height
+	z_top = scipy.optimize.bisect(lambda z: np.linalg.norm(vx_middle[0] - [0, 0, z]) - l_edge, 0, l_edge)
+	# 3. Given that the middle "band" is formed of equilateral triangles, find its width
+	z_band = scipy.optimize.bisect(lambda z: np.linalg.norm(vx_middle[0] - vx_middle[1] - [0, 0, z]) - l_edge, 0, l_edge)
 
-	faces = (
-		(1, 0, 3),
-		(0, 1, 2),
-		(0, 4, 7),
-		(1, 6, 5),
-		(0, 2, 4),
-		(1, 5, 2),
-		(1, 3, 6),
-		(0, 7, 3),
-		(2, 8, 4),
-		(2, 5, 8),
-		(3, 9, 6),
-		(3, 7, 9),
-		(4, 10, 7),
-		(5, 6, 11),
-		(7, 10, 9),
-		(4, 8, 10),
-		(5, 11, 8),
-		(6, 9, 11),
-		(9, 10, 11),
-		(8, 11, 10),
-	)
+	vx = np.vstack(([[0, 0, z_top]], vx_middle, [[0, 0, -(z_top + z_band)]]))
+	vx[2::2] -= [0, 0, z_band]
 
-	return vx, faces
+	faces = []
+	for i in xrange(2, 11, 2):
+		faces.append(((i + 1) % 10, i - 1, 0))
+		faces.append(((i + 1) % 10, i, i - 1))
+
+		faces.append((i, (i + 1) % 10, (i + 1) % 10 + 1))
+		faces.append((i, i % 10 + 2, 11))
+
+	return tuple(tuple(vertex) for vertex in vx), tuple(faces)
 
 
 def norm(xs, ys):
