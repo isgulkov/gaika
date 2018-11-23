@@ -104,22 +104,29 @@ class wf_viewer : public QMainWindow
                 sphere_crude_obj.triangles
         });
 
-        obj_file dodecahedron_obj = obj_file::read_file("../resources/meshes/simple/dodecahedron.obj");
+        obj_file tetrahedron_obj = obj_file::read_file("../resources/meshes/simple/tetrahedron.obj");
+        std::shared_ptr<const wf_model> tetrahedron = std::make_shared<const wf_model>(wf_model {
+                tetrahedron_obj.name, tetrahedron_obj.vertices, { }, tetrahedron_obj.triangles
+        });
 
+        obj_file hexahedron_obj = obj_file::read_file("../resources/meshes/simple/hexahedron.obj");
+        std::shared_ptr<const wf_model> hexahedron = std::make_shared<const wf_model>(wf_model {
+                hexahedron_obj.name, hexahedron_obj.vertices, { }, hexahedron_obj.triangles
+        });
+
+        obj_file octahedron_obj = obj_file::read_file("../resources/meshes/simple/octahedron.obj");
+        std::shared_ptr<const wf_model> octahedron = std::make_shared<const wf_model>(wf_model {
+                octahedron_obj.name, octahedron_obj.vertices, { }, octahedron_obj.triangles
+        });
+
+        obj_file dodecahedron_obj = obj_file::read_file("../resources/meshes/simple/dodecahedron.obj");
         std::shared_ptr<const wf_model> dodecahedron = std::make_shared<const wf_model>(wf_model {
-                "Dodecahedron",
-                dodecahedron_obj.vertices,
-                { },
-                dodecahedron_obj.triangles
+                dodecahedron_obj.name, dodecahedron_obj.vertices, { }, dodecahedron_obj.triangles
         });
 
         obj_file icosahedron_obj = obj_file::read_file("../resources/meshes/simple/icosahedron.obj");
-
         std::shared_ptr<const wf_model> icosahedron = std::make_shared<const wf_model>(wf_model {
-                "Icosahedron",
-                icosahedron_obj.vertices,
-                { },
-                icosahedron_obj.triangles
+                icosahedron_obj.name, icosahedron_obj.vertices, { }, icosahedron_obj.triangles
         });
 
         std::shared_ptr<const wf_model> cage;
@@ -185,9 +192,11 @@ class wf_viewer : public QMainWindow
                 { skinny, { 0, 0, 0 }, { 0, -1.57f, 0 }, 1, {}, false, false, QColor::fromRgb(0, 0, 255) },
                 { cuboid, { 10, 10, 0 }, { 0, 0, 0 }, 1, {}, false, false, QColor::fromRgb(255, 105, 180) },
                 { cage, { -25, -25, 0 }, { 0, 0, 0 }, 1, {}, false, false, QColor::fromRgb(127, 127, 180) },
-                { dodecahedron, { 17, -15, 0 }, { 0, 0, 0 }, 5.0f, {}, true, false, QColor::fromRgb(255, 228, 181) },
-                { icosahedron, { 1.5f, -20, 0 }, { 0, 0, 0 }, 5.0f, {}, true, false, QColor::fromRgb(255, 20, 147) },
-                { sphere_crude, { -6.5f, -15, 0 }, { 0, 0, 0 }, 0.2f, {}, true, false, QColor::fromRgb(255, 185, 15) },
+                { tetrahedron, { 1.5f, -70, 0 }, { 0, 0, 15 }, 15.0f, {}, true, false, QColor::fromRgb(255, 255, 90) },
+                { hexahedron, { 1.5f, -60, 0 }, { 0, 0, 15 }, 15.0f, {}, true, false, QColor::fromRgb(255, 255, 140) },
+                { icosahedron, { 1.5f, -50, 0 }, { 0, 0, 15 }, 15.0f, {}, true, false, QColor::fromRgb(255, 255, 175) },
+                { dodecahedron, { 17, -15, 0 }, { 0, 0, 0 }, 5.0f, {}, true, false, QColor::fromRgb(255, 255, 255) },
+                { icosahedron, { 1.5f, -30, 0 }, { 0, 0, 15 }, 15.0f, {}, true, false, QColor::fromRgb(255, 255, 224) },
                 { torus, { 30, 30, 10 }, { 1.57f, 0, 0 }, 10.0f, {}, true, false, QColor::fromRgb(224, 102, 255) },
                 { tomato, { 45, -30, 5 }, { 0, 0, 0 }, 0.25f, {}, true, false, QColor::fromRgb(255, 0, 0) }
         };

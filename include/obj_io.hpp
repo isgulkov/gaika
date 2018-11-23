@@ -11,6 +11,7 @@
 
 struct obj_file
 {
+    std::string name;
     std::vector<vec3f> vertices;
     std::vector<std::tuple<uint32_t, uint32_t, uint32_t>> triangles;
 
