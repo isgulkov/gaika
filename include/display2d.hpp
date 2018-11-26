@@ -77,7 +77,7 @@ protected:
     vec3f from_screen(const vec2i& v)
     {
         // TODO: write a vec2f for this?
-        return { 2.0f * v.x / state.viewport.width - 1.0f, -2.0f * y() / state.viewport.height + 1.0f, 0 };
+        return { v.x * 2.0f / state.viewport.width - 1.0f, -v.y * 2.0f / state.viewport.height + 1.0f, 0 };
     }
 
     static bool test_p_in_triangle(const vec2i& p, const vec2i& a, const vec2i& b, const vec2i& c)

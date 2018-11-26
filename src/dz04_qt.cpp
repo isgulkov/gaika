@@ -376,21 +376,27 @@ protected:
         switch(event->key()) {
             case Qt::Key_W:
                 state.controls.forward = true;
+                stop_drag();
                 return;
             case Qt::Key_A:
                 state.controls.left = true;
+                stop_drag();
                 return;
             case Qt::Key_S:
                 state.controls.back = true;
+                stop_drag();
                 return;
             case Qt::Key_D:
                 state.controls.right = true;
+                stop_drag();
                 return;
             case Qt::Key_Space:
                 state.controls.jump = true;
+                stop_drag();
                 return;
             case Qt::Key_Control:
                 state.controls.duck = true;
+                stop_drag();
                 return;
             case Qt::Key_Escape:
                 stop_freelook();
@@ -544,6 +550,11 @@ protected:
 
     void start_drag(wf_state::th_object* new_target)
     {
+        // REMOVE: allow this interaction after fixing it (see update_drag)
+        if(state.controls.forward || state.controls.back || state.controls.left || state.controls.right || state.controls.jump || state.controls.duck) {
+            return;
+        }
+
         p_widget->setMouseTracking(true);
 
         xy_prev = QCursor::pos();
@@ -570,6 +581,10 @@ protected:
         const QPoint xy_rel = xy_current - xy_prev;
 
         xy_prev = xy_current;
+
+        // TODO: instead of using deltas, calculate the current position based on mouse coords transformed into world
+        // TODO: -> don't stop drag on keyboard control and allow starting it with keyboard control
+        // TODO: -> implement Shift-lock
 
         const float d_x = xy_rel.x() / state.projection.scale() * 2 * state.viewport.width / state.viewport.height / state.viewport.width;
         const float d_y = -xy_rel.y() / state.projection.scale() * 2 / state.viewport.height;
