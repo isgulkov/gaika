@@ -223,6 +223,7 @@ public:
     wf_viewer()
     {
         setWindowTitle("Hello, world!");
+        setFocusPolicy(Qt::ClickFocus);
 
         init_state();
 
@@ -284,8 +285,6 @@ public slots:
          * immediately in the renderer's paint method
          *
          * Processing is placed before the update() call to emphasise that the results are from the previous frame
-         *
-         * TODO: investigate the sensitivity issue that the hovering code seems to cause -- probably has to do with FPS
          */
         if(!(state.hovering.disabled = !state.projection.is_orthographic() && !mousetrap_on)) {
             state.hovering.limited = p_widget->hovered_multiple;
@@ -348,9 +347,7 @@ protected:
         else if(state.projection.is_parallel()) {
             state.projection.set_orthographic(wf_projection::X);
 
-            if(mousetrap_on) {
-                stop_mousetrap();
-            }
+            stop_mousetrap();
         }
         else {
             switch(state.projection.axis()) {
@@ -393,9 +390,7 @@ protected:
                 state.controls.duck = true;
                 return;
             case Qt::Key_Escape:
-                if(mousetrap_on) {
-                    stop_mousetrap();
-                }
+                stop_mousetrap();
                 return;
             case Qt::Key_1:
                 p_widget->hud_camera = !p_widget->hud_camera;
@@ -407,21 +402,15 @@ protected:
                 p_widget->hud_viewport = !p_widget->hud_viewport;
                 return;
             case Qt::Key_8:
-                if(mousetrap_on) {
-                    stop_mousetrap();
-                }
+                stop_mousetrap();
                 state.projection.set_orthographic(wf_projection::X);
                 return;
             case Qt::Key_9:
-                if(mousetrap_on) {
-                    stop_mousetrap();
-                }
+                stop_mousetrap();
                 state.projection.set_orthographic(wf_projection::Y);
                 return;
             case Qt::Key_0:
-                if(mousetrap_on) {
-                    stop_mousetrap();
-                }
+                stop_mousetrap();
                 state.projection.set_orthographic(wf_projection::Z);
                 return;
             case Qt::Key_Minus:
@@ -486,9 +475,7 @@ protected:
                 = state.controls.back = state.controls.right
                 = state.controls.jump = state.controls.duck = false;
 
-        if(mousetrap_on) {
-            stop_mousetrap();
-        }
+        stop_mousetrap();
     }
 
     void wheelEvent(QWheelEvent* event) override
@@ -539,6 +526,10 @@ protected:
 
     void stop_mousetrap()
     {
+        if(!mousetrap_on) {
+            return;
+        }
+
         setMouseTracking(false);
         p_widget->setMouseTracking(false);
 
