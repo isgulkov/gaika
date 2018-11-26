@@ -407,12 +407,21 @@ protected:
                 p_widget->hud_viewport = !p_widget->hud_viewport;
                 return;
             case Qt::Key_8:
+                if(mousetrap_on) {
+                    stop_mousetrap();
+                }
                 state.projection.set_orthographic(wf_projection::X);
                 return;
             case Qt::Key_9:
+                if(mousetrap_on) {
+                    stop_mousetrap();
+                }
                 state.projection.set_orthographic(wf_projection::Y);
                 return;
             case Qt::Key_0:
+                if(mousetrap_on) {
+                    stop_mousetrap();
+                }
                 state.projection.set_orthographic(wf_projection::Z);
                 return;
             case Qt::Key_Minus:

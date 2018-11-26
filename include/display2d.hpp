@@ -589,7 +589,47 @@ protected:
         s_text << "  " << state.projection.scale() << "x";
         painter.drawText(QRect(5, y + 20, 150, 55), Qt::AlignHCenter, text);
 
+        if(state.projection.is_orthographic()) {
+            draw_orthographic_axes(painter, state.projection.axis());
+        }
+
         return 40;
+    }
+
+    void draw_orthographic_axes(QPainter& painter, wf_projection::ortho_axis axis)
+    {
+        QString up_text, right_text;
+        QColor up_color, right_color;
+
+        if(axis != wf_projection::Z) {
+            up_text = "z";
+            up_color = Qt::blue;
+        }
+        else {
+            up_text = "y";
+            up_color = Qt::green;
+        }
+
+        if(axis != wf_projection::X) {
+            right_text = "x";
+            right_color = Qt::red;
+        }
+        else {
+            right_text = "y";
+            right_color = Qt::green;
+        }
+
+        const int height = state.viewport.height;
+
+        painter.setPen(up_color);
+        painter.drawLine(10, height - 11, 10, height - 50);
+
+        painter.setPen(right_color);
+        painter.drawLine(11, height - 10, 50, height - 10);
+
+        painter.setPen(Qt::white);
+        painter.drawText(QRect(10, height - 65, 15, 15), Qt::AlignVCenter | Qt::AlignLeft, up_text);
+        painter.drawText(QRect(50, height - 25, 15, 15), Qt::AlignHCenter | Qt::AlignBottom, right_text);
     }
 
     int draw_viewport_hud(QPainter& painter, int x, int y)
