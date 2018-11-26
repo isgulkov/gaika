@@ -305,9 +305,14 @@ protected:
             }
 
             QPen segment_pen(Qt::white), face_pen(Qt::white);
-//            painter.setPen(face_pen);
 
-            if(object.hovered) {
+            if(state.hovering.fixed) {
+                if(&object == state.hovering.object) {
+                    face_pen.setStyle(Qt::SolidLine);
+                    face_pen.setWidth(2);
+                }
+            }
+            else if(object.hovered) {
                 if(state.hovering.limited) {
                     face_pen.setDashPattern({ 1, 5 });
                 }
@@ -407,8 +412,8 @@ protected:
         painter.setOpacity(1.0);
         int y_hud = 5;
 
-        if(!state.hovering.disabled && !state.hovering.limited) {
-            draw_object_properties_hud(painter);
+        if(!state.hovering.disabled && !state.hovering.limited && state.hovering.object != nullptr) {
+            draw_object_properties_hud(painter, *state.hovering.object);
         }
 
         if(hud_camera) {
@@ -453,38 +458,39 @@ protected:
     QFont f_hud{"Courier"};
     QFont f_hud_small{"Courier", 10};
 
-    void draw_object_properties_hud(QPainter& painter)
+    void draw_object_properties_hud(QPainter& painter, const wf_state::th_object& object)
     {
         painter.setFont(f_hud);
 
+        if(state.hovering.fixed) {
+            painter.setPen(Qt::yellow);
+        }
+        else {
+            painter.setPen(Qt::white);
+        }
+
         QRect rect(state.viewport.width / 2 - 75, state.viewport.height - 60, 150, 55);
 
-        if(state.hovering.object != nullptr) {
-            const wf_state::th_object& object = *state.hovering.object;
+        painter.drawText(rect, Qt::AlignHCenter | Qt::AlignBottom, object.id.c_str());
 
-            painter.setPen(Qt::yellow);
+        QString text;
 
-            painter.drawText(rect, Qt::AlignHCenter | Qt::AlignBottom, object.id.c_str());
+        QTextStream s_text(&text);
+        s_text.setRealNumberNotation(QTextStream::RealNumberNotation::FixedNotation);
+        s_text.setRealNumberPrecision(2);
 
-            QString text;
+        s_text << object.pos.x << '\n'
+               << object.pos.y << '\n'
+               << object.pos.z;
+        painter.drawText(rect, Qt::AlignLeft, text);
 
-            QTextStream s_text(&text);
-            s_text.setRealNumberNotation(QTextStream::RealNumberNotation::FixedNotation);
-            s_text.setRealNumberPrecision(2);
+        text = "";
+        s_text << object.orient.x / (float)M_PI * 180 << QString::fromUtf8("°") << '\n'
+               << object.orient.y / (float)M_PI * 180 << QString::fromUtf8("°") << '\n'
+               << object.orient.z / (float)M_PI * 180 << QString::fromUtf8("°");
+        painter.drawText(rect, Qt::AlignHCenter, text);
 
-            s_text << object.pos.x << '\n'
-                   << object.pos.y << '\n'
-                   << object.pos.z;
-            painter.drawText(rect, Qt::AlignLeft, text);
-
-            text = "";
-            s_text << object.orient.x / (float)M_PI * 180 << QString::fromUtf8("°") << '\n'
-                   << object.orient.y / (float)M_PI * 180 << QString::fromUtf8("°") << '\n'
-                   << object.orient.z / (float)M_PI * 180 << QString::fromUtf8("°");
-            painter.drawText(rect, Qt::AlignHCenter, text);
-
-            painter.drawText(rect, Qt::AlignRight, "1.00\n1.00\n1.00");
-        }
+        painter.drawText(rect, Qt::AlignRight, "1.00\n1.00\n1.00");
     }
 
     int draw_camera_hud(QPainter& painter, int x, int y)

@@ -170,6 +170,7 @@ struct wf_state
     struct {
         bool disabled = false;
         bool limited = false;
+        bool fixed = false;
         th_object* object = nullptr;
     } hovering;
 

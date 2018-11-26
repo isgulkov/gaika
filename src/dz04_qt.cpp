@@ -270,6 +270,9 @@ public slots:
              */
             update_freelook();
         }
+        else if(drag_target != nullptr) {
+            update_drag();
+        }
 
         state.camera.pos += state.v_camera * sec_since_update;
         state.v_camera = calculate_v_camera();
@@ -404,20 +407,25 @@ protected:
             case Qt::Key_8:
                 stop_freelook();
                 state.projection.set_orthographic(wf_projection::X);
+                stop_drag();
                 return;
             case Qt::Key_9:
                 stop_freelook();
                 state.projection.set_orthographic(wf_projection::Y);
+                stop_drag();
                 return;
             case Qt::Key_0:
                 stop_freelook();
                 state.projection.set_orthographic(wf_projection::Z);
+                stop_drag();
                 return;
             case Qt::Key_Minus:
                 state.projection.set_parallel();
+                stop_drag();
                 return;
             case Qt::Key_Equal:
                 state.projection.set_perspective();
+                stop_drag();
                 return;
             case Qt::Key_I:
                 state.projection.set_z_near(state.projection.z_near() / 10.0f);
@@ -476,6 +484,7 @@ protected:
                 = state.controls.jump = state.controls.duck = false;
 
         stop_freelook();
+        stop_drag();
     }
 
     void wheelEvent(QWheelEvent* event) override
@@ -504,12 +513,88 @@ protected:
         }
     }
 
+    void mousePressEvent(QMouseEvent* event) override
+    {
+        if(!freelook_on && !state.projection.is_orthographic()) {
+            start_freelook();
+        }
+
+        if(state.projection.is_orthographic() && !state.hovering.limited && drag_target == nullptr && state.hovering.object != nullptr) {
+            start_drag(state.hovering.object);
+        }
+    }
+
+    void mouseReleaseEvent(QMouseEvent* event) override
+    {
+        // ...
+
+        stop_drag();
+    }
+
+    void resizeEvent(QResizeEvent* event) override
+    {
+        state.viewport.width = p_widget->size().width();
+        state.viewport.height = p_widget->size().height();
+
+        state.projection.set_wh_ratio((float)state.viewport.width / state.viewport.height);
+    }
+
+    wf_state::th_object* drag_target = nullptr;
+    QPoint xy_prev;
+
+    void start_drag(wf_state::th_object* new_target)
+    {
+        p_widget->setMouseTracking(true);
+
+        xy_prev = QCursor::pos();
+
+        state.hovering.fixed = true;
+        drag_target = state.hovering.object = new_target;
+    }
+
+    void stop_drag()
+    {
+        if(drag_target == nullptr) {
+            return;
+        }
+
+        p_widget->setMouseTracking(false);
+
+        state.hovering.fixed = false;
+        drag_target = state.hovering.object = nullptr;
+    }
+
+    void update_drag()
+    {
+        const QPoint xy_current = QCursor::pos();
+        const QPoint xy_rel = xy_current - xy_prev;
+
+        xy_prev = xy_current;
+
+        const float d_x = xy_rel.x() / state.projection.scale() * 2 * state.viewport.width / state.viewport.height / state.viewport.width;
+        const float d_y = -xy_rel.y() / state.projection.scale() * 2 / state.viewport.height;
+
+        switch(state.projection.axis()) {
+            case wf_projection::X:
+                drag_target->pos += { 0, d_x, d_y };
+                break;
+            case wf_projection::Y:
+                drag_target->pos += { d_x, 0, d_y };
+                break;
+            case wf_projection::Z:
+            default:
+                drag_target->pos += { d_x, d_y, 0 };
+                break;
+        }
+        drag_target->vertices_world.clear();
+    }
+
     bool freelook_on = false;
     QPoint xy_before, xy_center;
 
     void start_freelook()
     {
-        setMouseTracking(true);
+//        setMouseTracking(true);
         p_widget->setMouseTracking(true);
 
         setCursor(Qt::BlankCursor);
@@ -530,7 +615,7 @@ protected:
             return;
         }
 
-        setMouseTracking(false);
+//        setMouseTracking(false);
         p_widget->setMouseTracking(false);
 
         QCursor::setPos(mapToGlobal(xy_before));
@@ -578,26 +663,6 @@ protected:
     float calc_y_rotation(int d_y) const
     {
         return 1.0f * d_y * (float)M_PI / state.viewport.height;
-    }
-
-    void mousePressEvent(QMouseEvent* event) override
-    {
-        if(!freelook_on && !state.projection.is_orthographic()) {
-            start_freelook();
-        }
-    }
-
-    void mouseReleaseEvent(QMouseEvent* event) override
-    {
-        // ...
-    }
-
-    void resizeEvent(QResizeEvent* event) override
-    {
-        state.viewport.width = p_widget->size().width();
-        state.viewport.height = p_widget->size().height();
-
-        state.projection.set_wh_ratio((float)state.viewport.width / state.viewport.height);
     }
 };
 
