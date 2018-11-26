@@ -261,14 +261,14 @@ public slots:
         const float sec_since_update = last_update.elapsed() / 1000.0f;
         last_update.restart();
 
-        if(mousetrap_on) {
+        if(freelook_on) {
             /**
              * Mouse look has to be updated in the game loop, simultaneously with position, instead of on mouse move
              * events -- otherwise, a noticeable jitter appears when circle-strafing, etc.
              *
              * Amusingly, the google result where I've got this was about Unity scripting.
              */
-            update_mousetrap();
+            update_freelook();
         }
 
         state.camera.pos += state.v_camera * sec_since_update;
@@ -286,7 +286,7 @@ public slots:
          *
          * Processing is placed before the update() call to emphasise that the results are from the previous frame
          */
-        if(!(state.hovering.disabled = !state.projection.is_orthographic() && !mousetrap_on)) {
+        if(!(state.hovering.disabled = !state.projection.is_orthographic() && !freelook_on)) {
             state.hovering.limited = p_widget->hovered_multiple;
         }
 
@@ -347,7 +347,7 @@ protected:
         else if(state.projection.is_parallel()) {
             state.projection.set_orthographic(wf_projection::X);
 
-            stop_mousetrap();
+            stop_freelook();
         }
         else {
             switch(state.projection.axis()) {
@@ -390,7 +390,7 @@ protected:
                 state.controls.duck = true;
                 return;
             case Qt::Key_Escape:
-                stop_mousetrap();
+                stop_freelook();
                 return;
             case Qt::Key_1:
                 p_widget->hud_camera = !p_widget->hud_camera;
@@ -402,15 +402,15 @@ protected:
                 p_widget->hud_viewport = !p_widget->hud_viewport;
                 return;
             case Qt::Key_8:
-                stop_mousetrap();
+                stop_freelook();
                 state.projection.set_orthographic(wf_projection::X);
                 return;
             case Qt::Key_9:
-                stop_mousetrap();
+                stop_freelook();
                 state.projection.set_orthographic(wf_projection::Y);
                 return;
             case Qt::Key_0:
-                stop_mousetrap();
+                stop_freelook();
                 state.projection.set_orthographic(wf_projection::Z);
                 return;
             case Qt::Key_Minus:
@@ -475,7 +475,7 @@ protected:
                 = state.controls.back = state.controls.right
                 = state.controls.jump = state.controls.duck = false;
 
-        stop_mousetrap();
+        stop_freelook();
     }
 
     void wheelEvent(QWheelEvent* event) override
@@ -504,10 +504,10 @@ protected:
         }
     }
 
-    bool mousetrap_on = false;
+    bool freelook_on = false;
     QPoint xy_before, xy_center;
 
-    void start_mousetrap()
+    void start_freelook()
     {
         setMouseTracking(true);
         p_widget->setMouseTracking(true);
@@ -521,12 +521,12 @@ protected:
 
         r_xprev = r_yprev = 0.0f;
 
-        mousetrap_on = state.options.free_look = true;
+        freelook_on = state.options.free_look = true;
     }
 
-    void stop_mousetrap()
+    void stop_freelook()
     {
-        if(!mousetrap_on) {
+        if(!freelook_on) {
             return;
         }
 
@@ -536,7 +536,7 @@ protected:
         QCursor::setPos(mapToGlobal(xy_before));
 
         setCursor(Qt::ArrowCursor);
-        mousetrap_on = state.options.free_look = false;
+        freelook_on = state.options.free_look = false;
     }
 
     /**
@@ -544,7 +544,7 @@ protected:
      */
     float r_xprev, r_yprev;
 
-    void update_mousetrap()
+    void update_freelook()
     {
         const QPoint xy_rel = QCursor::pos() - xy_center;
 
@@ -582,8 +582,8 @@ protected:
 
     void mousePressEvent(QMouseEvent* event) override
     {
-        if(!mousetrap_on && !state.projection.is_orthographic()) {
-            start_mousetrap();
+        if(!freelook_on && !state.projection.is_orthographic()) {
+            start_freelook();
         }
     }
 
