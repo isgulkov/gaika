@@ -1,0 +1,8 @@
+
+newmtl Red
+Ka 1.0 0.0 0.0
+Kd 1.0 0.0 0.0
+
+newmtl Green
+Ka 0.0 0.75 0.0
+Kd 0.0 0.75 0.0

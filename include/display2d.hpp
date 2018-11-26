@@ -241,38 +241,43 @@ protected:
             // TODO: decide whether to copy stuff over instead of setting flags
             std::vector<char> tri_culled;
 
+            // TODO: extract all this mess
+            vec3f dir_out;
+
+            if(state.projection.is_parallel()) {
+                dir_out = mx_tx::rotate_xyz(state.camera.orient) * vec3f(0, 0, -1);
+            }
+            else {
+                switch(state.projection.axis()) {
+                    case wf_projection::X:
+                        dir_out = vec3f(-1, 0, 0);
+                        break;
+                    case wf_projection::Y:
+                        dir_out = vec3f(0, -1, 0);
+                        break;
+                    case wf_projection::Z:
+                        dir_out = vec3f(0, 0, -1);
+                        break;
+                }
+            }
+
             if(state.options.use_backface_cull) {
-                tri_culled.resize(object.model->triangles.size(), false);
+                tri_culled.resize(object.model->faces.size(), false);
                 size_t i_triangle = tri_culled.size() - 1;
 
-                for(const auto& triangle : object.model->triangles) {
-                    const vec3f& a = object.vertices_world[std::get<0>(triangle)],
-                            b = object.vertices_world[std::get<1>(triangle)],
-                            c = object.vertices_world[std::get<2>(triangle)];
+                for(const auto& triangle : object.model->faces) {
+                    const vec3f& a = object.vertices_world[triangle.i_a],
+                            b = object.vertices_world[triangle.i_b],
+                            c = object.vertices_world[triangle.i_c];
 
-                    // TODO: extract this mess
-                    vec3f dir_out;
-
-                    if(!state.projection.is_orthographic()) {
+                    // TODO: make sure this doesn't break when a model is flipped (scaled by a negative factor)
+                    if(state.projection.is_perspective()) {
                         dir_out = a - state.camera.pos;
-                    }
-                    else {
-                        switch(state.projection.axis()) {
-                            case wf_projection::X:
-                                dir_out = vec3f(-1, 0, 0);
-                                break;
-                            case wf_projection::Y:
-                                dir_out = vec3f(0, -1, 0);
-                                break;
-                            case wf_projection::Z:
-                                dir_out = vec3f(0, 0, -1);
-                                break;
-                        }
                     }
 
                     /**
-                     * This DISCARDS triangles with COUNTERCLOCKWISE order of vertices. This is apparently how OpenGL
-                     * does it.
+                     * Triangles with COUNTERCLOCKWISE order of vertices are considered FRONT-FACING here. This is
+                     * apparently how OpenGL does it by default, so most meshes out there are like this as well.
                      */
                     tri_culled[i_triangle--] = dir_out * (b - a).cross(c - a) >= 0;
                 }
@@ -299,18 +304,16 @@ protected:
                 vertices_screen.push_back(to_screen(vertex.to_cartesian()));
             }
 
-            if(!object.hovered || state.options.hovering_disabled) {
-                painter.setPen(object.color);
-            }
-            else {
-                if(state.options.hovering_limited) {
-                    QPen pen(object.color);
-                    pen.setDashPattern({ 1, 5 });
+            QPen segment_pen(Qt::white), face_pen(Qt::white);
+//            painter.setPen(face_pen);
 
-                    painter.setPen(pen);
+            if(object.hovered) {
+                if(state.options.hovering_limited) {
+                    face_pen.setDashPattern({ 1, 5 });
                 }
                 else {
-                    painter.setPen(QPen(object.color, 2, Qt::DashLine));
+                    face_pen.setStyle(Qt::DashLine);
+                    face_pen.setWidth(2);
                 }
             }
 
@@ -319,20 +322,23 @@ protected:
             painter.setOpacity(0.75);
 
             for(const auto& segment : object.model->segments) {
-                if(vertex_outcodes[segment.first] & vertex_outcodes[segment.second]) {
+                if(vertex_outcodes[segment.i_a] & vertex_outcodes[segment.i_b]) {
                     continue;
                 }
 
-                const uint8_t ab_out = vertex_outcodes[segment.first] | vertex_outcodes[segment.second];
+                segment_pen.setColor(QColor(segment.r, segment.g, segment.b));
+                painter.setPen(segment_pen);
+
+                const uint8_t ab_out = vertex_outcodes[segment.i_a] | vertex_outcodes[segment.i_b];
 
                 if(!ab_out) {
-                    draw_line(painter, vertices_screen[segment.first], vertices_screen[segment.second]);
+                    draw_line(painter, vertices_screen[segment.i_a], vertices_screen[segment.i_b]);
                     continue;
                 }
 
                 // TODO: refactor using t_in and t_out
                 // TODO: there are still occasional artifacts as well
-                uint32_t i_a = segment.first, i_b = segment.second;
+                uint32_t i_a = segment.i_a, i_b = segment.i_b;
 
                 if(vertex_outcodes[i_a]) {
                     std::swap(i_a, i_b);
@@ -356,19 +362,20 @@ protected:
                 }
             }
 
-            for(const auto& triangle : object.model->triangles) {
+            for(const auto& triangle : object.model->faces) {
                 if(state.options.use_backface_cull) {
                     painter.setOpacity(tri_culled.back() ? 0.2 : 0.75);
                     tri_culled.pop_back();
                 }
 
-                if(vertex_outcodes[std::get<0>(triangle)] != 0 || vertex_outcodes[std::get<1>(triangle)] != 0 || vertex_outcodes[std::get<2>(triangle)] != 0) {
+                if(vertex_outcodes[triangle.i_a] != 0 || vertex_outcodes[triangle.i_b] != 0 || vertex_outcodes[triangle.i_c] != 0) {
                     continue;
                 }
 
-                const vec2i a = vertices_screen[std::get<0>(triangle)],
-                        b = vertices_screen[std::get<1>(triangle)],
-                        c = vertices_screen[std::get<2>(triangle)];
+                const vec2i a = vertices_screen[triangle.i_a], b = vertices_screen[triangle.i_b], c = vertices_screen[triangle.i_c];
+
+                face_pen.setColor(QColor(triangle.r, triangle.g, triangle.b));
+                painter.setPen(face_pen);
 
                 draw_line(painter, a, b);
                 draw_line(painter, a, c);
@@ -394,6 +401,8 @@ protected:
         if(hud_crosshair) {
             draw_crosshair(painter);
         }
+
+        // TODO: move all these methods into a separate file (as functions of const state& and QPainter, probably)
 
         painter.setOpacity(1.0);
         int y_hud = 5;

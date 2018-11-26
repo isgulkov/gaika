@@ -2,20 +2,21 @@
 #ifndef DZ_GAIKA_OBJ_IO_HPP
 #define DZ_GAIKA_OBJ_IO_HPP
 
-#include <array>
 #include <vector>
-#include <set>
 #include <string>
 
 #include "matrices.hpp"
+#include "model.hpp"
 
 struct obj_file
 {
-    std::string name;
-    std::vector<vec3f> vertices;
-    std::vector<std::tuple<uint32_t, uint32_t, uint32_t>> triangles;
+    // TODO: short-circuit this file representation to the model class?
+    // TODO: handle multiple models per file (and per object)?
 
-    // TODO: load colors from mtl files
+    std::string name;
+
+    std::vector<vec3f> vertices;
+    std::vector<isg::model::triangle_face> triangles;
 
     static obj_file read_file(std::string path);
 };

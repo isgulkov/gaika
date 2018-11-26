@@ -3,31 +3,12 @@
 #define DZ_GAIKA_VIEWER_STATE_HPP
 
 #include <vector>
+#include <string>
 #include <cmath>
-#include <QColor>
 
 #include "matrices.hpp"
 #include "geometry.hpp"
-
-struct wf_model {
-    std::string name;
-
-    std::vector<vec3f> vertices;
-    std::vector<std::pair<uint32_t, uint32_t>> segments;
-    std::vector<std::tuple<uint32_t, uint32_t, uint32_t>> triangles;
-
-    static wf_model tetrahedron(vec3f a, vec3f b, vec3f c, vec3f p)
-    {
-        // In order A, B, C, P where (A, B, C) is clockwise when looking in P's direction
-
-        return {
-                "Tetrahedron",
-                { a, b, c, p },
-                { },
-                { { 0, 1, 2 }, { 1, 0, 3 }, { 2, 1, 3 }, { 0, 2, 3 } }
-        };
-    }
-};
+#include "model.hpp"
 
 class wf_projection {
     enum proj_type {
@@ -122,7 +103,7 @@ struct wf_state
      */
 
     struct th_object {
-        std::shared_ptr<const wf_model> model;
+        std::shared_ptr<const isg::model> model;
 
         vec3f pos, orient;
         float scale;
@@ -132,8 +113,6 @@ struct wf_state
 
         bool hoverable;
         mutable bool hovered;
-
-        QColor color;
     };
 
     std::vector<th_object> th_objects;

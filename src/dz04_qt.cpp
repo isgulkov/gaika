@@ -28,28 +28,28 @@ class wf_viewer : public QMainWindow
     {
         // TODO: move somewhere reasonable
 
-        std::shared_ptr<const wf_model> fat = std::make_shared<const wf_model>(wf_model::tetrahedron(
+        std::shared_ptr<const isg::model> fat = std::make_shared<const isg::model>(isg::model::tetrahedron(
                 { -1.25f, -2.25f, 0.0f },
                 { -2.25f, 1.75f, 0.0f },
                 { 3.75f, 0.75f, 0.0f },
                 { -0.25f, -0.25f, 7.5f }
         ));
 
-        std::shared_ptr<const wf_model> center = std::make_shared<const wf_model>(wf_model::tetrahedron(
+        std::shared_ptr<const isg::model> center = std::make_shared<const isg::model>(isg::model::tetrahedron(
                 { -1.0f, -0.67f, 0.0f },
                 { 0.0f, 1.33f, 0.0f },
                 { 1.0f, -1.67f, 0.0f },
                 { 0.0f, 0.0f, 2.5f }
         ));
 
-        std::shared_ptr<const wf_model> skinny = std::make_shared<const wf_model>(wf_model::tetrahedron(
+        std::shared_ptr<const isg::model> skinny = std::make_shared<const isg::model>(isg::model::tetrahedron(
                 { 1.0f, -1.0f, -1.0f },
                 { 1.0f, -1.0f, 1.0f },
                 { 1.0f, 1.0f, 1.0f },
                 { 15.0f, 0.0f, 0.0f }
         ));
 
-        std::shared_ptr<const wf_model> cuboid = std::make_shared<const wf_model>(wf_model {
+        std::shared_ptr<const isg::model> cuboid = std::make_shared<const isg::model>(isg::model {
                 "Cuboid",
                 {
                         { 0, -2, -2 },
@@ -70,34 +70,36 @@ class wf_viewer : public QMainWindow
         });
 
         // TODO: use camera-projection transform (reverse it?) to efficiently draw this up to the horizon
-        std::shared_ptr<const wf_model> disco_floor;
+        std::shared_ptr<const isg::model> disco_floor;
 
         {
             std::vector<vec3f> vertices;
-            std::vector<std::pair<uint32_t, uint32_t>> segments;
+            std::vector<isg::model::segment_line> segments;
 
             for(int i = 0; i < 20; i++) {
                 for(int j = 0; j < 20; j++) {
                     vertices.emplace_back(10 * (i - 10), 10 * (j - 10), 0);
 
-                    const int i_vertex = (int)vertices.size() - 1;
+                    const uint16_t i_vertex = (uint16_t)(vertices.size() - 1);
 
                     if(j != 0) {
-                        segments.emplace_back(i_vertex, i_vertex - 1);
+                        isg::model::segment_line segment({ i_vertex, (uint16_t)(i_vertex - 1), { 0, 240, 0 } });
+                        segments.push_back(segment);
                     }
 
                     if(i != 0) {
-                        segments.emplace_back(i_vertex, i_vertex - 20);
+                        isg::model::segment_line segment({ i_vertex, (uint16_t)(i_vertex - 20), { 0, 240, 0 } });
+                        segments.push_back(segment);
                     }
                 }
             }
 
-            disco_floor = std::make_shared<const wf_model>(wf_model { "DiscoFloor", vertices, segments, { } });
+            disco_floor = std::make_shared<const isg::model>(isg::model { "DiscoFloor", vertices, segments, { } });
         }
 
         obj_file sphere_crude_obj = obj_file::read_file("../resources/meshes/simple/sphere_crude.obj");
 
-        std::shared_ptr<const wf_model> sphere_crude = std::make_shared<const wf_model>(wf_model {
+        std::shared_ptr<const isg::model> sphere_crude = std::make_shared<const isg::model>(isg::model {
                 "Sphere",
                 sphere_crude_obj.vertices,
                 { },
@@ -105,35 +107,40 @@ class wf_viewer : public QMainWindow
         });
 
         obj_file tetrahedron_obj = obj_file::read_file("../resources/meshes/simple/tetrahedron.obj");
-        std::shared_ptr<const wf_model> tetrahedron = std::make_shared<const wf_model>(wf_model {
+        std::shared_ptr<const isg::model> tetrahedron = std::make_shared<const isg::model>(isg::model {
                 tetrahedron_obj.name, tetrahedron_obj.vertices, { }, tetrahedron_obj.triangles
         });
 
         obj_file hexahedron_obj = obj_file::read_file("../resources/meshes/simple/hexahedron.obj");
-        std::shared_ptr<const wf_model> hexahedron = std::make_shared<const wf_model>(wf_model {
+        std::shared_ptr<const isg::model> hexahedron = std::make_shared<const isg::model>(isg::model {
                 hexahedron_obj.name, hexahedron_obj.vertices, { }, hexahedron_obj.triangles
         });
 
         obj_file octahedron_obj = obj_file::read_file("../resources/meshes/simple/octahedron.obj");
-        std::shared_ptr<const wf_model> octahedron = std::make_shared<const wf_model>(wf_model {
+        std::shared_ptr<const isg::model> octahedron = std::make_shared<const isg::model>(isg::model {
                 octahedron_obj.name, octahedron_obj.vertices, { }, octahedron_obj.triangles
         });
 
         obj_file dodecahedron_obj = obj_file::read_file("../resources/meshes/simple/dodecahedron.obj");
-        std::shared_ptr<const wf_model> dodecahedron = std::make_shared<const wf_model>(wf_model {
+        std::shared_ptr<const isg::model> dodecahedron = std::make_shared<const isg::model>(isg::model {
                 dodecahedron_obj.name, dodecahedron_obj.vertices, { }, dodecahedron_obj.triangles
         });
 
         obj_file icosahedron_obj = obj_file::read_file("../resources/meshes/simple/icosahedron.obj");
-        std::shared_ptr<const wf_model> icosahedron = std::make_shared<const wf_model>(wf_model {
+        std::shared_ptr<const isg::model> icosahedron = std::make_shared<const isg::model>(isg::model {
                 icosahedron_obj.name, icosahedron_obj.vertices, { }, icosahedron_obj.triangles
         });
 
-        std::shared_ptr<const wf_model> cage;
+        obj_file sphere200_obj = obj_file::read_file("../resources/meshes/simple/sphere200.obj");
+        std::shared_ptr<const isg::model> sphere200 = std::make_shared<const isg::model>(isg::model {
+                sphere200_obj.name, sphere200_obj.vertices, { }, sphere200_obj.triangles
+        });
+
+        std::shared_ptr<const isg::model> cage;
 
         {
             std::vector<vec3f> vertices;
-            std::vector<std::pair<uint32_t, uint32_t>> segments;
+            std::vector<isg::model::segment_line> segments;
 
             for(int i = 0; i < 4; i++) {
                 for(int j = 0; j < 4; j++) {
@@ -142,63 +149,59 @@ class wf_viewer : public QMainWindow
 
                         const int i_vertex = (int)vertices.size() - 1;
 
+                        std::array<uint8_t, 3> color{ (uint8_t)(127 + 5 * i), (uint8_t)(127 - 5 * j), (uint8_t)(180 + 5 * k) };
+
                         if(i != 0) {
-                            segments.emplace_back(i_vertex, i_vertex - 4 * 4);
+                            segments.emplace_back(i_vertex, i_vertex - 4 * 4, color);
                         }
 
                         if(j != 0) {
-                            segments.emplace_back(i_vertex, i_vertex - 4);
+                            segments.emplace_back(i_vertex, i_vertex - 4, color);
                         }
 
                         if(k != 0) {
-                            segments.emplace_back(i_vertex, i_vertex - 1);
+                            segments.emplace_back(i_vertex, i_vertex - 1, color);
                         }
                     }
                 }
             }
 
-            cage = std::make_shared<const wf_model>(wf_model { "WireCage", vertices, segments, { } });
+            cage = std::make_shared<const isg::model>(isg::model { "WireCage", vertices, segments, { } });
         }
-
-        obj_file torus_obj = obj_file::read_file("../resources/meshes/simple/torus100.obj");
-
-        std::shared_ptr<const wf_model> torus = std::make_shared<const wf_model>(wf_model {
-                "Torus",
-                torus_obj.vertices,
-                { },
-                torus_obj.triangles
-        });
 
         obj_file tomato_obj = obj_file::read_file("../resources/meshes/simple/tomato.obj");
 
-        std::shared_ptr<const wf_model> tomato = std::make_shared<const wf_model>(wf_model {
+        std::shared_ptr<const isg::model> tomato = std::make_shared<const isg::model>(isg::model {
                 "Tomato",
                 tomato_obj.vertices,
                 { },
                 tomato_obj.triangles
         });
 
+        qDebug() << "seg" << sizeof(isg::model::segment_line) << alignof(isg::model::segment_line);
+        qDebug() << "tri" << sizeof(isg::model::triangle_face) << alignof(isg::model::triangle_face);
+
         state.th_objects = std::vector<wf_state::th_object> {
-                { disco_floor, { 0, 0, 0 }, { 0, 0, 0 }, 1, {}, false, false, QColor::fromRgb(0, 127, 0) },
-                { fat, { 3, -3, 0.25f }, { 0, 0, 0.1f }, 0.25f, {}, true, false, QColor::fromRgb(255, 150, 0) },
-                { fat, { -4, -4, 0.5f }, { 0, 0, 0.2f }, 1, {}, true, false, QColor::fromRgb(255, 190, 0) },
-                { fat, { -5, 5, 0.75f }, { 0, 0, 0.3f }, 1.25f, {}, true, false, QColor::fromRgb(255, 230, 0) },
-                { fat, { 7.5f, 7.5f, 0 }, { 0, 0, 0.4f }, 1.5f, {}, true, false, QColor::fromRgb(255, 255, 0) },
-                { center, { 0, 0, -1.0f }, { 0, 0, 0.5f }, 1, {}, true, false, QColor::fromRgb(255, 255, 255) },
-                { center, { 0, 0, -0.5f }, { 0, 0, 1 }, 1, {}, true, false, QColor::fromRgb(255, 255, 255) },
-                { center, { 0, 0, 0 }, { 0, 0, 0 }, 1, {}, true, false, QColor::fromRgb(255, 255, 255) },
-                { skinny, { 0, 0, 0 }, { 0, 0, 0 }, 1, {}, false, false, QColor::fromRgb(255, 0, 0) },
-                { skinny, { 0, 0, 0 }, { 0, 0, 1.57f }, 1, {}, false, false, QColor::fromRgb(0, 255, 0) },
-                { skinny, { 0, 0, 0 }, { 0, -1.57f, 0 }, 1, {}, false, false, QColor::fromRgb(0, 0, 255) },
-                { cuboid, { 10, 10, 0 }, { 0, 0, 0 }, 1, {}, false, false, QColor::fromRgb(255, 105, 180) },
-                { cage, { -25, -25, 0 }, { 0, 0, 0 }, 1, {}, false, false, QColor::fromRgb(127, 127, 180) },
-                { tetrahedron, { 20, -80, 0 }, { 0, 0, 15 }, 1, {}, true, false, QColor::fromRgb(255, 255, 90) },
-                { hexahedron, { 30, -65, 0 }, { 0, 0, 15 }, 1, {}, true, false, QColor::fromRgb(255, 255, 140) },
-                { octahedron, { 40, -50, 0 }, { 0, 0, 15 }, 1, {}, true, false, QColor::fromRgb(255, 255, 175) },
-                { dodecahedron, { 50, -35, 0 }, { 0, 0, 0 }, 1, {}, true, false, QColor::fromRgb(255, 255, 255) },
-                { icosahedron, { 60, -20, 0 }, { 0, 0, 15 }, 1, {}, true, false, QColor::fromRgb(255, 255, 224) },
-                { torus, { 30, 30, 10 }, { 1.57f, 0, 0 }, 10.0f, {}, true, false, QColor::fromRgb(224, 102, 255) },
-                { tomato, { -45, -30, 5 }, { 0, 0, 0 }, 0.25f, {}, true, false, QColor::fromRgb(255, 0, 0) }
+                { disco_floor, { 0, 0, 0 }, { 0, 0, 0 }, 1, {}, false, false },
+                { fat, { 3, -3, 0.25f }, { 0, 0, 0.1f }, 0.25f, {}, true, false },
+                { fat, { -4, -4, 0.5f }, { 0, 0, 0.2f }, 1, {}, true, false },
+                { fat, { -5, 5, 0.75f }, { 0, 0, 0.3f }, 1.25f, {}, true, false },
+                { fat, { 7.5f, 7.5f, 0 }, { 0, 0, 0.4f }, 1.5f, {}, true, false },
+                { center, { 0, 0, -1.0f }, { 0, 0, 0.5f }, 1, {}, true, false },
+                { center, { 0, 0, -0.5f }, { 0, 0, 1 }, 1, {}, true, false },
+                { center, { 0, 0, 0 }, { 0, 0, 0 }, 1, {}, true, false },
+                { skinny, { 0, 0, 0 }, { 0, 0, 0 }, 1, {}, false, false },
+                { skinny, { 0, 0, 0 }, { 0, 0, 1.57f }, 1, {}, false, false },
+                { skinny, { 0, 0, 0 }, { 0, -1.57f, 0 }, 1, {}, false, false },
+                { cuboid, { 10, 10, 0 }, { 0, 0, 0 }, 1, {}, false, false },
+                { cage, { -25, -25, 0 }, { 0, 0, 0 }, 1, {}, false, false },
+                { tetrahedron, { 20, -80, 0 }, { 0, 0, 15 }, 1, {}, true, false },
+                { hexahedron, { 30, -70, 0 }, { 0, 0, 15 }, 1, {}, true, false },
+                { octahedron, { 40, -60, 0 }, { 0, 0, 15 }, 1, {}, true, false },
+                { dodecahedron, { 50, -50, 0 }, { 0, 0, 0 }, 1, {}, true, false },
+                { icosahedron, { 60, -40, 0 }, { 0, 0, 15 }, 1, {}, true, false },
+                { sphere200, { 70, -30, 5 }, { 0, 0, 0 }, 1, {}, true, false },
+                { tomato, { -45, -30, 5 }, { 0, 0, 0 }, 0.25f, {}, true, false }
         };
 
         state.camera = {
