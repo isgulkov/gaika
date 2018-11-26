@@ -374,18 +374,6 @@ protected:
         }
 
         switch(event->key()) {
-            case Qt::Key_1:
-                p_widget->hud_camera = !p_widget->hud_camera;
-                return;
-            case Qt::Key_2:
-                p_widget->hud_projection = !p_widget->hud_projection;
-                return;
-            case Qt::Key_3:
-                p_widget->hud_viewport = !p_widget->hud_viewport;
-                return;
-            case Qt::Key_Equal:
-                switch_projection();
-                return;
             case Qt::Key_W:
                 state.controls.forward = true;
                 return;
@@ -408,6 +396,30 @@ protected:
                 if(mousetrap_on) {
                     stop_mousetrap();
                 }
+                return;
+            case Qt::Key_1:
+                p_widget->hud_camera = !p_widget->hud_camera;
+                return;
+            case Qt::Key_2:
+                p_widget->hud_projection = !p_widget->hud_projection;
+                return;
+            case Qt::Key_3:
+                p_widget->hud_viewport = !p_widget->hud_viewport;
+                return;
+            case Qt::Key_8:
+                state.projection.set_orthographic(wf_projection::X);
+                return;
+            case Qt::Key_9:
+                state.projection.set_orthographic(wf_projection::Y);
+                return;
+            case Qt::Key_0:
+                state.projection.set_orthographic(wf_projection::Z);
+                return;
+            case Qt::Key_Minus:
+                state.projection.set_parallel();
+                return;
+            case Qt::Key_Equal:
+                state.projection.set_perspective();
                 return;
             case Qt::Key_I:
                 state.projection.set_z_near(state.projection.z_near() / 10.0f);
