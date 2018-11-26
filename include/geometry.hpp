@@ -8,6 +8,7 @@ namespace mx_tx {
 
 mat_sq4f scale(float s);
 mat_sq4f scale(float sx, float sy, float sz);
+mat_sq4f scale(const vec3f& ss);
 mat_sq4f translate(float dx, float dy, float dz);
 mat_sq4f translate(const vec3f& xs);
 mat_sq4f rotate_x(float theta);

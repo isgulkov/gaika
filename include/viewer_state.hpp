@@ -103,16 +103,39 @@ struct wf_state
      */
 
     struct th_object {
+        std::string id;
         std::shared_ptr<const isg::model> model;
 
-        vec3f pos, orient;
-        float scale;
+        th_object(std::shared_ptr<const isg::model> model) : id(model->name), model(std::move(model)) { }
+
+        bool hoverable = false;
+        mutable bool hovered = false;
+
+        vec3f pos = { 0, 0, 0 };
+        vec3f orient = { 0, 0, 0 };
+        vec3f scale = { 1, 1, 1 };
+
+        th_object& set_id(const std::string new_id) {
+            id = new_id; return *this;
+        }
+        th_object& set_pos(vec3f new_pos) {
+            pos = new_pos; return *this;
+        }
+        th_object& set_orient(vec3f new_orient) {
+            orient = new_orient; return *this;
+        }
+        th_object& set_scale(vec3f new_scale) {
+            scale = new_scale; return *this;
+        }
+        th_object& set_scale(float s) {
+            scale = { s, s, s }; return *this;
+        }
+        th_object& set_hoverable(bool new_hoverable) {
+            hoverable = new_hoverable; return *this;
+        }
 
         // TODO: cached world-transformed vertices -- don't forget to update for animated models or moving objects
         mutable std::vector<vec3f> vertices_world;
-
-        bool hoverable;
-        mutable bool hovered;
     };
 
     std::vector<th_object> th_objects;
@@ -141,11 +164,14 @@ struct wf_state
 
     struct {
         bool free_look = false;
-        bool hovering_disabled = false;
-        bool hovering_limited = false;
-
         bool use_backface_cull = true;
     } options;
+
+    struct {
+        bool disabled = false;
+        bool limited = false;
+        th_object* object = nullptr;
+    } hovering;
 
     struct {
         int n = 0;

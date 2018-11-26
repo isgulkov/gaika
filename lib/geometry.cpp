@@ -27,6 +27,11 @@ mat_sq4f scale(float sx, float sy, float sz)
     return diag(sx, sy, sz, 1);
 }
 
+mat_sq4f scale(const vec3f& ss)
+{
+    return diag(ss.x, ss.y, ss.z, 1);
+}
+
 mat_sq4f translate(float dx, float dy, float dz)
 {
     return {

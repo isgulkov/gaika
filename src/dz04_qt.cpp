@@ -182,26 +182,23 @@ class wf_viewer : public QMainWindow
         qDebug() << "tri" << sizeof(isg::model::triangle_face) << alignof(isg::model::triangle_face);
 
         state.th_objects = std::vector<wf_state::th_object> {
-                { disco_floor, { 0, 0, 0 }, { 0, 0, 0 }, 1, {}, false, false },
-                { fat, { 3, -3, 0.25f }, { 0, 0, 0.1f }, 0.25f, {}, true, false },
-                { fat, { -4, -4, 0.5f }, { 0, 0, 0.2f }, 1, {}, true, false },
-                { fat, { -5, 5, 0.75f }, { 0, 0, 0.3f }, 1.25f, {}, true, false },
-                { fat, { 7.5f, 7.5f, 0 }, { 0, 0, 0.4f }, 1.5f, {}, true, false },
-                { center, { 0, 0, -1.0f }, { 0, 0, 0.5f }, 1, {}, true, false },
-                { center, { 0, 0, -0.5f }, { 0, 0, 1 }, 1, {}, true, false },
-                { center, { 0, 0, 0 }, { 0, 0, 0 }, 1, {}, true, false },
-                { skinny, { 0, 0, 0 }, { 0, 0, 0 }, 1, {}, false, false },
-                { skinny, { 0, 0, 0 }, { 0, 0, 1.57f }, 1, {}, false, false },
-                { skinny, { 0, 0, 0 }, { 0, -1.57f, 0 }, 1, {}, false, false },
-                { cuboid, { 10, 10, 0 }, { 0, 0, 0 }, 1, {}, false, false },
-                { cage, { -25, -25, 0 }, { 0, 0, 0 }, 1, {}, false, false },
-                { tetrahedron, { 20, -80, 0 }, { 0, 0, 15 }, 1, {}, true, false },
-                { hexahedron, { 30, -70, 0 }, { 0, 0, 15 }, 1, {}, true, false },
-                { octahedron, { 40, -60, 0 }, { 0, 0, 15 }, 1, {}, true, false },
-                { dodecahedron, { 50, -50, 0 }, { 0, 0, 0 }, 1, {}, true, false },
-                { icosahedron, { 60, -40, 0 }, { 0, 0, 15 }, 1, {}, true, false },
-                { sphere200, { 70, -30, 5 }, { 0, 0, 0 }, 1, {}, true, false },
-                { tomato, { -45, -30, 5 }, { 0, 0, 0 }, 0.25f, {}, true, false }
+                wf_state::th_object(disco_floor),
+                wf_state::th_object(cuboid).set_pos({ 10, 10, 0 }),
+                wf_state::th_object(cage).set_pos({ -25, -25, 0 }),
+                wf_state::th_object(fat).set_id("Fat NW").set_pos({ 3, -3, 0.25f }).set_orient({ 0, 0, 0.1f }).set_scale(0.25f).set_hoverable(true),
+                wf_state::th_object(fat).set_id("Fat SW").set_pos({ -4, -4, 0.5f }).set_orient({ 0, 0, 0.2f }).set_hoverable(true),
+                wf_state::th_object(fat).set_id("Fat SE").set_pos({ -5, 5, 0.75f }).set_orient({ 0, 0, 0.3f }).set_scale(1.25f).set_hoverable(true),
+                wf_state::th_object(fat).set_id("Fat NE").set_pos({ 7.5f, 7.5f, 0 }).set_orient({ 0, 0, 0.4f }).set_scale({ 1.5f, 1.5f, 0.9f }).set_hoverable(true),
+                wf_state::th_object(skinny),
+                wf_state::th_object(skinny).set_orient({ 0, 0, 1.57f }),
+                wf_state::th_object(skinny).set_orient({ 0, -1.57f, 0 }),
+                wf_state::th_object(tetrahedron).set_pos({ 20, -80, 0 }).set_hoverable(true),
+                wf_state::th_object(hexahedron).set_pos({ 30, -70, 0 }).set_hoverable(true),
+                wf_state::th_object(octahedron).set_pos({ 40, -60, 0 }).set_hoverable(true),
+                wf_state::th_object(dodecahedron).set_pos({ 50, -50, 0 }).set_hoverable(true),
+                wf_state::th_object(icosahedron).set_pos({ 60, -40, 0 }).set_hoverable(true),
+                wf_state::th_object(sphere200).set_pos({ 70, -30, 5 }).set_hoverable(true),
+                wf_state::th_object(tomato).set_pos({ -45, -30, 5 }).set_scale(0.25f).set_hoverable(true)
         };
 
         state.camera = {
@@ -290,11 +287,14 @@ public slots:
          *
          * TODO: investigate the sensitivity issue that the hovering code seems to cause -- probably has to do with FPS
          */
-        if(!(state.options.hovering_disabled = !state.projection.is_orthographic() && !mousetrap_on)) {
-            state.options.hovering_limited = p_widget->hovered_multiple;
+        if(!(state.hovering.disabled = !state.projection.is_orthographic() && !mousetrap_on)) {
+            state.hovering.limited = p_widget->hovered_multiple;
         }
 
-        // TODO: ... do something with the hovered object ...
+        if(!state.hovering.disabled) {
+            // TODO: ... do something with the hovered object ...
+            state.hovering.object = const_cast<wf_state::th_object*>(p_widget->hovered_object);
+        }
 
         p_widget->update();
 
