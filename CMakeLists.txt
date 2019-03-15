@@ -23,8 +23,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-#sudo ln -s /usr/local/Cellar/qt/5.11.2/mkspecs/ /usr/local/mkspecs
-#sudo ln -s /usr/local/Cellar/qt/5.11.2/plugins/ /usr/local/plugins
+#sudo ln -s /usr/local/Cellar/qt/5.12.1/mkspecs/ /usr/local/mkspecs
+#sudo ln -s /usr/local/Cellar/qt/5.12.1/plugins/ /usr/local/plugins
 find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
 target_link_libraries(dz04_display2d Qt5::Core Qt5::Widgets)
 
