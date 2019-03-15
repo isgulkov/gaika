@@ -324,7 +324,7 @@ protected:
     }
 
     // TODO: move these!
-    const float sun_azimuth = 1.57f, sun_altitude = 0.785f;
+    float sun_azimuth = 1.57f, sun_altitude = 0.785f;
 
     void paintEvent(QPaintEvent* event) override
     {
@@ -359,11 +359,11 @@ protected:
         z_buffer.resize((size_t)(zb_width * state.viewport.height));
         std::fill(z_buffer.begin(), z_buffer.end(), MAXFLOAT);
 
-        const vec3f sun_dir = mx_tx::rotate_z(-sun_azimuth) * mx_tx::rotate_y(-sun_altitude) * vec3f(1, 0, 0);
+        const vec3f dir_sun = mx_tx::rotate_z(-sun_azimuth) * mx_tx::rotate_y(-sun_altitude) * vec3f(1, 0, 0);
 
         // TODO: move where other light sources will be drawn
         if(state.projection.is_perspective()) {
-            const vec3f sun_pos = (sun_dir * 50.0f) + state.camera.pos;
+            const vec3f sun_pos = (dir_sun * 50.0f) + state.camera.pos;
 
             const vec4f sun_clip = tx_projection.mul_homo(tx_camera * sun_pos);
 
@@ -386,6 +386,7 @@ protected:
 
             // TODO: decide whether to copy stuff over instead of setting flags
             std::vector<char> tri_culled;
+            std::vector<float> tri_sunlight;
 
             if(state.options.use_backface_cull != wf_state::BFC_DISABLE) {
                 // TODO: extract all this mess
@@ -409,6 +410,7 @@ protected:
                 }
 
                 tri_culled.resize(object.model->faces.size(), false);
+                tri_sunlight.resize(object.model->faces.size());
                 size_t i_triangle = tri_culled.size() - 1;
 
                 for(const auto& triangle : object.model->faces) {
@@ -425,7 +427,12 @@ protected:
                      * Triangles with COUNTERCLOCKWISE order of vertices are considered FRONT-FACING here. This is
                      * apparently how OpenGL does it by default, so most meshes out there are like this as well.
                      */
-                    tri_culled[i_triangle--] = dir_out * (b - a).cross(c - a) >= 0;
+                    const vec3f tri_norm = (b - a).cross(c - a).normalize();
+
+                    tri_culled[i_triangle] = dir_out * tri_norm >= 0;
+                    tri_sunlight[i_triangle] = dir_sun * tri_norm;
+
+                    i_triangle -= 1;
                 }
             }
 
@@ -518,6 +525,9 @@ protected:
 //                painter.setOpacity(0.75);
                 painter.setOpacity(state.projection.is_orthographic() ? 0.75 : 1);
 
+                const float face_sunlight = state.projection.is_orthographic() ? 1 : tri_sunlight.back();
+                tri_sunlight.pop_back();
+
                 if(state.options.use_backface_cull != wf_state::BFC_DISABLE) {
                     const bool face_culled = tri_culled.back();
                     tri_culled.pop_back();
@@ -538,9 +548,24 @@ protected:
 
                 const vec3f a = vertices_screen[triangle.i_a], b = vertices_screen[triangle.i_b], c = vertices_screen[triangle.i_c];
 
-                const std::array<uint8_t, 3> color = object.model->vertex_colors[triangle.i_a];
+                // TODO: properly incorporate light source's color; add ambient lighting
+                std::array<uint8_t, 3> c_rgb = object.model->vertex_colors[triangle.i_a];
 
-                face_pen.setColor(QColor(color[0], color[1], color[2]));
+                for(uint8_t& cc : c_rgb) {
+                    const int cc_new = int(cc * (face_sunlight + 0.3f));
+
+                    if(cc_new < 0) {
+                        cc = 0;
+                    }
+                    else if(cc_new >= 256) {
+                        cc = 255;
+                    }
+                    else {
+                        cc = (uint8_t)cc_new;
+                    }
+                }
+
+                face_pen.setColor(QColor(c_rgb[0], c_rgb[1], c_rgb[2]));
                 painter.setPen(face_pen);
 
                 if(state.projection.is_orthographic()) {
