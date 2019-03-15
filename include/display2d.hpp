@@ -390,7 +390,9 @@ protected:
 
                 const vec2i a = vertices_screen[triangle.i_a], b = vertices_screen[triangle.i_b], c = vertices_screen[triangle.i_c];
 
-                face_pen.setColor(QColor(triangle.r, triangle.g, triangle.b));
+                const std::array<uint8_t, 3> color = object.model->vertex_colors[triangle.i_a];
+
+                face_pen.setColor(QColor(color[0], color[1], color[2]));
                 painter.setPen(face_pen);
 
                 draw_line(painter, a, b);

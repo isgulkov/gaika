@@ -16,6 +16,7 @@ struct obj_file
     std::string name;
 
     std::vector<vec3f> vertices;
+    std::vector<std::array<uint8_t, 3>> vertex_colors; // TODO: indices into "materials" vector?
     std::vector<isg::model::triangle_face> triangles;
 
     static obj_file read_file(std::string path);

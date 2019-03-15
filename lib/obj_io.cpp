@@ -62,6 +62,7 @@ obj_file obj_file::read_file(std::string path)
 
     std::unordered_map<std::string, std::array<uint8_t, 3>> mtl_colors;
     std::array<uint8_t, 3> color = { 255, 255, 255 };
+
     obj_file obj;
 
     int n_ignored = 0, n_line = 1;
@@ -74,6 +75,7 @@ obj_file obj_file::read_file(std::string path)
             fin >> x >> y >> z;
 
             obj.vertices.emplace_back(x, y, z);
+            obj.vertex_colors.emplace_back(color);
         }
         else if(word == "f") {
             std::vector<uint16_t> ix_vertices;
@@ -87,7 +89,7 @@ obj_file obj_file::read_file(std::string path)
 
             if(ix_vertices.size() >= 3) {
                 for(int i = 2; i < ix_vertices.size(); i++) {
-                    obj.triangles.emplace_back(ix_vertices[0], ix_vertices[i - 1], ix_vertices[i], color);
+                    obj.triangles.emplace_back(ix_vertices[0], ix_vertices[i - 1], ix_vertices[i]);
                 }
             }
             else {

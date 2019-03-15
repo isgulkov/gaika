@@ -94,7 +94,7 @@ class wf_viewer : public QMainWindow
                 }
             }
 
-            disco_floor = std::make_shared<const isg::model>(isg::model { "DiscoFloor", vertices, segments, { } });
+            disco_floor = std::make_shared<const isg::model>(isg::model { "DiscoFloor", vertices, { }, segments, { } });
         }
 
         obj_file sphere_crude_obj = obj_file::read_file("../resources/meshes/simple/sphere_crude.obj");
@@ -102,38 +102,39 @@ class wf_viewer : public QMainWindow
         std::shared_ptr<const isg::model> sphere_crude = std::make_shared<const isg::model>(isg::model {
                 "Sphere",
                 sphere_crude_obj.vertices,
+                sphere_crude_obj.vertex_colors,
                 { },
                 sphere_crude_obj.triangles
         });
 
         obj_file tetrahedron_obj = obj_file::read_file("../resources/meshes/simple/tetrahedron.obj");
         std::shared_ptr<const isg::model> tetrahedron = std::make_shared<const isg::model>(isg::model {
-                tetrahedron_obj.name, tetrahedron_obj.vertices, { }, tetrahedron_obj.triangles
+                tetrahedron_obj.name, tetrahedron_obj.vertices, tetrahedron_obj.vertex_colors, { }, tetrahedron_obj.triangles
         });
 
         obj_file hexahedron_obj = obj_file::read_file("../resources/meshes/simple/hexahedron.obj");
         std::shared_ptr<const isg::model> hexahedron = std::make_shared<const isg::model>(isg::model {
-                hexahedron_obj.name, hexahedron_obj.vertices, { }, hexahedron_obj.triangles
+                hexahedron_obj.name, hexahedron_obj.vertices, hexahedron_obj.vertex_colors, { }, hexahedron_obj.triangles
         });
 
         obj_file octahedron_obj = obj_file::read_file("../resources/meshes/simple/octahedron.obj");
         std::shared_ptr<const isg::model> octahedron = std::make_shared<const isg::model>(isg::model {
-                octahedron_obj.name, octahedron_obj.vertices, { }, octahedron_obj.triangles
+                octahedron_obj.name, octahedron_obj.vertices, octahedron_obj.vertex_colors, { }, octahedron_obj.triangles
         });
 
         obj_file dodecahedron_obj = obj_file::read_file("../resources/meshes/simple/dodecahedron.obj");
         std::shared_ptr<const isg::model> dodecahedron = std::make_shared<const isg::model>(isg::model {
-                dodecahedron_obj.name, dodecahedron_obj.vertices, { }, dodecahedron_obj.triangles
+                dodecahedron_obj.name, dodecahedron_obj.vertices, dodecahedron_obj.vertex_colors, { }, dodecahedron_obj.triangles
         });
 
         obj_file icosahedron_obj = obj_file::read_file("../resources/meshes/simple/icosahedron.obj");
         std::shared_ptr<const isg::model> icosahedron = std::make_shared<const isg::model>(isg::model {
-                icosahedron_obj.name, icosahedron_obj.vertices, { }, icosahedron_obj.triangles
+                icosahedron_obj.name, icosahedron_obj.vertices, icosahedron_obj.vertex_colors, { }, icosahedron_obj.triangles
         });
 
         obj_file sphere40_obj = obj_file::read_file("../resources/meshes/simple/sphere40.obj");
         std::shared_ptr<const isg::model> sphere200 = std::make_shared<const isg::model>(isg::model {
-                sphere40_obj.name, sphere40_obj.vertices, { }, sphere40_obj.triangles
+                sphere40_obj.name, sphere40_obj.vertices, sphere40_obj.vertex_colors, { }, sphere40_obj.triangles
         });
 
         std::shared_ptr<const isg::model> cage;
@@ -166,7 +167,7 @@ class wf_viewer : public QMainWindow
                 }
             }
 
-            cage = std::make_shared<const isg::model>(isg::model { "WireCage", vertices, segments, { } });
+            cage = std::make_shared<const isg::model>(isg::model { "WireCage", vertices, { }, segments, { } });
         }
 
         obj_file tomato_obj = obj_file::read_file("../resources/meshes/simple/tomato.obj");
@@ -174,6 +175,7 @@ class wf_viewer : public QMainWindow
         std::shared_ptr<const isg::model> tomato = std::make_shared<const isg::model>(isg::model {
                 "Tomato",
                 tomato_obj.vertices,
+                tomato_obj.vertex_colors,
                 { },
                 tomato_obj.triangles
         });

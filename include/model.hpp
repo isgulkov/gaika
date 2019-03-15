@@ -26,24 +26,16 @@ struct model
 
     struct triangle_face
     {
-        /**
-         * Things like color are normally stored with vertices, but that'll only be relevant with face shading
-         */
-
         uint16_t i_a, i_b, i_c;
-        uint8_t r, g, b;
 
         triangle_face() = default;
-        triangle_face(uint16_t i_a, uint16_t i_b, uint16_t i_c) : triangle_face(i_a, i_b, i_c, 255, 255, 255) { }
-        triangle_face(uint16_t i_a, uint16_t i_b, uint16_t i_c,
-                std::array<uint8_t, 3> rgb) : triangle_face(i_a, i_b, i_c, rgb[0], rgb[1], rgb[2]) { }
-        triangle_face(uint16_t i_a, uint16_t i_b, uint16_t i_c,
-                uint8_t r, uint8_t g, uint8_t b) : i_a(i_a), i_b(i_b), i_c(i_c), r(r), g(g), b(b) { }
+        triangle_face(uint16_t i_a, uint16_t i_b, uint16_t i_c) : i_a(i_a), i_b(i_b), i_c(i_c) { }
     };
 
     std::string name;
 
     std::vector<vec3f> vertices;
+    std::vector<std::array<uint8_t, 3>> vertex_colors; // TODO: indices into "materials" array
     std::vector<segment_line> segments;
     std::vector<triangle_face> faces;
 
@@ -54,6 +46,7 @@ struct model
         return {
                 "Tetrahedron",
                 { a, b, c, p },
+                { { 255, 255, 255 }, { 255, 255, 255 }, { 255, 255, 255 }, { 255, 255, 255 } },
                 { },
                 {{ 0, 1, 2 }, { 1, 0, 3 }, { 2, 1, 3 }, { 0, 2, 3 }}
         };
