@@ -56,31 +56,26 @@ public:
             hud_performance = false;
 
 protected:
-    static void draw_line(QPainter& painter, vec2i a, vec2i b)
+    static void draw_line(QPainter& painter, vec2f a, vec2f b)
     {
         painter.drawLine(a.x, a.y, b.x, b.y);
     }
 
-    /**
-     * Map @param x from [-1; 1] to [0; @param x_size], where 0 becomes @code{x_size / 2}
-     */
-    static int scale_screen(float x, int x_size)
+    vec2f to_screen(const vec3f& v)
     {
-        return (int16_t)((x / 2.0f + 0.5f) * x_size);
+        return {
+                (v.x / 2.0f + 0.5f) * state.viewport.width,
+                (-v.y / 2.0f + 0.5f) * state.viewport.height
+        };
     }
 
-    vec2i to_screen(const vec3f& v)
-    {
-        return { scale_screen(v.x, state.viewport.width), scale_screen(-v.y, state.viewport.height) };
-    }
-
-    vec3f from_screen(const vec2i& v)
+    vec3f from_screen(const vec2f& v)
     {
         // TODO: write a vec2f for this?
         return { v.x * 2.0f / state.viewport.width - 1.0f, -v.y * 2.0f / state.viewport.height + 1.0f, 0 };
     }
 
-    static bool test_p_in_triangle(const vec2i& p, const vec2i& a, const vec2i& b, const vec2i& c)
+    static bool test_p_in_triangle(const vec2f& p, const vec2f& a, const vec2f& b, const vec2f& c)
     {
         // TODO: figure out how this works and document
         const int x_ap = p.x - a.x;
@@ -228,7 +223,7 @@ protected:
         hovered_multiple = false;
 
         const QPoint p_cursor = mapFromGlobal(QCursor::pos());
-        const vec2i p{ p_cursor.x(), p_cursor.y() };
+        const vec2f p{ (float)p_cursor.x(), (float)p_cursor.y() };
 
         // TODO: benchmark, investigate possible CPU parallelism (both SIMD and threads)
         for(const wf_state::th_object& object : state.th_objects) {
@@ -286,7 +281,7 @@ protected:
             const std::vector<vec4f> vertices_clipping = tx_projection.mul_homo(tx_camera * object.vertices_world);
 
             std::vector<uint8_t> vertex_outcodes(vertices_clipping.size(), 0);
-            std::vector<vec2i> vertices_screen;
+            std::vector<vec2f> vertices_screen;
             vertices_screen.reserve(vertices_clipping.size());
 
             for(const vec4f& vertex : vertices_clipping) {
@@ -301,6 +296,7 @@ protected:
 
                 vertex_outcodes[vertices_screen.size()] = outcode;
 
+                // TODO: gut to_screen after removing segment rendering
                 vertices_screen.push_back(to_screen(vertex.to_cartesian()));
             }
 
@@ -388,7 +384,7 @@ protected:
                     continue;
                 }
 
-                const vec2i a = vertices_screen[triangle.i_a], b = vertices_screen[triangle.i_b], c = vertices_screen[triangle.i_c];
+                const vec2f a = vertices_screen[triangle.i_a], b = vertices_screen[triangle.i_b], c = vertices_screen[triangle.i_c];
 
                 const std::array<uint8_t, 3> color = object.model->vertex_colors[triangle.i_a];
 

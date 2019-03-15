@@ -6,10 +6,10 @@
 
 // TODO: put each of the classes into a separate file
 
-struct vec2i
+struct vec2f
 {
     // REMOVE: just use Qt's point for this? it's only ever screen coords, anyway
-    int x, y;
+    float x, y;
 };
 
 struct vec3f
