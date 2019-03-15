@@ -131,9 +131,9 @@ class wf_viewer : public QMainWindow
                 icosahedron_obj.name, icosahedron_obj.vertices, { }, icosahedron_obj.triangles
         });
 
-        obj_file sphere200_obj = obj_file::read_file("../resources/meshes/simple/sphere200.obj");
+        obj_file sphere40_obj = obj_file::read_file("../resources/meshes/simple/sphere40.obj");
         std::shared_ptr<const isg::model> sphere200 = std::make_shared<const isg::model>(isg::model {
-                sphere200_obj.name, sphere200_obj.vertices, { }, sphere200_obj.triangles
+                sphere40_obj.name, sphere40_obj.vertices, { }, sphere40_obj.triangles
         });
 
         std::shared_ptr<const isg::model> cage;
