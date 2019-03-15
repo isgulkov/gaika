@@ -325,6 +325,8 @@ protected:
 
     // TODO: move these!
     float sun_azimuth = 1.57f, sun_altitude = 0.785f;
+    const vec3f sun_color { 1.0f, 1.0f, 0.95f };
+    const float amb_intensity = 0.1f;
 
     void paintEvent(QPaintEvent* event) override
     {
@@ -368,10 +370,9 @@ protected:
             const vec4f sun_clip = tx_projection.mul_homo(tx_camera * sun_pos);
 
             if(sun_clip.z > 0) {
-                painter.setPen(Qt::yellow);
-
                 const vec3f hui = to_screen(sun_clip.to_cartesian());
 
+                painter.setPen(Qt::yellow);
                 painter.drawEllipse((int)hui.x - 10, (int)hui.y - 10, 20, 20);
             }
         }
@@ -430,7 +431,7 @@ protected:
                     const vec3f tri_norm = (b - a).cross(c - a).normalize();
 
                     tri_culled[i_triangle] = dir_out * tri_norm >= 0;
-                    tri_sunlight[i_triangle] = dir_sun * tri_norm;
+                    tri_sunlight[i_triangle] = std::max(dir_sun * tri_norm, 0.0f);
 
                     i_triangle -= 1;
                 }
@@ -548,24 +549,16 @@ protected:
 
                 const vec3f a = vertices_screen[triangle.i_a], b = vertices_screen[triangle.i_b], c = vertices_screen[triangle.i_c];
 
-                // TODO: properly incorporate light source's color; add ambient lighting
+                // TODO: add ambient lighting and shit
                 std::array<uint8_t, 3> c_rgb = object.model->vertex_colors[triangle.i_a];
 
-                for(uint8_t& cc : c_rgb) {
-                    const int cc_new = int(cc * (face_sunlight + 0.3f));
+                QColor color {
+                        int(c_rgb[0] * (face_sunlight * sun_color.x * 0.9f + 0.1f)),
+                        int(c_rgb[1] * (face_sunlight * sun_color.x * 0.9f + 0.1f)),
+                        int(c_rgb[2] * (face_sunlight * sun_color.x * 0.9f + 0.1f))
+                };
 
-                    if(cc_new < 0) {
-                        cc = 0;
-                    }
-                    else if(cc_new >= 256) {
-                        cc = 255;
-                    }
-                    else {
-                        cc = (uint8_t)cc_new;
-                    }
-                }
-
-                face_pen.setColor(QColor(c_rgb[0], c_rgb[1], c_rgb[2]));
+                face_pen.setColor(color);
                 painter.setPen(face_pen);
 
                 if(state.projection.is_orthographic()) {
