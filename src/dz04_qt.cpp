@@ -220,7 +220,7 @@ class wf_viewer : public QMainWindow
         };
 
         state.projection = {
-                (float)(M_PI * 2 / 3), 1, 1.0f, 100.0f
+                (float)(M_PI * 2 / 3), 1, 1.0f, 1000.0f
         };
 
         state.viewport = { 640, 640 };
@@ -285,6 +285,10 @@ public slots:
         }
         else if(drag_target != nullptr) {
             update_drag();
+        }
+
+        if(drag_target) {
+            drag_target->pos += state.v_camera * sec_since_update;
         }
 
         state.camera.pos += state.v_camera * sec_since_update;
@@ -389,27 +393,21 @@ protected:
         switch(event->key()) {
             case Qt::Key_W:
                 state.controls.forward = true;
-                stop_drag();
                 return;
             case Qt::Key_A:
                 state.controls.left = true;
-                stop_drag();
                 return;
             case Qt::Key_S:
                 state.controls.back = true;
-                stop_drag();
                 return;
             case Qt::Key_D:
                 state.controls.right = true;
-                stop_drag();
                 return;
             case Qt::Key_Space:
                 state.controls.jump = true;
-                stop_drag();
                 return;
             case Qt::Key_Control:
                 state.controls.duck = true;
-                stop_drag();
                 return;
             case Qt::Key_Escape:
                 stop_freelook();
@@ -573,11 +571,6 @@ protected:
 
     void start_drag(wf_state::th_object* new_target)
     {
-        // REMOVE: allow this interaction after fixing it (see update_drag)
-        if(state.controls.forward || state.controls.back || state.controls.left || state.controls.right || state.controls.jump || state.controls.duck) {
-            return;
-        }
-
         p_widget->setMouseTracking(true);
 
         xy_prev = QCursor::pos();
@@ -620,10 +613,10 @@ protected:
                 drag_target->pos += { d_x, 0, d_y };
                 break;
             case wf_projection::Z:
-            default:
                 drag_target->pos += { d_x, d_y, 0 };
                 break;
         }
+
         drag_target->vertices_world.clear();
     }
 
