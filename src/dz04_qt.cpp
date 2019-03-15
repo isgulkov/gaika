@@ -446,7 +446,17 @@ protected:
                 state.projection.set_z_far(state.projection.z_far() * 10.0f);
                 return;
             case Qt::Key_B:
-                state.options.use_backface_cull ^= 1;
+                switch(state.options.use_backface_cull) {
+                    case wf_state::BFC_DISABLE:
+                        state.options.use_backface_cull = wf_state::BFC_TRANSPARENT;
+                        break;
+                    case wf_state::BFC_TRANSPARENT:
+                        state.options.use_backface_cull = wf_state::BFC_CULL;
+                        break;
+                    case wf_state::BFC_CULL:
+                    default:
+                        state.options.use_backface_cull = wf_state::BFC_DISABLE;
+                }
                 return;
             default:
                 QWidget::keyPressEvent(event);
