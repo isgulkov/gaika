@@ -1,0 +1,25 @@
+
+newmtl White
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+
+newmtl Green
+Ka 0.0 0.607 0.282
+Kd 0.0 0.607 0.282
+
+newmtl Brick
+Ka 0.718 0.071 0.204
+Kd 0.718 0.071 0.204
+
+newmtl Blue
+Ka 0.000 0.275 0.678
+Kd 0.000 0.275 0.678
+
+newmtl Orange
+Ka 1.000 0.345 0.000
+Kd 1.000 0.345 0.000
+
+newmtl Yellow
+Ka 1.000 0.835 0.00
+Kd 1.000 0.835 0.00
+

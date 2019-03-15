@@ -56,9 +56,79 @@ public:
             hud_performance = false;
 
 protected:
+    // TODO: rewrite all this shit as methods of some `frame_render` class that would have the QPainter& and the intra-frame state
+
     static void draw_line(QPainter& painter, vec2f a, vec2f b)
     {
         painter.drawLine(a.x, a.y, b.x, b.y);
+    }
+
+private:
+    static void draw_triangle_flat_top(QPainter& painter, vec2f a, vec2f b, vec2f c)
+    {
+        const float alpha_left = (c.x - a.x) / (c.y - a.y);
+        const float alpha_right = (c.x - b.x) / (c.y - b.y);
+
+        const int y_start = (int)std::ceil(a.y - 0.5f), y_end = (int)std::ceil(c.y - 0.5f);
+
+        for(int y = y_start; y < y_end; y++) {
+            const float x_start = std::ceil(alpha_left * (y + 0.5f - a.y) + a.x - 0.5f);
+            const float x_end = std::ceil(alpha_right * (y + 0.5f - b.y) + b.x - 0.5f);
+
+            for(int x = (int)x_start; x < x_end; x++) {
+                painter.drawPoint(x, y);
+            }
+        }
+    }
+
+    static void draw_triangle_flat_bottom(QPainter& painter, vec2f a, vec2f b, vec2f c)
+    {
+        const float alpha_left = (b.x - a.x) / (b.y - a.y);
+        const float alpha_right = (c.x - a.x) / (c.y - a.y);
+
+        const int y_start = (int)std::ceil(a.y - 0.5f), y_end = (int)std::ceil(c.y - 0.5f);
+
+        for(int y = y_start; y < y_end; y++) {
+            const float x_start = std::ceil(alpha_left * (y + 0.5f - a.y) + a.x - 0.5f);
+            const float x_end = std::ceil(alpha_right * (y + 0.5f - a.y) + a.x - 0.5f);
+
+            for(int x = (int)x_start; x < x_end; x++) {
+                painter.drawPoint(x, y);
+            }
+        }
+    }
+
+protected:
+    static void draw_triangle(QPainter& painter, vec2f a, vec2f b, vec2f c)
+    {
+        // Sort: `a` at the top, `c` at the bottom
+        if(a.y > b.y) std::swap(a, b);
+        if(b.y > c.y) std::swap(b, c);
+        if(a.y > b.y) std::swap(a, b);
+
+        if(a.y == b.y) {
+            if(a.x > b.x) std::swap(a, b);
+            draw_triangle_flat_top(painter, a, b, c);
+        }
+        else if(b.y == c.y) {
+            if(b.x > c.x) std::swap(b, c);
+            draw_triangle_flat_bottom(painter, a, b, c);
+        }
+        else {
+            const float alpha_split = (b.y - a.y) / (c.y - a.y);
+
+            // TODO: rewrite using operators when this is vec3f
+            const vec2f s = { a.x + (c.x - a.x) * alpha_split, a.y + (c.y - a.y) * alpha_split };
+
+            if(s.x < b.x) {
+                draw_triangle_flat_bottom(painter, a, s, b);
+                draw_triangle_flat_top(painter, s, b, c);
+            }
+            else {
+                draw_triangle_flat_bottom(painter, a, b, s);
+                draw_triangle_flat_top(painter, b, s, c);
+            }
+        }
     }
 
     vec2f to_screen(const vec3f& v)
@@ -391,9 +461,13 @@ protected:
                 face_pen.setColor(QColor(color[0], color[1], color[2]));
                 painter.setPen(face_pen);
 
-                draw_line(painter, a, b);
-                draw_line(painter, a, c);
-                draw_line(painter, b, c);
+                // TODO: draw using vec3f vertices (for z-buffer)
+
+//                draw_line(painter, a, b);
+//                draw_line(painter, a, c);
+//                draw_line(painter, b, c);
+
+                draw_triangle(painter, a, b, c);
 
                 if(state.hovering.disabled) {
                     continue;

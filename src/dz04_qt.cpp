@@ -180,6 +180,16 @@ class wf_viewer : public QMainWindow
                 tomato_obj.triangles
         });
 
+        obj_file cubecol_obj = obj_file::read_file("../resources/meshes/simple/cube_colors.obj");
+
+        std::shared_ptr<const isg::model> cubecol = std::make_shared<const isg::model>(isg::model {
+                cubecol_obj.name,
+                cubecol_obj.vertices,
+                cubecol_obj.vertex_colors,
+                { },
+                cubecol_obj.triangles
+        });
+
         qDebug() << "seg" << sizeof(isg::model::segment_line) << alignof(isg::model::segment_line);
         qDebug() << "tri" << sizeof(isg::model::triangle_face) << alignof(isg::model::triangle_face);
 
@@ -200,7 +210,8 @@ class wf_viewer : public QMainWindow
                 wf_state::th_object(dodecahedron).set_pos({ 50, -50, 0 }).set_hoverable(true),
                 wf_state::th_object(icosahedron).set_pos({ 60, -40, 0 }).set_hoverable(true),
                 wf_state::th_object(sphere200).set_pos({ 70, -30, 5 }).set_hoverable(true),
-                wf_state::th_object(tomato).set_pos({ -45, -30, 5 }).set_scale(0.25f).set_hoverable(true)
+                wf_state::th_object(tomato).set_pos({ -45, -30, 5 }).set_scale(0.25f).set_hoverable(true),
+                wf_state::th_object(cubecol).set_pos({ 20, 20, 2.5f }).set_hoverable(true)
         };
 
         state.camera = {
