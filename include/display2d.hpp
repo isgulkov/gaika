@@ -354,8 +354,6 @@ protected:
          *
          * TODO: put all the 3D rendering stuff (especially intra-frame state) into a `pipeline3d` object
          * TODO: draw onto a bitmap as a backbuffer, not the canvas itself (`drawPoint` seems to take the most CPU)
-         *
-         * TODO: figure out why resulting Z values have weird range in perspective with z_near < 1.0f
          */
         zb_width = state.viewport.width;
         z_buffer.resize((size_t)(zb_width * state.viewport.height));

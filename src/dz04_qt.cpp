@@ -220,7 +220,7 @@ class wf_viewer : public QMainWindow
         };
 
         state.projection = {
-                (float)(M_PI * 2 / 3), 1, 0.01f, 100.0f
+                (float)(M_PI * 2 / 3), 1, 1.0f, 100.0f
         };
 
         state.viewport = { 640, 640 };

@@ -27,7 +27,7 @@ private:
         float theta, wh_ratio, z_near, z_far;
     } perspective = { (float)M_PI * 2 / 3, 1, 0, 1 };
 
-    float _scale = 0.1f;
+    float _scale = 0.025f;
 
 public:
     wf_projection() = default;
@@ -168,7 +168,7 @@ struct wf_state
 
     struct {
         bool free_look = false;
-        backface_cull use_backface_cull = BFC_DISABLE;
+        backface_cull use_backface_cull = BFC_CULL;
     } options;
 
     struct {
