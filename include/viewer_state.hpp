@@ -106,7 +106,7 @@ struct wf_state
         std::string id;
         std::shared_ptr<const isg::model> model;
 
-        th_object(std::shared_ptr<const isg::model> model) : id(model->name), model(std::move(model)) { }
+        explicit th_object(std::shared_ptr<const isg::model> model) : id(model->name), model(std::move(model)) { }
 
         bool hoverable = false;
         mutable bool hovered = false;
@@ -162,9 +162,13 @@ struct wf_state
                 duck = false;
     } controls;
 
+    enum backface_cull {
+        BFC_DISABLE, BFC_TRANSPARENT, BFC_CULL
+    };
+
     struct {
         bool free_look = false;
-        bool use_backface_cull = true;
+        backface_cull use_backface_cull = BFC_DISABLE;
     } options;
 
     struct {

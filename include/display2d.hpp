@@ -241,27 +241,27 @@ protected:
             // TODO: decide whether to copy stuff over instead of setting flags
             std::vector<char> tri_culled;
 
-            // TODO: extract all this mess
-            vec3f dir_out;
+            if(state.options.use_backface_cull != wf_state::BFC_DISABLE) {
+                // TODO: extract all this mess
+                vec3f dir_out;
 
-            if(state.projection.is_parallel()) {
-                dir_out = mx_tx::rotate_xyz(state.camera.orient) * vec3f(0, 0, -1);
-            }
-            else {
-                switch(state.projection.axis()) {
-                    case wf_projection::X:
-                        dir_out = vec3f(-1, 0, 0);
-                        break;
-                    case wf_projection::Y:
-                        dir_out = vec3f(0, -1, 0);
-                        break;
-                    case wf_projection::Z:
-                        dir_out = vec3f(0, 0, -1);
-                        break;
+                if(state.projection.is_parallel()) {
+                    dir_out = mx_tx::rotate_xyz(state.camera.orient) * vec3f(0, 0, -1);
                 }
-            }
+                else {
+                    switch(state.projection.axis()) {
+                        case wf_projection::X:
+                            dir_out = vec3f(-1, 0, 0);
+                            break;
+                        case wf_projection::Y:
+                            dir_out = vec3f(0, -1, 0);
+                            break;
+                        case wf_projection::Z:
+                            dir_out = vec3f(0, 0, -1);
+                            break;
+                    }
+                }
 
-            if(state.options.use_backface_cull) {
                 tri_culled.resize(object.model->faces.size(), false);
                 size_t i_triangle = tri_culled.size() - 1;
 
@@ -368,9 +368,20 @@ protected:
             }
 
             for(const auto& triangle : object.model->faces) {
-                if(state.options.use_backface_cull) {
-                    painter.setOpacity(tri_culled.back() ? 0.2 : 0.75);
+                painter.setOpacity(0.75);
+
+                if(state.options.use_backface_cull != wf_state::BFC_DISABLE) {
+                    const bool face_culled = tri_culled.back();
                     tri_culled.pop_back();
+
+                    if(face_culled) {
+                        if(state.options.use_backface_cull == wf_state::BFC_TRANSPARENT) {
+                            painter.setOpacity(0.2);
+                        }
+                        else {
+                            continue;
+                        }
+                    }
                 }
 
                 if(vertex_outcodes[triangle.i_a] != 0 || vertex_outcodes[triangle.i_b] != 0 || vertex_outcodes[triangle.i_c] != 0) {
@@ -700,7 +711,17 @@ protected:
 
         painter.setPen(Qt::white);
         text = "";
-        s_text << (state.options.use_backface_cull ? "ON" : "off") << '\n' << "--";
+        switch(state.options.use_backface_cull) {
+            case wf_state::BFC_DISABLE:
+                s_text << "off";
+                break;
+            case wf_state::BFC_TRANSPARENT:
+                s_text << "ON";
+                break;
+            case wf_state::BFC_CULL:
+                s_text << "HIDE";
+        }
+        s_text << '\n' << "--";
         painter.drawText(QRect(x, y + 20, 150, 55), Qt::AlignRight, text);
 
         return 70;
