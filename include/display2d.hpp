@@ -191,17 +191,11 @@ protected:
         };
     }
 
-    vec3f from_screen(const vec2f& v)
-    {
-        // TODO: write a vec2f for this?
-        return { v.x * 2.0f / state.viewport.width - 1.0f, -v.y * 2.0f / state.viewport.height + 1.0f, 0 };
-    }
-
-    static bool test_p_in_triangle(const vec2f& p, const vec3f& a, const vec3f& b, const vec3f& c)
+    static bool test_p_in_triangle(const QPoint& p, const vec3f& a, const vec3f& b, const vec3f& c)
     {
         // TODO: figure out how this works and document
-        const float x_ap = p.x - a.x;
-        const float y_ap = p.y - a.y;
+        const int x_ap = p.x() - (int)a.x;
+        const int y_ap = p.y() - (int)a.y;
 
         const bool dp_ab = (b.x - a.x) * y_ap - (b.y - a.y) * x_ap > 0;
         const bool dp_ac = (c.x - a.x) * y_ap - (c.y - a.y) * x_ap > 0;
@@ -210,7 +204,7 @@ protected:
             return false;
         }
 
-        const bool whatever = (c.x - b.x) * (p.y - b.y) - (c.y - b.y) * (p.x - b.x) > 0;
+        const bool whatever = (c.x - b.x) * (p.y() - b.y) - (c.y - b.y) * (p.x() - b.x) > 0;
 
         return whatever == dp_ab;
     }
@@ -345,7 +339,6 @@ protected:
         hovered_multiple = false;
 
         const QPoint p_cursor = mapFromGlobal(QCursor::pos());
-        const vec2f p{ (float)p_cursor.x(), (float)p_cursor.y() };
 
         /**
          * TODO: reorganize everything
@@ -537,7 +530,7 @@ protected:
                     continue;
                 }
 
-                if(!object.hovered && object.hoverable && test_p_in_triangle(p, a, b, c)) {
+                if(!object.hovered && object.hoverable && test_p_in_triangle(p_cursor, a, b, c)) {
                     object.hovered = true;
 
                     if(!hovered_multiple && hovered_object != nullptr) {
