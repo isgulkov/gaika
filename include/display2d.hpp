@@ -323,6 +323,9 @@ protected:
         return true;
     }
 
+    // TODO: move these!
+    const float sun_azimuth = 1.57f, sun_altitude = 0.785f;
+
     void paintEvent(QPaintEvent* event) override
     {
         QPainter painter;
@@ -342,13 +345,38 @@ protected:
 
         /**
          * TODO: reorganize everything
-         *  - assemble triangles (of all objects together) before the clipping stage
-         *  - put all the 3D rendering stuff (especially intra-frame state) into a `pipeline3d` object
-         *  - draw onto a bitmap as a backbuffer, not the canvas itself (`drawPoint` seems to take the most CPU)
+         *  - perform vertex transformations on all vertices at once
+         *  - assemble all triangles while culling backfaces
+         *    as tuples of vertices: coords, color, etc.; store face normals as well
+         *  - do the perspective divide
+         *  - clip
+         *  - rasterize
+         *
+         * TODO: put all the 3D rendering stuff (especially intra-frame state) into a `pipeline3d` object
+         * TODO: draw onto a bitmap as a backbuffer, not the canvas itself (`drawPoint` seems to take the most CPU)
+         *
+         * TODO: figure out why resulting Z values have weird range in perspective with z_near < 1.0f
          */
         zb_width = state.viewport.width;
         z_buffer.resize((size_t)(zb_width * state.viewport.height));
         std::fill(z_buffer.begin(), z_buffer.end(), MAXFLOAT);
+
+        const vec3f sun_dir = mx_tx::rotate_z(-sun_azimuth) * mx_tx::rotate_y(-sun_altitude) * vec3f(1, 0, 0);
+
+        // TODO: move where other light sources will be drawn
+        if(state.projection.is_perspective()) {
+            const vec3f sun_pos = (sun_dir * 50.0f) + state.camera.pos;
+
+            const vec4f sun_clip = tx_projection.mul_homo(tx_camera * sun_pos);
+
+            if(sun_clip.z > 0) {
+                painter.setPen(Qt::yellow);
+
+                const vec3f hui = to_screen(sun_clip.to_cartesian());
+
+                painter.drawEllipse((int)hui.x - 10, (int)hui.y - 10, 20, 20);
+            }
+        }
 
         // TODO: benchmark, investigate possible CPU parallelism (both SIMD and threads)
         for(const wf_state::th_object& object : state.th_objects) {
