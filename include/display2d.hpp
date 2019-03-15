@@ -56,50 +56,97 @@ public:
             hud_performance = false;
 
 protected:
-    // TODO: rewrite all this shit as methods of some `frame_render` class that would have the QPainter& and the intra-frame state
+    int zb_width;
+    std::vector<float> z_buffer;
 
-    static void draw_line(QPainter& painter, vec2f a, vec2f b)
+    static void draw_line(QPainter& painter, vec3f a, vec3f b)
     {
         painter.drawLine(a.x, a.y, b.x, b.y);
     }
 
 private:
-    static void draw_triangle_flat_top(QPainter& painter, vec2f a, vec2f b, vec2f c)
+    void draw_triangle_flat_top(QPainter& painter, vec3f a, vec3f b, vec3f c)
     {
         const float alpha_left = (c.x - a.x) / (c.y - a.y);
         const float alpha_right = (c.x - b.x) / (c.y - b.y);
 
+        const float dz_left = (c.z - a.z) / (c.y - a.y);
+        const float dz_right = (c.z - b.z) / (c.y - b.y);
+
         const int y_start = (int)std::ceil(a.y - 0.5f), y_end = (int)std::ceil(c.y - 0.5f);
 
+        float z_left = a.z + dz_left * (y_start - a.y);
+        float z_right = b.z + dz_right * (y_start - b.y);
+
         for(int y = y_start; y < y_end; y++) {
-            const float x_start = std::ceil(alpha_left * (y + 0.5f - a.y) + a.x - 0.5f);
-            const float x_end = std::ceil(alpha_right * (y + 0.5f - b.y) + b.x - 0.5f);
+            const float x_left = a.x + alpha_left * (y - a.y + 0.5f);
+            const float x_right = b.x + alpha_right * (y - b.y + 0.5f);
+
+            const float x_start = std::ceil(x_left - 0.5f);
+            const float x_end = std::ceil(x_right - 0.5f);
+
+            const float dz_line = (z_right - z_left) / (x_right - x_left);
+            float z = z_left + dz_line * (x_start - x_left);
 
             for(int x = (int)x_start; x < x_end; x++) {
-                painter.drawPoint(x, y);
+                float& z_value = z_buffer[x + y * zb_width];
+
+                if(z < z_value) {
+                    painter.drawPoint(x, y);
+                    z_value = z;
+                }
+
+                z += dz_line;
             }
+
+            z_left += dz_left;
+            z_right += dz_right;
         }
     }
 
-    static void draw_triangle_flat_bottom(QPainter& painter, vec2f a, vec2f b, vec2f c)
+    void draw_triangle_flat_bottom(QPainter& painter, vec3f a, vec3f b, vec3f c)
     {
+        // TODO: refactor commonalities out of ..._top and ..._bottom
+
         const float alpha_left = (b.x - a.x) / (b.y - a.y);
         const float alpha_right = (c.x - a.x) / (c.y - a.y);
 
+        const float dz_left = (b.z - a.z) / (b.y - a.y);
+        const float dz_right = (c.z - a.z) / (c.y - a.y);
+
         const int y_start = (int)std::ceil(a.y - 0.5f), y_end = (int)std::ceil(c.y - 0.5f);
 
+        float z_left = a.z + dz_left * (y_start - a.y);
+        float z_right = a.z + dz_right * (y_start - a.y);
+
         for(int y = y_start; y < y_end; y++) {
-            const float x_start = std::ceil(alpha_left * (y + 0.5f - a.y) + a.x - 0.5f);
-            const float x_end = std::ceil(alpha_right * (y + 0.5f - a.y) + a.x - 0.5f);
+            const float x_left = a.x + alpha_left * (y + 0.5f - a.y);
+            const float x_right = a.x + alpha_right * (y + 0.5f - a.y);
+
+            const float x_start = std::ceil(x_left - 0.5f);
+            const float x_end = std::ceil(x_right - 0.5f);
+
+            const float dz_line = (z_right - z_left) / (x_right - x_left);
+            float z = z_left + dz_line * (x_start - x_left);
 
             for(int x = (int)x_start; x < x_end; x++) {
-                painter.drawPoint(x, y);
+                float& z_value = z_buffer[x + y * zb_width];
+
+                if(z < z_value) {
+                    painter.drawPoint(x, y);
+                    z_value = z;
+                }
+
+                z += dz_line;
             }
+
+            z_left += dz_left;
+            z_right += dz_right;
         }
     }
 
 protected:
-    static void draw_triangle(QPainter& painter, vec2f a, vec2f b, vec2f c)
+    void draw_triangle(QPainter& painter, vec3f a, vec3f b, vec3f c)
     {
         // Sort: `a` at the top, `c` at the bottom
         if(a.y > b.y) std::swap(a, b);
@@ -118,7 +165,11 @@ protected:
             const float alpha_split = (b.y - a.y) / (c.y - a.y);
 
             // TODO: rewrite using operators when this is vec3f
-            const vec2f s = { a.x + (c.x - a.x) * alpha_split, a.y + (c.y - a.y) * alpha_split };
+            const vec3f s = {
+                    a.x + (c.x - a.x) * alpha_split,
+                    a.y + (c.y - a.y) * alpha_split,
+                    a.z + (c.z - a.z) * alpha_split
+            };
 
             if(s.x < b.x) {
                 draw_triangle_flat_bottom(painter, a, s, b);
@@ -131,11 +182,12 @@ protected:
         }
     }
 
-    vec2f to_screen(const vec3f& v)
+    vec3f to_screen(const vec3f& v)
     {
         return {
                 (v.x / 2.0f + 0.5f) * state.viewport.width,
-                (-v.y / 2.0f + 0.5f) * state.viewport.height
+                (-v.y / 2.0f + 0.5f) * state.viewport.height,
+                v.z
         };
     }
 
@@ -145,11 +197,11 @@ protected:
         return { v.x * 2.0f / state.viewport.width - 1.0f, -v.y * 2.0f / state.viewport.height + 1.0f, 0 };
     }
 
-    static bool test_p_in_triangle(const vec2f& p, const vec2f& a, const vec2f& b, const vec2f& c)
+    static bool test_p_in_triangle(const vec2f& p, const vec3f& a, const vec3f& b, const vec3f& c)
     {
         // TODO: figure out how this works and document
-        const int x_ap = p.x - a.x;
-        const int y_ap = p.y - a.y;
+        const float x_ap = p.x - a.x;
+        const float y_ap = p.y - a.y;
 
         const bool dp_ab = (b.x - a.x) * y_ap - (b.y - a.y) * x_ap > 0;
         const bool dp_ac = (c.x - a.x) * y_ap - (c.y - a.y) * x_ap > 0;
@@ -295,6 +347,16 @@ protected:
         const QPoint p_cursor = mapFromGlobal(QCursor::pos());
         const vec2f p{ (float)p_cursor.x(), (float)p_cursor.y() };
 
+        /**
+         * TODO: reorganize everything
+         *  - assemble triangles (of all objects together) before the clipping stage
+         *  - put all the 3D rendering stuff (especially intra-frame state) into a `pipeline3d` object
+         *  - draw onto a bitmap as a backbuffer, not the canvas itself (`drawPoint` seems to take the most CPU)
+         */
+        zb_width = state.viewport.width;
+        z_buffer.resize((size_t)(zb_width * state.viewport.height));
+        std::fill(z_buffer.begin(), z_buffer.end(), MAXFLOAT);
+
         // TODO: benchmark, investigate possible CPU parallelism (both SIMD and threads)
         for(const wf_state::th_object& object : state.th_objects) {
             if(object.vertices_world.empty()) {
@@ -351,7 +413,7 @@ protected:
             const std::vector<vec4f> vertices_clipping = tx_projection.mul_homo(tx_camera * object.vertices_world);
 
             std::vector<uint8_t> vertex_outcodes(vertices_clipping.size(), 0);
-            std::vector<vec2f> vertices_screen;
+            std::vector<vec3f> vertices_screen;
             vertices_screen.reserve(vertices_clipping.size());
 
             for(const vec4f& vertex : vertices_clipping) {
@@ -434,7 +496,8 @@ protected:
             }
 
             for(const auto& triangle : object.model->faces) {
-                painter.setOpacity(0.75);
+//                painter.setOpacity(0.75);
+                painter.setOpacity(state.projection.is_orthographic() ? 0.75 : 1);
 
                 if(state.options.use_backface_cull != wf_state::BFC_DISABLE) {
                     const bool face_culled = tri_culled.back();
@@ -454,20 +517,21 @@ protected:
                     continue;
                 }
 
-                const vec2f a = vertices_screen[triangle.i_a], b = vertices_screen[triangle.i_b], c = vertices_screen[triangle.i_c];
+                const vec3f a = vertices_screen[triangle.i_a], b = vertices_screen[triangle.i_b], c = vertices_screen[triangle.i_c];
 
                 const std::array<uint8_t, 3> color = object.model->vertex_colors[triangle.i_a];
 
                 face_pen.setColor(QColor(color[0], color[1], color[2]));
                 painter.setPen(face_pen);
 
-                // TODO: draw using vec3f vertices (for z-buffer)
-
-//                draw_line(painter, a, b);
-//                draw_line(painter, a, c);
-//                draw_line(painter, b, c);
-
-                draw_triangle(painter, a, b, c);
+                if(state.projection.is_orthographic()) {
+                    draw_line(painter, a, b);
+                    draw_line(painter, a, c);
+                    draw_line(painter, b, c);
+                }
+                else {
+                    draw_triangle(painter, a, b, c);
+                }
 
                 if(state.hovering.disabled) {
                     continue;
