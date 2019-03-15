@@ -477,7 +477,9 @@ protected:
                 }
             }
 
-            object.hovered = false;
+            if(!state.hovering.fixed) {
+                object.hovered = false;
+            }
 
             painter.setOpacity(0.75);
 
@@ -570,7 +572,7 @@ protected:
                     draw_triangle(painter, a, b, c);
                 }
 
-                if(state.hovering.disabled) {
+                if(state.hovering.disabled || state.hovering.fixed) {
                     continue;
                 }
 
@@ -654,8 +656,13 @@ protected:
         }
 
         QRect rect(state.viewport.width / 2 - 75, state.viewport.height - 60, 150, 55);
+        QRect rect_top(rect.x(), rect.y() - 24, 150, 55);
 
         painter.drawText(rect, Qt::AlignHCenter | Qt::AlignBottom, object.id.c_str());
+
+        if(state.hovering.mode == wf_state::INT_CARRY) {
+            painter.drawText(rect_top, Qt::AlignHCenter | Qt::AlignTop, "Press E to drop");
+        }
 
         QString text;
 

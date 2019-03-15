@@ -283,12 +283,14 @@ public slots:
              */
             update_freelook();
         }
-        else if(drag_target != nullptr) {
+
+        if(drag_target != nullptr) {
             update_drag();
         }
 
         if(drag_target) {
             drag_target->pos += state.v_camera * sec_since_update;
+            drag_target->vertices_world.clear();
         }
 
         state.camera.pos += state.v_camera * sec_since_update;
@@ -310,8 +312,7 @@ public slots:
             state.hovering.limited = p_widget->hovered_multiple;
         }
 
-        if(!state.hovering.disabled) {
-            // TODO: ... do something with the hovered object ...
+        if(!state.hovering.disabled && !state.hovering.fixed) {
             state.hovering.object = const_cast<wf_state::th_object*>(p_widget->hovered_object);
         }
 
@@ -469,6 +470,14 @@ protected:
                         state.options.use_backface_cull = wf_state::BFC_DISABLE;
                 }
                 return;
+            case Qt::Key_E:
+                if(state.hovering.mode == wf_state::INT_CARRY) {
+                    stop_drag();
+                }
+                else if(state.projection.is_perspective() && p_widget->hovered_object) {
+                    start_drag(const_cast<wf_state::th_object*>(p_widget->hovered_object), wf_state::INT_CARRY);
+                }
+                return;
             default:
                 QWidget::keyPressEvent(event);
         }
@@ -547,7 +556,7 @@ protected:
         }
 
         if(state.projection.is_orthographic() && !state.hovering.limited && drag_target == nullptr && state.hovering.object != nullptr) {
-            start_drag(state.hovering.object);
+            start_drag(state.hovering.object, wf_state::INT_DRAG);
         }
     }
 
@@ -569,14 +578,28 @@ protected:
     wf_state::th_object* drag_target = nullptr;
     QPoint xy_prev;
 
-    void start_drag(wf_state::th_object* new_target)
-    {
-        p_widget->setMouseTracking(true);
+    vec3f d_carrying;
 
-        xy_prev = QCursor::pos();
+    void start_drag(wf_state::th_object* new_target, wf_state::interaction_mode mode)
+    {
+        switch(mode) {
+            case wf_state::INT_DRAG:
+            case wf_state::INT_ROTATE:
+                xy_prev = QCursor::pos();
+            case wf_state::INT_CARRY:
+                break;
+            default:
+                throw std::logic_error("Unexpected mode " + std::to_string(mode));
+        }
 
         state.hovering.fixed = true;
         drag_target = state.hovering.object = new_target;
+
+        if(mode == wf_state::INT_CARRY) {
+            d_carrying = mx_tx::rotate_xyz(state.camera.orient).inverse() * (drag_target->pos - state.camera.pos);
+        }
+
+        state.hovering.mode = mode;
     }
 
     void stop_drag()
@@ -585,39 +608,52 @@ protected:
             return;
         }
 
-        p_widget->setMouseTracking(false);
+        if(state.hovering.mode == wf_state::INT_DRAG) {
+            p_widget->setMouseTracking(false);
+        }
 
         state.hovering.fixed = false;
         drag_target = state.hovering.object = nullptr;
+
+        state.hovering.mode = wf_state::INT_NONE;
     }
 
     void update_drag()
     {
-        const QPoint xy_current = QCursor::pos();
-        const QPoint xy_rel = xy_current - xy_prev;
+        if(state.hovering.mode == wf_state::INT_DRAG) {
+            const QPoint xy_current = QCursor::pos();
+            const QPoint xy_rel = xy_current - xy_prev;
 
-        xy_prev = xy_current;
+            xy_prev = xy_current;
 
-        // TODO: instead of using deltas, calculate the current position based on mouse coords transformed into world
-        // TODO: -> don't stop drag on keyboard control and allow starting it with keyboard control
-        // TODO: -> implement Shift-lock
+            // TODO: instead of using deltas, calculate the current position based on mouse coords transformed into world
+            // TODO: -> don't stop drag on keyboard control and allow starting it with keyboard control
+            // TODO: -> implement Shift-lock
 
-        const float d_x = xy_rel.x() / state.projection.scale() * 2 * state.viewport.width / state.viewport.height / state.viewport.width;
-        const float d_y = -xy_rel.y() / state.projection.scale() * 2 / state.viewport.height;
+            const float d_x = xy_rel.x() / state.projection.scale() * 2 * state.viewport.width / state.viewport.height /
+                              state.viewport.width;
+            const float d_y = -xy_rel.y() / state.projection.scale() * 2 / state.viewport.height;
 
-        switch(state.projection.axis()) {
-            case wf_projection::X:
-                drag_target->pos += { 0, d_x, d_y };
-                break;
-            case wf_projection::Y:
-                drag_target->pos += { d_x, 0, d_y };
-                break;
-            case wf_projection::Z:
-                drag_target->pos += { d_x, d_y, 0 };
-                break;
+            switch(state.projection.axis()) {
+                case wf_projection::X:
+                    drag_target->pos += { 0, d_x, d_y };
+                    break;
+                case wf_projection::Y:
+                    drag_target->pos += { d_x, 0, d_y };
+                    break;
+                case wf_projection::Z:
+                    drag_target->pos += { d_x, d_y, 0 };
+                    break;
+            }
+
+            drag_target->vertices_world.clear();
         }
+        else if(state.hovering.mode == wf_state::INT_CARRY) {
+            drag_target->pos = state.camera.pos + mx_tx::rotate_xyz(state.camera.orient) * d_carrying;
+            // TODO: keep relative orientation as well
 
-        drag_target->vertices_world.clear();
+            drag_target->vertices_world.clear();
+        }
     }
 
     bool freelook_on = false;

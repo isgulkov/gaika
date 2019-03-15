@@ -134,7 +134,7 @@ struct wf_state
             hoverable = new_hoverable; return *this;
         }
 
-        // TODO: cached world-transformed vertices -- don't forget to update for animated models or moving objects
+        // Cached world-transformed vertices
         mutable std::vector<vec3f> vertices_world;
     };
 
@@ -171,10 +171,16 @@ struct wf_state
         backface_cull use_backface_cull = BFC_CULL;
     } options;
 
+    enum interaction_mode {
+        INT_NONE = 0, INT_DRAG, INT_CARRY, INT_ROTATE
+    };
+
     struct {
         bool disabled = false;
         bool limited = false;
         bool fixed = false;
+
+        interaction_mode mode = INT_NONE;
         th_object* object = nullptr;
     } hovering;
 
