@@ -483,49 +483,56 @@ protected:
 
             painter.setOpacity(0.75);
 
-            for(const auto& segment : object.model->segments) {
-                if(vertex_outcodes[segment.i_a] & vertex_outcodes[segment.i_b]) {
-                    continue;
-                }
-
-                segment_pen.setColor(QColor(segment.r, segment.g, segment.b));
-                painter.setPen(segment_pen);
-
-                const uint8_t ab_out = vertex_outcodes[segment.i_a] | vertex_outcodes[segment.i_b];
-
-                if(!ab_out) {
-                    draw_line(painter, vertices_screen[segment.i_a], vertices_screen[segment.i_b]);
-                    continue;
-                }
-
-                // TODO: refactor using t_in and t_out
-                // TODO: there are still occasional artifacts as well
-                uint32_t i_a = segment.i_a, i_b = segment.i_b;
-
-                if(vertex_outcodes[i_a]) {
-                    std::swap(i_a, i_b);
-                }
-
-                vec4f b = vertices_clipping[i_b];
-
-                if(!intersect_line_frustum(ab_out, vertices_clipping[i_a], b, b)) {
-                    continue;
-                }
-
-                if(!vertex_outcodes[i_a]) {
-                    draw_line(painter, vertices_screen[i_a], to_screen(b.to_cartesian()));
-                    continue;
-                }
-
-                vec4f a = vertices_clipping[i_a];
-
-                if(intersect_line_frustum(ab_out, b, a, a)) {
-                    draw_line(painter, to_screen(a.to_cartesian()), to_screen(b.to_cartesian()));
-                }
-            }
+//            for(const auto& segment : object.model->segments) {
+//                if(vertex_outcodes[segment.i_a] & vertex_outcodes[segment.i_b]) {
+//                    continue;
+//                }
+//
+//                segment_pen.setColor(QColor(segment.r, segment.g, segment.b));
+//                painter.setPen(segment_pen);
+//
+//                const uint8_t ab_out = vertex_outcodes[segment.i_a] | vertex_outcodes[segment.i_b];
+//
+//                if(!ab_out) {
+//                    draw_line(painter, vertices_screen[segment.i_a], vertices_screen[segment.i_b]);
+//                    continue;
+//                }
+//
+//                /**
+//                 * TODO: refactor using t_in and t_out
+//                 * TODO: there are still occasional artifacts as well
+//                 *
+//                 * –Pick an outside endpoint (with nonzero outcode)
+//                 * –Pick an edge that is crossed (nonzero bit of outcode)
+//                 * –Find line's intersection with that edge
+//                 * –Replace outside endpoint with intersection point
+//                 * –Repeat until trivial accept or reject
+//                 */
+//                uint32_t i_a = segment.i_a, i_b = segment.i_b;
+//
+//                if(vertex_outcodes[i_a]) {
+//                    std::swap(i_a, i_b);
+//                }
+//
+//                vec4f b = vertices_clipping[i_b];
+//
+//                if(!intersect_line_frustum(ab_out, vertices_clipping[i_a], b, b)) {
+//                    continue;
+//                }
+//
+//                if(!vertex_outcodes[i_a]) {
+//                    draw_line(painter, vertices_screen[i_a], to_screen(b.to_cartesian()));
+//                    continue;
+//                }
+//
+//                vec4f a = vertices_clipping[i_a];
+//
+//                if(intersect_line_frustum(ab_out, b, a, a)) {
+//                    draw_line(painter, to_screen(a.to_cartesian()), to_screen(b.to_cartesian()));
+//                }
+//            }
 
             for(const auto& triangle : object.model->faces) {
-//                painter.setOpacity(0.75);
                 painter.setOpacity(state.projection.is_orthographic() ? 0.75 : 1);
 
                 const float face_sunlight = state.projection.is_orthographic() ? 1 : tri_sunlight.back();
@@ -552,12 +559,12 @@ protected:
                 const vec3f a = vertices_screen[triangle.i_a], b = vertices_screen[triangle.i_b], c = vertices_screen[triangle.i_c];
 
                 // TODO: add ambient lighting and shit
-                std::array<uint8_t, 3> c_rgb = object.model->vertex_colors[triangle.i_a];
+                const vec3f c_diffuse = object.model->materials[triangle.i_mtl].c_diffuse * 255.0f;
 
                 QColor color {
-                        int(c_rgb[0] * (face_sunlight * sun_color.x * 0.9f + 0.1f)),
-                        int(c_rgb[1] * (face_sunlight * sun_color.x * 0.9f + 0.1f)),
-                        int(c_rgb[2] * (face_sunlight * sun_color.x * 0.9f + 0.1f))
+                        int(c_diffuse.x * (face_sunlight * sun_color.x * 0.9f + 0.1f)),
+                        int(c_diffuse.y * (face_sunlight * sun_color.y * 0.9f + 0.1f)),
+                        int(c_diffuse.z * (face_sunlight * sun_color.z * 0.9f + 0.1f))
                 };
 
                 face_pen.setColor(color);

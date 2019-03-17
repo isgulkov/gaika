@@ -49,140 +49,55 @@ class wf_viewer : public QMainWindow
                 { 15.0f, 0.0f, 0.0f }
         ));
 
-        std::shared_ptr<const isg::model> cuboid = std::make_shared<const isg::model>(isg::model {
-                "Cuboid",
-                {
-                        { 0, -2, -2 },
-                        { 0, -2, 2 },
-                        { 0, 2, 2 },
-                        { 0, 2, -2 },
-                        { 10, -2, -2 },
-                        { 10, -2, 2 },
-                        { 10, 2, 2 },
-                        { 10, 2, -2 }
-                },
-                {
-                        { 0, 1 }, { 1, 2 }, { 2, 3 }, { 0, 3 },
-                        { 4, 5 }, { 5, 6 }, { 6, 7 }, { 4, 7 },
-                        { 0, 4 }, { 1, 5 }, { 2, 6 }, { 3, 7 }
-                },
-                { }
-        });
+        using namespace isg;
 
-        // TODO: use camera-projection transform (reverse it?) to efficiently draw this up to the horizon
-        std::shared_ptr<const isg::model> disco_floor;
+        std::shared_ptr<const isg::model> sphere_crude = std::make_shared<const isg::model>(
+                obj_io::read_obj_model("../resources/meshes/simple/sphere_crude.obj")
+        );
 
-        {
-            std::vector<vec3f> vertices;
-            std::vector<isg::model::segment_line> segments;
+        std::shared_ptr<const isg::model> tetrahedron = std::make_shared<const isg::model>(
+                obj_io::read_obj_model("../resources/meshes/simple/tetrahedron.obj")
+        );
 
-            for(int i = 0; i < 20; i++) {
-                for(int j = 0; j < 20; j++) {
-                    vertices.emplace_back(10 * (i - 10), 10 * (j - 10), 0);
+        std::shared_ptr<const isg::model> hexahedron = std::make_shared<const isg::model>(
+                obj_io::read_obj_model("../resources/meshes/simple/hexahedron.obj")
+        );
 
-                    const uint16_t i_vertex = (uint16_t)(vertices.size() - 1);
+        std::shared_ptr<const isg::model> octahedron = std::make_shared<const isg::model>(
+                obj_io::read_obj_model("../resources/meshes/simple/octahedron.obj")
+        );
 
-                    if(j != 0) {
-                        isg::model::segment_line segment({ i_vertex, (uint16_t)(i_vertex - 1), { 0, 240, 0 } });
-                        segments.push_back(segment);
-                    }
+        std::shared_ptr<const isg::model> dodecahedron = std::make_shared<const isg::model>(
+                obj_io::read_obj_model("../resources/meshes/simple/dodecahedron.obj")
+        );
 
-                    if(i != 0) {
-                        isg::model::segment_line segment({ i_vertex, (uint16_t)(i_vertex - 20), { 0, 240, 0 } });
-                        segments.push_back(segment);
-                    }
-                }
-            }
+        std::shared_ptr<const isg::model> icosahedron = std::make_shared<const isg::model>(
+                obj_io::read_obj_model("../resources/meshes/simple/icosahedron.obj")
+        );
 
-            disco_floor = std::make_shared<const isg::model>(isg::model { "DiscoFloor", vertices, { }, segments, { } });
-        }
+        std::shared_ptr<const isg::model> sphere200 = std::make_shared<const isg::model>(
+                obj_io::read_obj_model("../resources/meshes/simple/sphere40.obj")
+        );
 
-        obj_file sphere_crude_obj = obj_file::read_file("../resources/meshes/simple/sphere_crude.obj");
+        std::shared_ptr<const isg::model> tomato = std::make_shared<const isg::model>(
+                obj_io::read_obj_model("../resources/meshes/simple/tomato.obj")
+        );
 
-        std::shared_ptr<const isg::model> sphere_crude = std::make_shared<const isg::model>(isg::model {
-                "Sphere",
-                sphere_crude_obj.vertices,
-                sphere_crude_obj.vertex_colors,
-                { },
-                sphere_crude_obj.triangles
-        });
+        std::shared_ptr<const isg::model> cubecol = std::make_shared<const isg::model>(
+                obj_io::read_obj_model("../resources/meshes/simple/cube_colors.obj")
+        );
 
-        obj_file tetrahedron_obj = obj_file::read_file("../resources/meshes/simple/tetrahedron.obj");
-        std::shared_ptr<const isg::model> tetrahedron = std::make_shared<const isg::model>(isg::model {
-                tetrahedron_obj.name, tetrahedron_obj.vertices, tetrahedron_obj.vertex_colors, { }, tetrahedron_obj.triangles
-        });
+        std::shared_ptr<const isg::model> fish = std::make_shared<const isg::model>(
+                obj_io::read_obj_model("../resources/meshes/goldfish.obj")
+        );
 
-        obj_file hexahedron_obj = obj_file::read_file("../resources/meshes/simple/hexahedron.obj");
-        std::shared_ptr<const isg::model> hexahedron = std::make_shared<const isg::model>(isg::model {
-                hexahedron_obj.name, hexahedron_obj.vertices, hexahedron_obj.vertex_colors, { }, hexahedron_obj.triangles
-        });
+        std::shared_ptr<const isg::model> flattrn = std::make_shared<const isg::model>(
+                obj_io::read_obj_model("../resources/meshes/simple/flattrn.obj")
+        );
 
-        obj_file octahedron_obj = obj_file::read_file("../resources/meshes/simple/octahedron.obj");
-        std::shared_ptr<const isg::model> octahedron = std::make_shared<const isg::model>(isg::model {
-                octahedron_obj.name, octahedron_obj.vertices, octahedron_obj.vertex_colors, { }, octahedron_obj.triangles
-        });
-
-        obj_file dodecahedron_obj = obj_file::read_file("../resources/meshes/simple/dodecahedron.obj");
-        std::shared_ptr<const isg::model> dodecahedron = std::make_shared<const isg::model>(isg::model {
-                dodecahedron_obj.name, dodecahedron_obj.vertices, dodecahedron_obj.vertex_colors, { }, dodecahedron_obj.triangles
-        });
-
-        obj_file icosahedron_obj = obj_file::read_file("../resources/meshes/simple/icosahedron.obj");
-        std::shared_ptr<const isg::model> icosahedron = std::make_shared<const isg::model>(isg::model {
-                icosahedron_obj.name, icosahedron_obj.vertices, icosahedron_obj.vertex_colors, { }, icosahedron_obj.triangles
-        });
-
-        obj_file sphere40_obj = obj_file::read_file("../resources/meshes/simple/sphere40.obj");
-        std::shared_ptr<const isg::model> sphere200 = std::make_shared<const isg::model>(isg::model {
-                sphere40_obj.name, sphere40_obj.vertices, sphere40_obj.vertex_colors, { }, sphere40_obj.triangles
-        });
-
-        obj_file tomato_obj = obj_file::read_file("../resources/meshes/simple/tomato.obj");
-
-        std::shared_ptr<const isg::model> tomato = std::make_shared<const isg::model>(isg::model {
-                "Tomato",
-                tomato_obj.vertices,
-                tomato_obj.vertex_colors,
-                { },
-                tomato_obj.triangles
-        });
-
-        obj_file cubecol_obj = obj_file::read_file("../resources/meshes/simple/cube_colors.obj");
-
-        std::shared_ptr<const isg::model> cubecol = std::make_shared<const isg::model>(isg::model {
-                cubecol_obj.name,
-                cubecol_obj.vertices,
-                cubecol_obj.vertex_colors,
-                { },
-                cubecol_obj.triangles
-        });
-
-        obj_file fish_obj = obj_file::read_file("../resources/meshes/goldfish.obj");
-
-        std::shared_ptr<const isg::model> fish = std::make_shared<const isg::model>(isg::model {
-                fish_obj.name,
-                fish_obj.vertices,
-                fish_obj.vertex_colors,
-                { },
-                fish_obj.triangles
-        });
-
-        obj_file flattrn_obj = obj_file::read_file("../resources/meshes/simple/flattrn.obj");
-
-        std::shared_ptr<const isg::model> flattrn = std::make_shared<const isg::model>(isg::model {
-                flattrn_obj.name,
-                flattrn_obj.vertices,
-                flattrn_obj.vertex_colors,
-                { },
-                flattrn_obj.triangles
-        });
-
-        qDebug() << "seg" << sizeof(isg::model::segment_line) << alignof(isg::model::segment_line);
-        qDebug() << "tri" << sizeof(isg::model::triangle_face) << alignof(isg::model::triangle_face);
-
+        // TODO: shift mesh coords to center of mass (?) on load
         state.th_objects = std::vector<wf_state::th_object> {
                 wf_state::th_object(flattrn).set_scale(2.5f),
-                wf_state::th_object(cuboid).set_pos({ 10, 10, 0 }),
                 wf_state::th_object(fat).set_id("Fat NW").set_pos({ 3, -3, 0.25f }).set_orient({ 0, 0, 0.1f }).set_scale(0.25f).set_hoverable(true),
                 wf_state::th_object(fat).set_id("Fat SW").set_pos({ -4, -4, 0.5f }).set_orient({ 0, 0, 0.2f }).set_hoverable(true),
                 wf_state::th_object(fat).set_id("Fat SE").set_pos({ -5, 5, 0.75f }).set_orient({ 0, 0, 0.3f }).set_scale(1.25f).set_hoverable(true),
@@ -198,7 +113,7 @@ class wf_viewer : public QMainWindow
                 wf_state::th_object(sphere200).set_pos({ 70, -30, 5 }).set_hoverable(true),
                 wf_state::th_object(tomato).set_pos({ -45, -30, 5 }).set_scale(0.25f).set_hoverable(true),
                 wf_state::th_object(cubecol).set_pos({ 20, 20, 2.5f }).set_hoverable(true),
-                wf_state::th_object(fish).set_pos({ 20, 35, 10 }).set_scale(10.0f).set_hoverable(true)
+                wf_state::th_object(fish).set_pos({ 20, 50, 5 }).set_orient({ float(M_PI_2), 0, float(M_PI) / 4 }).set_scale(2.0f).set_hoverable(true)
         };
 
         state.camera = {

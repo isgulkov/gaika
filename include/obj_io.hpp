@@ -8,18 +8,14 @@
 #include "matrices.hpp"
 #include "model.hpp"
 
-struct obj_file
+namespace isg
 {
-    // TODO: short-circuit this file representation to the model class?
-    // TODO: handle multiple models per file (and per object)?
+namespace obj_io
+{
+    // TODO: handle multiple models per file?
 
-    std::string name;
-
-    std::vector<vec3f> vertices;
-    std::vector<std::array<uint8_t, 3>> vertex_colors; // TODO: indices into "materials" vector?
-    std::vector<isg::model::triangle_face> triangles;
-
-    static obj_file read_file(std::string path);
+    model read_obj_model(std::string path);
 };
+}
 
 #endif //DZ_GAIKA_OBJ_IO_HPP

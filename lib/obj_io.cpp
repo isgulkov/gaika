@@ -1,11 +1,12 @@
 
 #include "obj_io.hpp"
+#include "model.hpp"
 
-#include <fstream>
 #include <unordered_map>
+#include <fstream>
+#include <sstream>
 #include <iostream>
 
-namespace {
 void consume_line(std::istream& is)
 {
     char c;
@@ -17,143 +18,248 @@ void consume_line(std::istream& is)
     }
 }
 
-//std::unordered_map<std::string, std::tuple<float, float, float>> read_mtllib(const std::string& path)
-std::unordered_map<std::string, std::array<uint8_t, 3>> read_mtllib(const std::string& path)
+void consume_ws(std::istream& is)
 {
-    std::ifstream fin(path);
+    char c = '\0';
 
-    // TODO: implement reading separate ambient/diffuse/specular colors when lighting is done
-    std::unordered_map<std::string, std::array<uint8_t, 3>> mtl_colors;
-    std::string mtl_name;
+    while(is.get(c) && (c == ' ' || c == '\t')) { }
+
+    if(c) is.putback(c);
+}
+
+std::string read_word(std::istream& is)
+{
+    consume_ws(is);
+
+    char c;
+
+    if(!is.get(c)) {
+        return "";
+    }
+    else if(c == '\r' || c == '\n') {
+        is.putback(c);
+        return "";
+    }
 
     std::string word;
 
-    while(fin >> word) {
-        if(word == "newmtl") {
-            fin >> mtl_name;
-        }
-        else if(word == "Kd") {
-            float r, g, b;
-            fin >> r >> g >> b;
+    do {
+        word += c;
+    } while(is.get(c) && c != ' ' && c != '\r' && c != '\n');
 
-            if(mtl_name.empty()) {
-                std::cerr << "Encountered Kd before any newmtl" << '\n';
-            }
-            else {
-                mtl_colors.emplace(mtl_name, std::array<uint8_t, 3>{ (uint8_t)(255 * r), (uint8_t)(255 * g), (uint8_t)(255 * b) });
-            }
-        }
-        else {
-            std::cerr << "Ignoring `" << word << "`\n";
-        }
-
-        consume_line(fin);
+    if(c == '\r' || c == '\n') {
+        is.putback(c);
     }
 
-    return mtl_colors;
-}
+    return word;
 }
 
-obj_file obj_file::read_file(std::string path)
+using namespace isg;
+
+vec3f read_color(const std::string& s)
+{
+    std::istringstream ss(s);
+
+    float x, y, z;
+
+    ss >> x >> y >> z;
+
+    std::cerr << x << " " << y << " " << z << '\n';
+
+    return { x, y, z };
+}
+
+std::unordered_map<std::string, material> read_mtllib(const std::string& path)
+{
+    std::ifstream fin(path);
+
+    std::unordered_map<std::string, material> mtls;
+
+    std::string mtl_name;
+    material mtl;
+
+    int n_line = 0;
+    std::string line;
+
+    while(std::getline(fin, line)) {
+        n_line += 1;
+
+        size_t i_space = 0;
+
+        while(i_space < line.size() && line[i_space] == ' ') {
+            i_space += 1;
+        }
+
+        i_space = line.find_first_of(' ', i_space);
+
+        if(i_space == std::string::npos) {
+            continue;
+        }
+
+        const std::string first_word = line.substr(0, i_space);
+        const std::string rest = line.substr(i_space + 1);
+
+        if(first_word == "newmtl") {
+            if(!mtl_name.empty()) {
+                mtls[mtl_name] = mtl;
+            }
+
+            mtl_name = rest;
+        }
+        else if(first_word == "Kd") {
+            mtl.c_diffuse = read_color(rest);
+        }
+        else if(first_word == "Ka") {
+            mtl.c_ambient = read_color(rest);
+        }
+        else if(first_word == "Ks") {
+            mtl.c_specular = read_color(rest);
+        }
+        else if(first_word == "Ns") {
+            std::istringstream ss(rest);
+
+            ss >> mtl.exp_specular;
+        }
+        else {
+            std::cerr << "Line " << n_line << ": Ignoring `" << first_word << "` line\n";
+        }
+    }
+
+    if(!mtl_name.empty()) {
+        mtls[mtl_name] = mtl;
+    }
+
+    return mtls;
+}
+
+namespace isg
+{
+namespace obj_io
+{
+model read_obj_model(std::string path)
 {
     std::ifstream fin(path);
 
     std::cerr << "Loading OBJ: \x1b[1m" << path << "\x1b[0m\n";
 
-    std::unordered_map<std::string, std::array<uint8_t, 3>> mtl_colors;
-    std::array<uint8_t, 3> color = { 255, 255, 255 };
+    model m;
+    m.materials.emplace_back();
 
-    obj_file obj;
+    std::unordered_map<std::string, size_t> ix_mtls;
+    size_t i_mtl = 0;
 
-    int n_ignored = 0, n_line = 1;
-    std::string word;
+    int n_ignored = 0, n_line = 0;
 
-    while(fin >> word) {
-        if(word == "v") {
-            float x, y, z;
+    std::string first_word;
 
-            fin >> x >> y >> z;
+    while(fin >> first_word) {
+        n_line += 1;
 
-            obj.vertices.emplace_back(x, y, z);
-            obj.vertex_colors.emplace_back(color);
-        }
-        else if(word == "f") {
-            std::vector<uint16_t> ix_vertices;
-            uint16_t i_vertex;
-
-            while(fin >> i_vertex) {
-                ix_vertices.emplace_back(i_vertex - 1);
+        if(first_word == "o") {
+            if(!m.name.empty()) {
+                std::cerr << "Line " << n_line << ": Another `o` found, ignoring\n";
             }
 
-            fin.clear();
+            fin.get();
+            std::getline(fin, m.name);
+
+            fin.putback('\n');
+        }
+        else if(first_word[0] == '#') {
+            std::cerr << "Line " << n_line << ": Ignoring comment\n";
+        }
+        else if(first_word == "mtllib") {
+            std::string mtl_filename;
+            fin >> mtl_filename;
+
+            std::cerr << "Line " << n_line << ": Reading mtllib '" << mtl_filename << "'\n";
+            auto new_mtls = read_mtllib(path.substr(0, path.rfind('/')) + "/" + mtl_filename);
+
+            std::cerr << "It contained " << new_mtls.size() << " materials.\n";
+
+            for(auto& kv : new_mtls) {
+                ix_mtls[kv.first] = m.materials.size();
+                m.materials.emplace_back(std::move(kv.second));
+            }
+        }
+        else if(first_word == "usemtl") {
+            std::string mtl_name;
+            fin >> mtl_name;
+
+            const auto it = ix_mtls.find(mtl_name);
+
+            if(it == ix_mtls.end()) {
+                std::cerr << "Line " << n_line << ": Unknown material '" << mtl_name << "'\n";
+            }
+            else {
+                i_mtl = it->second;
+            }
+        }
+        else if(first_word == "v") {
+            float x, y, z;
+
+            std::string rest;
+            std::getline(fin, rest);
+
+            fin.putback('\n');
+
+            std::istringstream ss(rest);
+            ss >> x >> y >> z;
+
+            m.vertices.emplace_back(x, y, z);
+        }
+        else if(first_word == "f") {
+            std::vector<size_t> ix_vertices;
+
+            std::string word;
+
+            while(!(word = read_word(fin)).empty()) {
+                size_t i_slash = word.find_first_of('/');
+
+                // TODO: parse indices for vt and vn as well
+                if(i_slash != std::string::npos) {
+                    word = word.substr(0, i_slash);
+                }
+
+                try {
+                    ix_vertices.push_back(std::stoll(word) - 1);
+                }
+                catch(const std::invalid_argument& ex) {
+
+                }
+            }
 
             if(ix_vertices.size() >= 3) {
                 for(int i = 2; i < ix_vertices.size(); i++) {
-                    obj.triangles.emplace_back(ix_vertices[0], ix_vertices[i - 1], ix_vertices[i]);
+                    m.faces.emplace_back(ix_vertices[0], ix_vertices[i - 1], ix_vertices[i], i_mtl);
                 }
             }
             else {
                 std::cerr << "Line " << n_line << ": Ignoring face, not enough vertices\n";
             }
-
-            fin.putback('\n');
-        }
-        else if(word == "o") {
-            fin.get();
-            std::getline(fin, obj.name);
-
-            fin.putback('\n');
-        }
-        else if(word == "mtllib") {
-            std::string mtl_filename;
-            fin >> mtl_filename;
-
-            std::cerr << "Line " << n_line << ": Reading mtllib '" << mtl_filename << "'\n";
-            auto new_colors = read_mtllib(path.substr(0, path.rfind('/')) + "/" + mtl_filename);
-
-            std::cerr << "It contained " << new_colors.size() << " materials:\n";
-
-            mtl_colors.insert(new_colors.begin(), new_colors.end());
-
-        }
-        else if(word == "usemtl") {
-            std::string mtl_name;
-            fin >> mtl_name;
-
-            auto it = mtl_colors.find(mtl_name);
-
-            if(it == mtl_colors.end()) {
-                std::cerr << "Line " << n_line << ": Unknown material '" << mtl_name << "'\n";
-            }
-            else {
-                std::cerr << "Line " << n_line << ": Found material '" << mtl_name << "'\n";
-                color = it->second;
-            }
-        }
-        else if(word[0] == '#') {
-            std::cerr << "Line " << n_line << ": Ignoring comment\n";
         }
         else {
-            std::cerr << "Line " << n_line << ": Ignoring `" << word << "` line\n";
+            std::cerr << "Line " << n_line << ": Ignoring `" << first_word << "` line\n";
             n_ignored += 1;
         }
 
         consume_line(fin);
-        n_line += 1;
     }
 
-    if(obj.name.empty()) {
-        std::string filename = path.substr(path.rfind('/') + 1);
+    if(m.name.empty()) {
+        const std::string filename = path.substr(path.rfind('/') + 1);
 
         std::cerr << "No object name (`o`) statement encountered -- using '" << filename << "' instead.\n";
 
-        obj.name = filename;
+        m.name = filename;
     }
 
     std::cerr << "\x1b[1mDone.\x1b[0m\n"
-              << "Vertices: " << obj.vertices.size() << ", "
-              << "triangles: " << obj.triangles.size() << ", "
+              << "Vertices: " << m.vertices.size() << ", "
+              << "faces: " << m.faces.size() << ", "
               << "ignored " << n_ignored << " lines out of " << n_line << ".\n\n";
 
-    return obj;
+    return m;
+}
+}
 }
