@@ -406,6 +406,24 @@ protected:
                         state.options.use_backface_cull = wf_state::BFC_DISABLE;
                 }
                 return;
+            case Qt::Key_V:
+                switch(state.options.shading) {
+                    case wf_state::SHD_NONE:
+                        state.options.shading = wf_state::SHD_FLAT;
+                        break;
+                    case wf_state::SHD_FLAT:
+                        state.options.shading = wf_state::SHD_GOURAUD;
+                        break;
+                    case wf_state::SHD_GOURAUD:
+//                        state.options.shading = wf_state::SHD_PHONG;
+                        state.options.shading = wf_state::SHD_FLAT;
+                        break;
+                    case wf_state::SHD_PHONG:
+                    default:
+                        state.options.shading = wf_state::SHD_NONE;
+                        break;
+                }
+                return;
             case Qt::Key_E:
                 if(state.hovering.mode == wf_state::INT_CARRY) {
                     stop_drag();

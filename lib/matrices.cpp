@@ -21,6 +21,20 @@ vec3f vec3f::operator*(float u) const
     return { x * u, y * u, z * u };
 }
 
+vec3f& vec3f::operator/=(float u)
+{
+    x /= u;
+    y /= u;
+    z /= u;
+
+    return *this;
+}
+
+vec3f vec3f::operator/(float u) const
+{
+    return { x / u, y / u, z / u };
+}
+
 vec3f operator*(float u, const vec3f& v)
 {
     return v.operator*(u);

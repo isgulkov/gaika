@@ -16,6 +16,9 @@ struct vec3f
     vec3f& operator*=(float u);
     vec3f operator*(float u) const;
 
+    vec3f& operator/=(float u);
+    vec3f operator/(float u) const;
+
     vec3f& operator+=(const vec3f& other);
     vec3f operator+(const vec3f& other) const;
 

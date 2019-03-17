@@ -140,8 +140,10 @@ public:
     }
 
 protected:
-    void draw_triangle(QPainter& painter, vec3f a, vec3f b, vec3f c)
+    void draw_triangle(QPainter& painter, vec3f a, vec3f b, vec3f c, const QColor& color)
     {
+        painter.setPen(color);
+
         // Sort: `a` at the top, `c` at the bottom
         if(a.y > b.y) std::swap(a, b);
         if(b.y > c.y) std::swap(b, c);
@@ -172,6 +174,179 @@ protected:
             else {
                 draw_triangle_flat_bottom(painter, a, b, s);
                 draw_triangle_flat_top(painter, b, s, c);
+            }
+        }
+    }
+
+private:
+    void draw_triangle_flat_top_gouraud(QPainter& painter, vec3f a, vec3f b, vec3f c, vec3f c_a, vec3f c_b, vec3f c_c)
+    {
+        const float alpha_left = (c.x - a.x) / (c.y - a.y);
+        const float alpha_right = (c.x - b.x) / (c.y - b.y);
+
+        const float dz_left = (c.z - a.z) / (c.y - a.y);
+        const float dz_right = (c.z - b.z) / (c.y - b.y);
+
+        const vec3f dc_left = (c_c - c_a) / (c.y - a.y);
+        const vec3f dc_right = (c_c - c_b) / (c.y - b.y);
+
+        const int y_start = (int)std::ceil(a.y - 0.5f), y_end = (int)std::ceil(c.y - 0.5f);
+
+        vec3f c_left = c_a + dc_left * (y_start - a.y);
+        vec3f c_right = c_b + dc_right * (y_start - b.y);
+
+        float z_left = a.z + dz_left * (y_start - a.y);
+        float z_right = b.z + dz_right * (y_start - b.y);
+
+        for(int y = y_start; y < y_end; y++) {
+            const float x_left = a.x + alpha_left * (y - a.y + 0.5f);
+            const float x_right = b.x + alpha_right * (y - b.y + 0.5f);
+
+            const float x_start = std::ceil(x_left - 0.5f);
+            const float x_end = std::ceil(x_right - 0.5f);
+
+            const float dz_line = (z_right - z_left) / (x_right - x_left);
+            float z = z_left + dz_line * (x_start - x_left);
+
+            const vec3f dc_line = (c_right - c_left) / (x_right - x_left);
+            vec3f color = c_left + dc_line * (x_start - x_left);
+
+            for(int x = (int)x_start; x < x_end; x++) {
+                float& z_value = z_buffer[x + y * width];
+
+                // TODO: how the fuck does it go out of range?
+                if(color.x >= 256) color.x = 255;
+                if(color.y >= 256) color.y = 255;
+                if(color.z >= 256) color.z = 255;
+                if(color.x < 0) color.x = 0;
+                if(color.y < 0) color.y = 0;
+                if(color.z < 0) color.z = 0;
+
+                if(z < z_value) {
+                    painter.setPen(QColor(int(color.x), int(color.y), int(color.z)));
+                    painter.drawPoint(x, y);
+                    z_value = z;
+                }
+
+                z += dz_line;
+                color += dc_line;
+            }
+
+            z_left += dz_left;
+            z_right += dz_right;
+
+            c_left += dc_left;
+            c_right += dc_right;
+        }
+    }
+
+    void draw_triangle_flat_bottom_gouraud(QPainter& painter, vec3f a, vec3f b, vec3f c, vec3f c_a, vec3f c_b, vec3f c_c)
+    {
+        // TODO: refactor commonalities out of ..._top and ..._bottom
+
+        const float alpha_left = (b.x - a.x) / (b.y - a.y);
+        const float alpha_right = (c.x - a.x) / (c.y - a.y);
+
+        const float dz_left = (b.z - a.z) / (b.y - a.y);
+        const float dz_right = (c.z - a.z) / (c.y - a.y);
+
+        const vec3f dc_left = (c_b - c_a) / (b.y - a.y);
+        const vec3f dc_right = (c_c - c_a) / (c.y - a.y);
+
+        const int y_start = (int)std::ceil(a.y - 0.5f), y_end = (int)std::ceil(c.y - 0.5f);
+
+        float z_left = a.z + dz_left * (y_start - a.y);
+        float z_right = a.z + dz_right * (y_start - a.y);
+
+        vec3f c_left = c_a + dc_left * (y_start - a.y);
+        vec3f c_right = c_a + dc_right * (y_start - a.y);
+
+        for(int y = y_start; y < y_end; y++) {
+            const float x_left = a.x + alpha_left * (y + 0.5f - a.y);
+            const float x_right = a.x + alpha_right * (y + 0.5f - a.y);
+
+            const float x_start = std::ceil(x_left - 0.5f);
+            const float x_end = std::ceil(x_right - 0.5f);
+
+            const float dz_line = (z_right - z_left) / (x_right - x_left);
+            float z = z_left + dz_line * (x_start - x_left);
+
+            const vec3f dc_line = (c_right - c_left) / (x_right - x_left);
+            vec3f color = c_left + dc_line * (x_start - x_left);
+
+            for(int x = (int)x_start; x < x_end; x++) {
+                float& z_value = z_buffer[x + y * width];
+
+                if(color.x >= 256) color.x = 255;
+                if(color.y >= 256) color.y = 255;
+                if(color.z >= 256) color.z = 255;
+                if(color.x < 0) color.x = 0;
+                if(color.y < 0) color.y = 0;
+                if(color.z < 0) color.z = 0;
+
+                if(z < z_value) {
+                    painter.setPen(QColor(int(color.x), int(color.y), int(color.z)));
+                    painter.drawPoint(x, y);
+                    z_value = z;
+                }
+
+                z += dz_line;
+                color += dc_line;
+            }
+
+            z_left += dz_left;
+            z_right += dz_right;
+
+            c_left += dc_left;
+            c_right += dc_right;
+        }
+    }
+
+protected:
+    void draw_triangle_gouraud(QPainter& painter, vec3f a, vec3f b, vec3f c, vec3f c_a, vec3f c_b, vec3f c_c)
+    {
+        // Sort: `a` at the top, `c` at the bottom
+        if(a.y > b.y) {
+            std::swap(a, b);
+            std::swap(c_a, c_b);
+        }
+
+        if(b.y > c.y) {
+            std::swap(b, c);
+            std::swap(c_b, c_c);
+        }
+
+        if(a.y > b.y) {
+            std::swap(a, b);
+            std::swap(c_a, c_b);
+        }
+
+        if(a.y == b.y) {
+            if(a.x > b.x) std::swap(a, b);
+            draw_triangle_flat_top_gouraud(painter, a, b, c, c_a, c_b, c_c);
+        }
+        else if(b.y == c.y) {
+            if(b.x > c.x) std::swap(b, c);
+            draw_triangle_flat_bottom_gouraud(painter, a, b, c, c_a, c_b, c_c);
+        }
+        else {
+            const float alpha_split = (b.y - a.y) / (c.y - a.y);
+
+            const vec3f s = {
+                    a.x + (c.x - a.x) * alpha_split,
+                    a.y + (c.y - a.y) * alpha_split,
+                    a.z + (c.z - a.z) * alpha_split
+            };
+
+            const vec3f c_s = c_a * (1 - alpha_split) + c_c * alpha_split;
+
+            if(s.x < b.x) {
+                draw_triangle_flat_bottom_gouraud(painter, a, s, b, c_a, c_s, c_b);
+                draw_triangle_flat_top_gouraud(painter, s, b, c, c_s, c_b, c_c);
+            }
+            else {
+                draw_triangle_flat_bottom_gouraud(painter, a, b, s, c_a, c_b, c_s);
+                draw_triangle_flat_top_gouraud(painter, b, s, c, c_b, c_s, c_c);
             }
         }
     }
@@ -387,21 +562,24 @@ protected:
                     vx_world.push_back(b);
                     vx_world.push_back(c);
 
-                    const auto& sun = state.dir_lights.back();
-                    const vec3f dir_sun = mx_tx::rotate_z(-sun.azimuth) * mx_tx::rotate_y(-sun.altitude) * vec3f(1, 0, 0);
-
-                    const float sunlight = std::max(dir_sun.dot(tri_norm), 0.0f);
-
                     vec3f color = object.model->materials[triangle.i_mtl].c_diffuse;
 
-                    if(!state.projection.is_orthographic()) {
-                        color = 255 * calc_light_diffuse(color, tri_norm);
+                    if(state.projection.is_orthographic() || state.options.shading == wf_state::SHD_NONE) {
+                        v_colors.push_back(255 * color);
                     }
-                    else {
-                        color *= 255;
+                    else if(state.options.shading == wf_state::SHD_FLAT) {
+                        v_colors.push_back(255 * calc_light_diffuse(color, tri_norm));
                     }
+                    else if(state.options.shading == wf_state::SHD_GOURAUD) {
+                        for(size_t i_norm : { triangle.in_a, triangle.in_b, triangle.in_c }) {
+                            const vec3f& norm = i_norm != SIZE_T_MAX ? object.model->normals[i_norm] : tri_norm;
 
-                    v_colors.push_back(color);
+                            v_colors.push_back(255 * calc_light_diffuse(color, norm));
+                        }
+                    }
+                    else if(state.options.shading == wf_state::SHD_PHONG) {
+                        // ...
+                    }
 
                     px_objects.push_back(&object);
 
@@ -448,23 +626,29 @@ protected:
                 continue;
             }
 
-            const vec3f v_color = v_colors[i / 3];
-
             const vec3f& a = vertices_screen[i], b = vertices_screen[i + 1], c = vertices_screen[i + 2];
 
-            QColor color { int(v_color.x), int(v_color.y), int(v_color.z) };
+            if(state.projection.is_orthographic() || state.options.shading == wf_state::SHD_NONE) {
+                const vec3f color = v_colors[i / 3];
 
-            QPen face_pen = state.projection.is_orthographic() ? tri_pens[i / 3] : QPen();
-            face_pen.setColor(color);
-            painter.setPen(face_pen);
+                QPen face_pen = tri_pens[i / 3];
+                face_pen.setColor({ int(color.x), int(color.y), int(color.z) });
+                painter.setPen(face_pen);
 
-            if(!state.projection.is_orthographic()) {
-                draw_triangle(painter, a, b, c);
-            }
-            else {
                 draw_line(painter, a, b);
                 draw_line(painter, a, c);
                 draw_line(painter, b, c);
+            }
+            else if(state.options.shading == wf_state::SHD_FLAT) {
+                const vec3f color = v_colors[i / 3];
+
+                draw_triangle(painter, a, b, c, { int(color.x), int(color.y), int(color.z) });
+            }
+            else if(state.options.shading == wf_state::SHD_GOURAUD) {
+                draw_triangle_gouraud(painter, a, b, c, v_colors[i], v_colors[i + 1], v_colors[i + 2]);
+            }
+            else if(state.options.shading == wf_state::SHD_PHONG) {
+
             }
 
             if(state.hovering.disabled || state.hovering.fixed) {
@@ -507,10 +691,10 @@ public:
 
             // TODO: draw as objects (s.t. apparent size depends on FOV)
             if(state.projection.is_perspective()) {
-                const vec3f pos_clip = tx_projection * tx_camera * ((dir * 50.0f) + state.camera.pos);
+                const vec4f pos_clip = tx_projection.mul_homo(tx_camera * ((dir * 50.0f) + state.camera.pos));
 
                 if(pos_clip.z > 0) {
-                    const vec3f pos_screen = to_screen(pos_clip);
+                    const vec3f pos_screen = to_screen(pos_clip.to_cartesian());
 
                     const vec3f color = 255 * light.color;
                     painter.setPen(QColor(int(color.x), int(color.y), int(color.z)));
