@@ -27,44 +27,25 @@
 #include "geometry.hpp"
 #include "viewer_state.hpp"
 
-class display2d_widget : public QWidget
+class render3d
 {
-//    Q_OBJECT
-
     const wf_state& state;
 
-public:
-//    display2d_widget(QWidget* parent, const wf_state& state) : state(state)
-    display2d_widget(QWidget* parent, wf_state& state) : state(state)
-    {
-        // ...
-    }
-
-    QSize sizeHint() const override
-    {
-        return { state.viewport.width, state.viewport.height };
-    }
-
-//    void resizeEvent(QResizeEvent* event) override { }
-
-    bool hud_crosshair = true,
-            hud_camera = false,
-            hud_projection = true,
-            hud_viewport = false,
-            hud_geometry = false,
-            hud_render_options = true,
-            hud_performance = false;
-
-protected:
     int zb_width;
     std::vector<float> z_buffer;
+
+public:
+    const wf_state::th_object* hovered_object;
+    bool hovered_multiple;
+
+public:
+    render3d(const wf_state& state) : state(state) { }
 
     static void draw_line(QPainter& painter, vec3f a, vec3f b)
     {
         painter.drawLine(a.x, a.y, b.x, b.y);
     }
 
-private:
     void draw_triangle_flat_top(QPainter& painter, vec3f a, vec3f b, vec3f c)
     {
         const float alpha_left = (c.x - a.x) / (c.y - a.y);
@@ -209,10 +190,6 @@ protected:
         return whatever == dp_ab;
     }
 
-public:
-    const wf_state::th_object* hovered_object;
-    bool hovered_multiple;
-
 protected:
     mat_sq4f create_tx_camera()
     {
@@ -253,7 +230,7 @@ protected:
          * - To avoid distortion on non-square viewport, the hor. axis (camera's X) is squeezed by its aspect ratio
          * - For orthographic projections, near-far clipping is prevented by fixing Z
          */
-         const float hw_ratio = (float)state.viewport.height / state.viewport.width;
+        const float hw_ratio = (float)state.viewport.height / state.viewport.width;
 
         if(state.projection.is_orthographic()) {
             return mx_tx::scale(state.projection.scale()) * mx_tx::scale(hw_ratio, 1, 0);
@@ -261,75 +238,14 @@ protected:
 
         // TODO: reconcile the scale with the Z mapping (right now the far plane seems a bit close)
         return mx_tx::scale(1, 1, -1.0f / (state.projection.z_far() - state.projection.z_near()))
-                     * mx_tx::translate(0, 0, -state.projection.z_near())
-                     * mx_tx::scale(state.projection.scale(), state.projection.scale(), 1)
-                     * mx_tx::scale(hw_ratio, 1, 1);
+               * mx_tx::translate(0, 0, -state.projection.z_near())
+               * mx_tx::scale(state.projection.scale(), state.projection.scale(), 1)
+               * mx_tx::scale(hw_ratio, 1, 1);
     }
 
-    bool intersect_line_frustum(const uint8_t outcode, const vec4f& a, const vec4f& b, vec4f& p_result)
+public:
+    void render(QPainter& painter, QPoint p_cursor)
     {
-        // TODO: t_in and t_out
-        const vec4f d = b - a;
-
-        float t;
-
-        do {
-            if(outcode & 1) {
-                t = (a.w - a.x) / (d.x - d.w);
-                if(t > 0 && t < 1) {
-                    break;
-                }
-            }
-
-            if(outcode & 2) {
-                t = -(a.w + a.x) / (d.x + d.w);
-                if(t > 0 && t < 1) {
-                    break;
-                }
-            }
-
-            if(outcode & 4) {
-                t = (a.w - a.y) / (d.y - d.w);
-                if(t > 0 && t < 1) {
-                    break;
-                }
-            }
-
-            if(outcode & 8) {
-                t = -(a.w + a.y) / (d.y + d.w);
-                if(t > 0 && t < 1) {
-                    break;
-                }
-            }
-
-            if(outcode & 16) {
-                t = (a.w - a.z) / (d.z - d.w);
-                if(t > 0 && t < 1) {
-                    break;
-                }
-            }
-
-            if(outcode & 32) {
-                t = -a.z / d.z;
-                if(t > 0 && t < 1) {
-                    break;
-                }
-            }
-
-            return false;
-        } while(false);
-
-        p_result = a + d * t;
-        return true;
-    }
-
-    void paintEvent(QPaintEvent* event) override
-    {
-        QPixmap back_buffer(state.viewport.width, state.viewport.height);
-        QPainter painter;
-
-        painter.begin(&back_buffer);
-
         painter.fillRect(0, 0, state.viewport.width, state.viewport.height, Qt::black);
 
         const mat_sq4f tx_camera = create_tx_camera();
@@ -337,8 +253,6 @@ protected:
 
         hovered_object = nullptr;
         hovered_multiple = false;
-
-        const QPoint p_cursor = mapFromGlobal(QCursor::pos());
 
         /**
          * TODO: reorganize everything
@@ -551,23 +465,72 @@ protected:
                 }
             }
         }
+    }
+};
 
-        if(hud_crosshair) {
-            draw_crosshair(painter);
-        }
+class display2d_widget : public QWidget
+{
+//    Q_OBJECT
 
-        draw_hud(painter);
+    const wf_state& state;
+
+public:
+//    display2d_widget(QWidget* parent, const wf_state& state) : state(state)
+    display2d_widget(QWidget* parent, wf_state& state) : state(state)
+    {
+        // ...
+    }
+
+    QSize sizeHint() const override
+    {
+        return { state.viewport.width, state.viewport.height };
+    }
+
+//    void resizeEvent(QResizeEvent* event) override { }
+
+    bool hud_crosshair = true,
+            hud_camera = false,
+            hud_projection = true,
+            hud_viewport = false,
+            hud_geometry = false,
+            hud_render_options = true,
+            hud_performance = false;
+
+public:
+    const wf_state::th_object* hovered_object;
+    bool hovered_multiple;
+
+    void paintEvent(QPaintEvent* event) override
+    {
+        QPixmap back_buffer(state.viewport.width, state.viewport.height);
+        QPainter painter;
+
+        painter.begin(&back_buffer);
+
+        const QPoint p_cursor = mapFromGlobal(QCursor::pos());
+
+        render3d r(state);
+        r.render(painter, p_cursor);
+
+        // TODO: solve this shit (at least eliminate the redundancy)
+        hovered_object = r.hovered_object;
+        hovered_multiple = r.hovered_multiple;
 
         painter.end();
 
         // TODO: implement rendering at fractions of the resolution
         painter.begin(this);
         painter.drawPixmap(0, 0, state.viewport.width, state.viewport.height, back_buffer);
+        draw_hud(painter);
         painter.end();
     }
 
     void draw_hud(QPainter& painter)
     {
+        if(hud_crosshair) {
+            draw_crosshair(painter);
+        }
+
         painter.setOpacity(1.0);
         int y_hud = 5;
 
