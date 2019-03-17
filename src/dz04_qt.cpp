@@ -137,39 +137,6 @@ class wf_viewer : public QMainWindow
                 sphere40_obj.name, sphere40_obj.vertices, sphere40_obj.vertex_colors, { }, sphere40_obj.triangles
         });
 
-        std::shared_ptr<const isg::model> cage;
-
-        {
-            std::vector<vec3f> vertices;
-            std::vector<isg::model::segment_line> segments;
-
-            for(int i = 0; i < 4; i++) {
-                for(int j = 0; j < 4; j++) {
-                    for(int k = 0; k < 4; k++) {
-                        vertices.emplace_back(3 * i, 3 * j, 3 * k);
-
-                        const int i_vertex = (int)vertices.size() - 1;
-
-                        std::array<uint8_t, 3> color{ (uint8_t)(127 + 5 * i), (uint8_t)(127 - 5 * j), (uint8_t)(180 + 5 * k) };
-
-                        if(i != 0) {
-                            segments.emplace_back(i_vertex, i_vertex - 4 * 4, color);
-                        }
-
-                        if(j != 0) {
-                            segments.emplace_back(i_vertex, i_vertex - 4, color);
-                        }
-
-                        if(k != 0) {
-                            segments.emplace_back(i_vertex, i_vertex - 1, color);
-                        }
-                    }
-                }
-            }
-
-            cage = std::make_shared<const isg::model>(isg::model { "WireCage", vertices, { }, segments, { } });
-        }
-
         obj_file tomato_obj = obj_file::read_file("../resources/meshes/simple/tomato.obj");
 
         std::shared_ptr<const isg::model> tomato = std::make_shared<const isg::model>(isg::model {
@@ -190,13 +157,32 @@ class wf_viewer : public QMainWindow
                 cubecol_obj.triangles
         });
 
+        obj_file fish_obj = obj_file::read_file("../resources/meshes/goldfish.obj");
+
+        std::shared_ptr<const isg::model> fish = std::make_shared<const isg::model>(isg::model {
+                fish_obj.name,
+                fish_obj.vertices,
+                fish_obj.vertex_colors,
+                { },
+                fish_obj.triangles
+        });
+
+        obj_file flattrn_obj = obj_file::read_file("../resources/meshes/simple/flattrn.obj");
+
+        std::shared_ptr<const isg::model> flattrn = std::make_shared<const isg::model>(isg::model {
+                flattrn_obj.name,
+                flattrn_obj.vertices,
+                flattrn_obj.vertex_colors,
+                { },
+                flattrn_obj.triangles
+        });
+
         qDebug() << "seg" << sizeof(isg::model::segment_line) << alignof(isg::model::segment_line);
         qDebug() << "tri" << sizeof(isg::model::triangle_face) << alignof(isg::model::triangle_face);
 
         state.th_objects = std::vector<wf_state::th_object> {
-                wf_state::th_object(disco_floor),
+                wf_state::th_object(flattrn).set_scale(2.5f),
                 wf_state::th_object(cuboid).set_pos({ 10, 10, 0 }),
-                wf_state::th_object(cage).set_pos({ -25, -25, 0 }),
                 wf_state::th_object(fat).set_id("Fat NW").set_pos({ 3, -3, 0.25f }).set_orient({ 0, 0, 0.1f }).set_scale(0.25f).set_hoverable(true),
                 wf_state::th_object(fat).set_id("Fat SW").set_pos({ -4, -4, 0.5f }).set_orient({ 0, 0, 0.2f }).set_hoverable(true),
                 wf_state::th_object(fat).set_id("Fat SE").set_pos({ -5, 5, 0.75f }).set_orient({ 0, 0, 0.3f }).set_scale(1.25f).set_hoverable(true),
@@ -211,7 +197,8 @@ class wf_viewer : public QMainWindow
                 wf_state::th_object(icosahedron).set_pos({ 60, -40, 0 }).set_hoverable(true),
                 wf_state::th_object(sphere200).set_pos({ 70, -30, 5 }).set_hoverable(true),
                 wf_state::th_object(tomato).set_pos({ -45, -30, 5 }).set_scale(0.25f).set_hoverable(true),
-                wf_state::th_object(cubecol).set_pos({ 20, 20, 2.5f }).set_hoverable(true)
+                wf_state::th_object(cubecol).set_pos({ 20, 20, 2.5f }).set_hoverable(true),
+                wf_state::th_object(fish).set_pos({ 20, 35, 10 }).set_scale(10.0f).set_hoverable(true)
         };
 
         state.camera = {
