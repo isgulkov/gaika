@@ -334,7 +334,6 @@ protected:
         QPainter painter;
 
         painter.begin(&back_buffer);
-        painter.setRenderHint(QPainter::Antialiasing);
 
         painter.fillRect(0, 0, state.viewport.width, state.viewport.height, Qt::black);
 
