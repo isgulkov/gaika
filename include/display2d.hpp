@@ -47,7 +47,16 @@ public:
 
     static void draw_line(QPainter& painter, vec3f a, vec3f b)
     {
-        painter.drawLine(a.x, a.y, b.x, b.y);
+        painter.drawLine((int)a.x, (int)a.y, (int)b.x, (int)b.y);
+    }
+
+    static QColor clamped_rgb24(const vec3f& color)
+    {
+        return {
+                uint8_t(color.x >= 0 ? (color.x < 256 ? color.x : 255) : 0),
+                uint8_t(color.y >= 0 ? (color.y < 256 ? color.y : 255) : 0),
+                uint8_t(color.z >= 0 ? (color.z < 256 ? color.z : 255) : 0)
+        };
     }
 
 //    void put_pixel(int x, int y, const vec3f& color)
@@ -142,7 +151,7 @@ public:
 protected:
     void draw_triangle(QPainter& painter, vec3f a, vec3f b, vec3f c, const vec3f& color)
     {
-        painter.setPen({ int(color.x), int(color.y), int(color.z) });
+        painter.setPen(clamped_rgb24(color));
 
         // Sort: `a` at the top, `c` at the bottom
         if(a.y > b.y) std::swap(a, b);
@@ -214,16 +223,8 @@ private:
             for(int x = (int)x_start; x < x_end; x++) {
                 float& z_value = z_buffer[x + y * width];
 
-                // TODO: how the fuck does it go out of range?
-                if(color.x >= 256) color.x = 255;
-                if(color.y >= 256) color.y = 255;
-                if(color.z >= 256) color.z = 255;
-                if(color.x < 0) color.x = 0;
-                if(color.y < 0) color.y = 0;
-                if(color.z < 0) color.z = 0;
-
                 if(z < z_value) {
-                    painter.setPen(QColor(int(color.x), int(color.y), int(color.z)));
+                    painter.setPen(clamped_rgb24(color));
                     painter.drawPoint(x, y);
                     z_value = z;
                 }
@@ -277,15 +278,12 @@ private:
             for(int x = (int)x_start; x < x_end; x++) {
                 float& z_value = z_buffer[x + y * width];
 
-                if(color.x >= 256) color.x = 255;
-                if(color.y >= 256) color.y = 255;
-                if(color.z >= 256) color.z = 255;
-                if(color.x < 0) color.x = 0;
-                if(color.y < 0) color.y = 0;
-                if(color.z < 0) color.z = 0;
-
                 if(z < z_value) {
-                    painter.setPen(QColor(int(color.x), int(color.y), int(color.z)));
+                    /**
+                     * Color values go out of range because both X and Y extremes can actually land outside the
+                     * triangle. This is not the only time colors need to be clamped, so might as well.
+                     */
+                    painter.setPen(clamped_rgb24(color));
                     painter.drawPoint(x, y);
                     z_value = z;
                 }
