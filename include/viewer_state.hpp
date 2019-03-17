@@ -186,9 +186,13 @@ struct wf_state
         BFC_DISABLE, BFC_TRANSPARENT, BFC_CULL
     };
 
+    enum shading {
+        SHD_NONE = 0, SHD_FLAT, SHD_GOURAUD, SHD_PHONG
+    };
+
     struct {
-        bool free_look = false;
         backface_cull use_backface_cull = BFC_CULL;
+        shading shading = SHD_FLAT;
     } options;
 
     enum interaction_mode {
@@ -196,6 +200,8 @@ struct wf_state
     };
 
     struct {
+        bool free_look = false;
+
         bool disabled = false;
         bool limited = false;
         bool fixed = false;

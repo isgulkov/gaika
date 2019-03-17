@@ -632,7 +632,7 @@ protected:
 
         r_xprev = r_yprev = 0.0f;
 
-        freelook_on = state.options.free_look = true;
+        freelook_on = state.hovering.free_look = true;
     }
 
     void stop_freelook()
@@ -647,7 +647,7 @@ protected:
         QCursor::setPos(mapToGlobal(xy_before));
 
         setCursor(Qt::ArrowCursor);
-        freelook_on = state.options.free_look = false;
+        freelook_on = state.hovering.free_look = false;
     }
 
     /**

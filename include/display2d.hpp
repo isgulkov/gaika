@@ -272,7 +272,6 @@ public:
          * 5. Rasterize
          * 6. Display on the canvas, add HUD
          *
-         * TODO: put all the 3D rendering stuff (especially intra-frame state) into a `pipeline3d` object
          * TODO: see if a uint16_t z-buffer is any faster
          */
         zb_width = state.viewport.width;
@@ -380,7 +379,7 @@ public:
                 vertices_screen.push_back(to_screen(vertex.to_cartesian()));
             }
 
-            QPen segment_pen(Qt::white), face_pen(Qt::white);
+            QPen face_pen(Qt::white);
 
             if(state.hovering.fixed) {
                 if(&object == state.hovering.object) {
@@ -568,7 +567,7 @@ public:
 
     void draw_crosshair(QPainter& painter)
     {
-        if(!state.options.free_look) {
+        if(!state.hovering.free_look) {
             return;
         }
 
@@ -635,7 +634,7 @@ public:
         s_text.setRealNumberNotation(QTextStream::RealNumberNotation::FixedNotation);
         s_text.setRealNumberPrecision(2);
 
-        if(state.options.free_look) {
+        if(state.hovering.free_look) {
             painter.setPen(QColor::fromRgb(255, 255, 0));
             painter.drawText(QRect(5, y, 150, 55), Qt::AlignHCenter, "FREE LOOK");
             painter.setPen(Qt::white);
