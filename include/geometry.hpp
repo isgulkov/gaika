@@ -22,7 +22,7 @@ mat_sq4f project_ortho_z();
 mat_sq4f project_perspective_z(float theta_w, float theta_h);
 mat_sq4f project_perspective_z(float theta_w, float theta_h, float z_near, float z_far);
 
-vec3f rotate_to_eul(const mat_sq4f& mx_rotate);
+vec3f rotate_to_xyz(const mat_sq4f& mx_rotate);
 
 }
 

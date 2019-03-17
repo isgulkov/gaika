@@ -668,6 +668,9 @@ protected:
         if(state.hovering.mode == wf_state::INT_CARRY) {
             painter.drawText(rect_top, Qt::AlignHCenter | Qt::AlignTop, "Press E to drop");
         }
+        else if(state.hovering.mode == wf_state::INT_ROTATE) {
+            painter.drawText(rect_top, Qt::AlignHCenter | Qt::AlignTop, "Release F to drop");
+        }
 
         QString text;
 

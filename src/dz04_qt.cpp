@@ -202,8 +202,8 @@ class wf_viewer : public QMainWindow
         };
 
         state.camera = {
-                { 0, 0, 10 }, { 0, 0, 0 }
-//                { 15, 0, 0 }, { 1.57f, 1.57f, 0 }
+//                { 0, 0, 10 }, { 0, 0, 0 }
+                { -15, 35, 35 }, { float(M_PI) / 4, 0, -float(M_PI) / 4 * 3 }
         };
 
         state.projection = {
@@ -275,7 +275,7 @@ public slots:
             update_drag();
         }
 
-        if(drag_target) {
+        if(drag_target && (state.hovering.mode == wf_state::INT_DRAG || state.hovering.mode == wf_state::INT_CARRY)) {
             drag_target->pos += state.v_camera * sec_since_update;
             drag_target->vertices_world.clear();
         }
@@ -316,7 +316,7 @@ public slots:
 
 private:
     const uint64_t t_tick_target = 16;
-    const float vbase_camera = 10.0f; // per second
+    const float vbase_camera = 25.0f; // per second
 
     vec3f calculate_v_camera()
     {
@@ -465,6 +465,15 @@ protected:
                     start_drag(const_cast<wf_state::th_object*>(p_widget->hovered_object), wf_state::INT_CARRY);
                 }
                 return;
+            case Qt::Key_F:
+                if(state.hovering.mode != wf_state::INT_NONE) {
+                    stop_drag();
+                }
+                else if(state.projection.is_perspective() && p_widget->hovered_object) {
+                    start_drag(const_cast<wf_state::th_object*>(p_widget->hovered_object), wf_state::INT_ROTATE);
+                }
+
+                return;
             default:
                 QWidget::keyPressEvent(event);
         }
@@ -494,6 +503,11 @@ protected:
                 return;
             case Qt::Key_Control:
                 state.controls.duck = false;
+                return;
+            case Qt::Key_F:
+                if(state.hovering.mode != wf_state::INT_NONE) {
+                    stop_drag();
+                }
                 return;
             default:
                 QWidget::keyReleaseEvent(event);
@@ -571,8 +585,8 @@ protected:
     {
         switch(mode) {
             case wf_state::INT_DRAG:
-            case wf_state::INT_ROTATE:
                 xy_prev = QCursor::pos();
+            case wf_state::INT_ROTATE:
             case wf_state::INT_CARRY:
                 break;
             default:
@@ -641,6 +655,28 @@ protected:
 
             drag_target->vertices_world.clear();
         }
+        else if(state.hovering.mode == wf_state::INT_ROTATE) {
+            const QPoint xy_rel = QCursor::pos() - xy_center;
+
+            const float d_x = xy_rel.x() / state.projection.scale() * 2 * state.viewport.width / state.viewport.height /
+                              state.viewport.width;
+            const float d_y = -xy_rel.y() / state.projection.scale() * 2 / state.viewport.height;
+
+            if(d_x != 0 || d_y != 0) {
+                /**
+                 * Horizontal motion rotates around world's Z axis, vertical motion rotates around camera's X axis
+                 */
+
+                const mat_sq4f rot_camera = mx_tx::rotate_xyz(state.camera.orient).transpose();
+
+                const mat_sq4f new_rot = rot_camera.transpose() * mx_tx::rotate_x(-d_y / 5.0f) * rot_camera * mx_tx::rotate_z(d_x / 5.0f) * mx_tx::rotate_xyz(drag_target->orient);
+
+                drag_target->orient = mx_tx::rotate_to_xyz(new_rot);
+                drag_target->vertices_world.clear();
+
+                QCursor::setPos(xy_center);
+            }
+        }
     }
 
     bool freelook_on = false;
@@ -687,26 +723,28 @@ protected:
     {
         const QPoint xy_rel = QCursor::pos() - xy_center;
 
-        vec3f& orient = state.camera.orient;
-
         const float r_x = calc_x_rotation(xy_rel.x()), r_y = calc_y_rotation(xy_rel.y());
 
-        orient.x -= (r_yprev + r_y) / 2.0f;
+        if(state.hovering.mode != wf_state::INT_ROTATE) {
+            vec3f& orient = state.camera.orient;
 
-        if(orient.x < 0) {
-            orient.x = 0.0f;
+            orient.x -= (r_yprev + r_y) / 2.0f;
+
+            if(orient.x < 0) {
+                orient.x = 0.0f;
+            }
+
+            if(orient.x > (float)M_PI) {
+                orient.x = (float)M_PI;
+            }
+
+            orient.z -= (r_xprev + r_x) / 2.0f;
+
+            QCursor::setPos(xy_center);
         }
-
-        if(orient.x > (float)M_PI) {
-            orient.x = (float)M_PI;
-        }
-
-        orient.z -= (r_xprev + r_x) / 2.0f;
 
         r_xprev = r_x;
         r_yprev = r_y;
-
-        QCursor::setPos(xy_center);
     }
 
     float calc_x_rotation(int d_x) const

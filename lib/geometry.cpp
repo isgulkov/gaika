@@ -118,15 +118,26 @@ mat_sq4f project_perspective_z(float theta_w, float theta_h, float z_near, float
     };
 }
 
-vec3f rotate_to_eul(const mat_sq4f& mx_rotate)
+vec3f rotate_to_xyz(const mat_sq4f& mx_rotate)
 {
-    // https://en.wikipedia.org/wiki/Rotation_formalisms_in_three_dimensions#Conversion_formulae_between_formalisms
+    // https://www.learnopencv.com/rotation-matrix-to-euler-angles/
 
-    return {
-            std::atan2f(mx_rotate.at(2, 0), mx_rotate.at(2, 1)),
-            std::acos(mx_rotate.at(2, 2)),
-            -std::atan2f(mx_rotate.at(0, 2), mx_rotate.at(1, 2))
-    };
+    const float sy = std::sqrt(mx_rotate.at(0, 0) * mx_rotate.at(0, 0) + mx_rotate.at(1, 0) * mx_rotate.at(1, 0));
+
+    if(sy >= 1e-6) {
+        return {
+                std::atan2f(mx_rotate.at(2, 1), mx_rotate.at(2, 2)),
+                std::atan2f(-mx_rotate.at(2, 0), sy),
+                std::atan2f(mx_rotate.at(1, 0), mx_rotate.at(0, 0))
+        };
+    }
+    else {
+        return {
+                std::atan2f(-mx_rotate.at(1, 2), mx_rotate.at(1, 1)),
+                std::atan2f(-mx_rotate.at(2, 0), sy),
+                0
+        };
+    }
 }
 
 }
