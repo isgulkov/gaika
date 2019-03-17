@@ -330,9 +330,10 @@ protected:
 
     void paintEvent(QPaintEvent* event) override
     {
+        QPixmap back_buffer(state.viewport.width, state.viewport.height);
         QPainter painter;
 
-        painter.begin(this);
+        painter.begin(&back_buffer);
         painter.setRenderHint(QPainter::Antialiasing);
 
         painter.fillRect(0, 0, state.viewport.width, state.viewport.height, Qt::black);
@@ -626,6 +627,11 @@ protected:
             y_hud += draw_perf_hud(painter, 5, y_hud);
         }
 
+        painter.end();
+
+        // TODO: implement rendering at fractions of the resolution
+        painter.begin(this);
+        painter.drawPixmap(0, 0, state.viewport.width, state.viewport.height, back_buffer);
         painter.end();
     }
 
