@@ -1,1981 +1,1930 @@
 o FlatTerrain
 mtllib flattrn.mtl
 
-usemtl Light
-v -60 -60 0.15
-usemtl Dark
-v -60 -55 0.89
-usemtl Light
-v -60 -50 0.56
-usemtl Dark
-v -60 -45 0.31
-usemtl Light
-v -60 -40 0.07
-usemtl Dark
-v -60 -35 0.55
-usemtl Light
-v -60 -30 0.93
-usemtl Dark
-v -60 -25 0.89
-usemtl Light
-v -60 -20 0.34
-usemtl Dark
-v -60 -15 0.33
-usemtl Light
-v -60 -10 0.28
-usemtl Dark
-v -60 -5 0.38
-usemtl Light
-v -60 0 0.56
-usemtl Dark
-v -60 5 0.13
-usemtl Light
-v -60 10 0.73
-usemtl Dark
-v -60 15 0.86
-usemtl Light
-v -60 20 0.66
-usemtl Dark
-v -60 25 0.00
-usemtl Light
-v -60 30 0.75
-usemtl Dark
-v -60 35 0.19
-usemtl Light
-v -60 40 0.39
-usemtl Dark
-v -60 45 0.76
-usemtl Light
-v -60 50 0.90
-usemtl Dark
-v -60 55 0.66
-usemtl Light
-v -60 60 0.28
-usemtl Light
-v -60 65 0.97
-usemtl Dark
-v -55 -60 0.04
-usemtl Light
-v -55 -55 0.88
-usemtl Dark
-v -55 -50 0.98
-usemtl Light
-v -55 -45 0.84
-usemtl Dark
-v -55 -40 0.61
-usemtl Light
-v -55 -35 0.88
-usemtl Dark
-v -55 -30 0.48
-usemtl Light
-v -55 -25 0.17
-usemtl Dark
-v -55 -20 0.78
-usemtl Light
-v -55 -15 0.33
-usemtl Dark
-v -55 -10 0.20
-usemtl Light
-v -55 -5 0.07
-usemtl Dark
-v -55 0 0.33
-usemtl Light
-v -55 5 0.85
-usemtl Dark
-v -55 10 0.61
-usemtl Light
-v -55 15 0.80
-usemtl Dark
-v -55 20 0.60
-usemtl Light
-v -55 25 0.33
-usemtl Dark
-v -55 30 0.77
-usemtl Light
-v -55 35 0.63
-usemtl Dark
-v -55 40 0.32
-usemtl Light
-v -55 45 0.05
-usemtl Dark
-v -55 50 0.15
-usemtl Light
-v -55 55 0.57
-usemtl Light
-v -55 60 0.98
-usemtl Dark
-v -55 65 0.87
-usemtl Light
-v -50 -60 0.34
-usemtl Dark
-v -50 -55 0.35
-usemtl Light
-v -50 -50 0.26
-usemtl Dark
-v -50 -45 0.11
-usemtl Light
-v -50 -40 0.67
-usemtl Dark
-v -50 -35 0.65
-usemtl Light
-v -50 -30 0.56
-usemtl Dark
-v -50 -25 0.23
-usemtl Light
-v -50 -20 0.78
-usemtl Dark
-v -50 -15 0.21
-usemtl Light
-v -50 -10 0.02
-usemtl Dark
-v -50 -5 0.06
-usemtl Light
-v -50 0 0.28
-usemtl Dark
-v -50 5 0.60
-usemtl Light
-v -50 10 0.08
-usemtl Dark
-v -50 15 0.86
-usemtl Light
-v -50 20 0.93
-usemtl Dark
-v -50 25 0.93
-usemtl Light
-v -50 30 0.52
-usemtl Dark
-v -50 35 0.76
-usemtl Light
-v -50 40 0.25
-usemtl Dark
-v -50 45 0.87
-usemtl Light
-v -50 50 0.23
-usemtl Light
-v -50 55 0.34
-usemtl Dark
-v -50 60 0.43
-usemtl Light
-v -50 65 0.39
-usemtl Dark
-v -45 -60 0.81
-usemtl Light
-v -45 -55 0.98
-usemtl Dark
-v -45 -50 0.94
-usemtl Light
-v -45 -45 0.71
-usemtl Dark
-v -45 -40 0.72
-usemtl Light
-v -45 -35 0.42
-usemtl Dark
-v -45 -30 0.67
-usemtl Light
-v -45 -25 0.38
-usemtl Dark
-v -45 -20 0.05
-usemtl Light
-v -45 -15 0.48
-usemtl Dark
-v -45 -10 0.96
-usemtl Light
-v -45 -5 0.28
-usemtl Dark
-v -45 0 0.54
-usemtl Light
-v -45 5 0.36
-usemtl Dark
-v -45 10 0.36
-usemtl Light
-v -45 15 0.53
-usemtl Dark
-v -45 20 0.37
-usemtl Light
-v -45 25 0.74
-usemtl Dark
-v -45 30 0.44
-usemtl Light
-v -45 35 0.36
-usemtl Dark
-v -45 40 0.36
-usemtl Light
-v -45 45 0.15
-usemtl Light
-v -45 50 0.36
-usemtl Dark
-v -45 55 0.54
-usemtl Light
-v -45 60 0.93
-usemtl Dark
-v -45 65 0.54
-usemtl Light
-v -40 -60 0.29
-usemtl Dark
-v -40 -55 0.29
-usemtl Light
-v -40 -50 0.18
-usemtl Dark
-v -40 -45 0.70
-usemtl Light
-v -40 -40 0.73
-usemtl Dark
-v -40 -35 0.01
-usemtl Light
-v -40 -30 0.06
-usemtl Dark
-v -40 -25 0.41
-usemtl Light
-v -40 -20 0.07
-usemtl Dark
-v -40 -15 0.04
-usemtl Light
-v -40 -10 0.24
-usemtl Dark
-v -40 -5 0.39
-usemtl Light
-v -40 0 0.94
-usemtl Dark
-v -40 5 0.23
-usemtl Light
-v -40 10 0.46
-usemtl Dark
-v -40 15 0.74
-usemtl Light
-v -40 20 0.95
-usemtl Dark
-v -40 25 0.10
-usemtl Light
-v -40 30 0.86
-usemtl Dark
-v -40 35 0.40
-usemtl Light
-v -40 40 0.97
-usemtl Light
-v -40 45 0.03
-usemtl Dark
-v -40 50 0.98
-usemtl Light
-v -40 55 0.76
-usemtl Dark
-v -40 60 0.50
-usemtl Light
-v -40 65 0.50
-usemtl Dark
-v -35 -60 0.08
-usemtl Light
-v -35 -55 0.90
-usemtl Dark
-v -35 -50 0.77
-usemtl Light
-v -35 -45 0.09
-usemtl Dark
-v -35 -40 0.42
-usemtl Light
-v -35 -35 0.61
-usemtl Dark
-v -35 -30 0.58
-usemtl Light
-v -35 -25 0.30
-usemtl Dark
-v -35 -20 0.72
-usemtl Light
-v -35 -15 0.14
-usemtl Dark
-v -35 -10 0.32
-usemtl Light
-v -35 -5 0.50
-usemtl Dark
-v -35 0 0.72
-usemtl Light
-v -35 5 0.17
-usemtl Dark
-v -35 10 0.33
-usemtl Light
-v -35 15 0.35
-usemtl Dark
-v -35 20 0.59
-usemtl Light
-v -35 25 0.60
-usemtl Dark
-v -35 30 0.98
-usemtl Light
-v -35 35 0.53
-usemtl Light
-v -35 40 0.81
-usemtl Dark
-v -35 45 0.69
-usemtl Light
-v -35 50 0.89
-usemtl Dark
-v -35 55 0.48
-usemtl Light
-v -35 60 0.83
-usemtl Dark
-v -35 65 0.64
-usemtl Light
-v -30 -60 0.44
-usemtl Dark
-v -30 -55 0.48
-usemtl Light
-v -30 -50 0.17
-usemtl Dark
-v -30 -45 0.51
-usemtl Light
-v -30 -40 0.39
-usemtl Dark
-v -30 -35 0.28
-usemtl Light
-v -30 -30 0.84
-usemtl Dark
+v -60 -60 0.39
+v -60 -55 0.59
+v -60 -50 0.70
+v -60 -45 0.80
+v -60 -40 0.44
+v -60 -35 0.15
+v -60 -30 0.80
+v -60 -25 0.07
+v -60 -20 0.63
+v -60 -15 0.39
+v -60 -10 0.50
+v -60 -5 0.29
+v -60 0 0.69
+v -60 5 0.97
+v -60 10 0.20
+v -60 15 0.27
+v -60 20 0.12
+v -60 25 0.74
+v -60 30 0.98
+v -60 35 0.22
+v -60 40 0.52
+v -60 45 0.47
+v -60 50 0.37
+v -60 55 0.09
+v -60 60 0.97
+v -60 65 0.77
+v -55 -60 0.27
+v -55 -55 0.98
+v -55 -50 0.66
+v -55 -45 0.82
+v -55 -40 0.88
+v -55 -35 0.32
+v -55 -30 0.14
+v -55 -25 0.99
+v -55 -20 0.80
+v -55 -15 0.21
+v -55 -10 0.41
+v -55 -5 0.83
+v -55 0 0.98
+v -55 5 0.79
+v -55 10 0.86
+v -55 15 0.84
+v -55 20 0.44
+v -55 25 0.16
+v -55 30 0.07
+v -55 35 0.43
+v -55 40 0.17
+v -55 45 0.78
+v -55 50 0.26
+v -55 55 0.08
+v -55 60 0.77
+v -55 65 0.20
+v -50 -60 0.23
+v -50 -55 0.38
+v -50 -50 0.75
+v -50 -45 0.69
+v -50 -40 0.29
+v -50 -35 0.98
+v -50 -30 0.05
+v -50 -25 0.74
+v -50 -20 0.77
+v -50 -15 0.33
+v -50 -10 0.51
+v -50 -5 0.27
+v -50 0 0.02
+v -50 5 0.82
+v -50 10 0.42
+v -50 15 0.32
+v -50 20 0.51
+v -50 25 0.33
+v -50 30 0.16
+v -50 35 0.30
+v -50 40 0.02
+v -50 45 0.69
+v -50 50 0.84
+v -50 55 0.43
+v -50 60 0.22
+v -50 65 0.16
+v -45 -60 0.94
+v -45 -55 0.29
+v -45 -50 0.47
+v -45 -45 0.69
+v -45 -40 0.06
+v -45 -35 0.73
+v -45 -30 0.26
+v -45 -25 0.32
+v -45 -20 0.20
+v -45 -15 0.67
+v -45 -10 0.29
+v -45 -5 0.54
+v -45 0 0.86
+v -45 5 0.31
+v -45 10 0.46
+v -45 15 0.47
+v -45 20 0.84
+v -45 25 0.65
+v -45 30 0.85
+v -45 35 0.43
+v -45 40 0.32
+v -45 45 0.86
+v -45 50 0.58
+v -45 55 0.45
+v -45 60 0.51
+v -45 65 0.31
+v -40 -60 0.91
+v -40 -55 0.81
+v -40 -50 0.66
+v -40 -45 0.95
+v -40 -40 0.92
+v -40 -35 0.77
+v -40 -30 0.54
+v -40 -25 0.81
+v -40 -20 0.61
+v -40 -15 0.81
+v -40 -10 0.58
+v -40 -5 0.26
+v -40 0 0.11
+v -40 5 0.51
+v -40 10 0.17
+v -40 15 0.90
+v -40 20 0.81
+v -40 25 0.11
+v -40 30 0.51
+v -40 35 0.84
+v -40 40 0.93
+v -40 45 0.55
+v -40 50 0.31
+v -40 55 0.58
+v -40 60 0.49
+v -40 65 0.86
+v -35 -60 0.29
+v -35 -55 0.14
+v -35 -50 0.90
+v -35 -45 0.35
+v -35 -40 0.09
+v -35 -35 0.28
+v -35 -30 0.33
+v -35 -25 0.18
+v -35 -20 0.52
+v -35 -15 0.83
+v -35 -10 0.47
+v -35 -5 0.91
+v -35 0 0.91
+v -35 5 0.95
+v -35 10 0.00
+v -35 15 0.72
+v -35 20 0.82
+v -35 25 0.30
+v -35 30 0.60
+v -35 35 0.74
+v -35 40 0.37
+v -35 45 1.00
+v -35 50 0.83
+v -35 55 0.77
+v -35 60 0.36
+v -35 65 0.14
+v -30 -60 0.74
+v -30 -55 0.98
+v -30 -50 0.36
+v -30 -45 0.07
+v -30 -40 0.43
+v -30 -35 0.12
+v -30 -30 0.04
 v -30 -25 0.10
-usemtl Light
-v -30 -20 0.11
-usemtl Dark
-v -30 -15 0.28
-usemtl Light
-v -30 -10 0.13
-usemtl Dark
-v -30 -5 0.88
-usemtl Light
-v -30 0 0.39
-usemtl Dark
-v -30 5 0.86
-usemtl Light
-v -30 10 0.85
-usemtl Dark
-v -30 15 0.24
-usemtl Light
-v -30 20 0.83
-usemtl Dark
-v -30 25 0.76
-usemtl Light
-v -30 30 0.21
-usemtl Light
-v -30 35 0.64
-usemtl Dark
-v -30 40 0.85
-usemtl Light
-v -30 45 0.16
-usemtl Dark
-v -30 50 0.76
-usemtl Light
-v -30 55 0.58
-usemtl Dark
-v -30 60 0.80
-usemtl Light
-v -30 65 0.26
-usemtl Dark
-v -25 -60 0.50
-usemtl Light
-v -25 -55 0.94
-usemtl Dark
-v -25 -50 0.23
-usemtl Light
-v -25 -45 0.89
-usemtl Dark
-v -25 -40 0.56
-usemtl Light
-v -25 -35 0.57
-usemtl Dark
-v -25 -30 0.24
-usemtl Light
-v -25 -25 0.66
-usemtl Dark
-v -25 -20 0.46
-usemtl Light
-v -25 -15 0.76
-usemtl Dark
-v -25 -10 0.44
-usemtl Light
-v -25 -5 0.52
-usemtl Dark
-v -25 0 0.04
-usemtl Light
-v -25 5 0.51
-usemtl Dark
-v -25 10 0.21
-usemtl Light
-v -25 15 0.69
-usemtl Dark
-v -25 20 0.82
-usemtl Light
-v -25 25 0.28
-usemtl Light
-v -25 30 0.63
-usemtl Dark
-v -25 35 0.12
-usemtl Light
-v -25 40 0.71
-usemtl Dark
-v -25 45 0.56
-usemtl Light
-v -25 50 0.17
-usemtl Dark
-v -25 55 0.88
-usemtl Light
-v -25 60 0.26
-usemtl Dark
-v -25 65 0.94
-usemtl Light
-v -20 -60 0.91
-usemtl Dark
-v -20 -55 0.02
-usemtl Light
-v -20 -50 0.30
-usemtl Dark
-v -20 -45 0.65
-usemtl Light
-v -20 -40 0.35
-usemtl Dark
-v -20 -35 0.69
-usemtl Light
-v -20 -30 0.19
-usemtl Dark
-v -20 -25 0.10
-usemtl Light
-v -20 -20 0.06
-usemtl Dark
-v -20 -15 0.55
-usemtl Light
-v -20 -10 0.02
-usemtl Dark
-v -20 -5 0.72
-usemtl Light
-v -20 0 0.15
-usemtl Dark
-v -20 5 0.70
-usemtl Light
-v -20 10 0.74
-usemtl Dark
-v -20 15 0.86
-usemtl Light
-v -20 20 0.12
-usemtl Light
-v -20 25 0.19
-usemtl Dark
-v -20 30 0.96
-usemtl Light
-v -20 35 0.25
-usemtl Dark
-v -20 40 0.05
-usemtl Light
-v -20 45 0.05
-usemtl Dark
-v -20 50 0.04
-usemtl Light
-v -20 55 0.32
-usemtl Dark
-v -20 60 0.78
-usemtl Light
-v -20 65 0.01
-usemtl Dark
-v -15 -60 0.50
-usemtl Light
-v -15 -55 0.68
-usemtl Dark
-v -15 -50 0.86
-usemtl Light
-v -15 -45 0.13
-usemtl Dark
-v -15 -40 0.59
-usemtl Light
-v -15 -35 0.39
-usemtl Dark
-v -15 -30 0.39
-usemtl Light
-v -15 -25 0.31
-usemtl Dark
-v -15 -20 0.46
-usemtl Light
-v -15 -15 0.56
-usemtl Dark
-v -15 -10 0.08
-usemtl Light
-v -15 -5 0.01
-usemtl Dark
-v -15 0 0.63
-usemtl Light
-v -15 5 0.42
-usemtl Dark
-v -15 10 0.48
-usemtl Light
-v -15 15 0.05
-usemtl Light
-v -15 20 0.97
-usemtl Dark
-v -15 25 0.18
-usemtl Light
-v -15 30 0.64
-usemtl Dark
-v -15 35 0.82
-usemtl Light
-v -15 40 0.66
-usemtl Dark
-v -15 45 0.06
-usemtl Light
-v -15 50 0.26
-usemtl Dark
-v -15 55 0.81
-usemtl Light
-v -15 60 0.09
-usemtl Dark
-v -15 65 0.13
-usemtl Light
-v -10 -60 0.85
-usemtl Dark
-v -10 -55 0.37
-usemtl Light
-v -10 -50 0.64
-usemtl Dark
-v -10 -45 0.68
-usemtl Light
-v -10 -40 0.25
-usemtl Dark
-v -10 -35 0.85
-usemtl Light
-v -10 -30 0.31
-usemtl Dark
-v -10 -25 0.69
-usemtl Light
-v -10 -20 0.18
-usemtl Dark
-v -10 -15 0.07
-usemtl Light
-v -10 -10 0.89
-usemtl Dark
-v -10 -5 0.54
-usemtl Light
-v -10 0 0.93
-usemtl Dark
-v -10 5 0.81
-usemtl Light
-v -10 10 0.86
-usemtl Light
-v -10 15 0.85
-usemtl Dark
-v -10 20 0.03
-usemtl Light
-v -10 25 0.91
-usemtl Dark
+v -30 -20 0.91
+v -30 -15 0.62
+v -30 -10 0.70
+v -30 -5 0.52
+v -30 0 0.32
+v -30 5 0.35
+v -30 10 0.53
+v -30 15 0.67
+v -30 20 0.97
+v -30 25 0.26
+v -30 30 0.04
+v -30 35 0.19
+v -30 40 0.98
+v -30 45 0.65
+v -30 50 0.71
+v -30 55 0.02
+v -30 60 0.07
+v -30 65 0.37
+v -25 -60 0.70
+v -25 -55 0.58
+v -25 -50 0.75
+v -25 -45 0.06
+v -25 -40 0.30
+v -25 -35 0.92
+v -25 -30 0.15
+v -25 -25 0.85
+v -25 -20 0.71
+v -25 -15 0.33
+v -25 -10 0.04
+v -25 -5 0.75
+v -25 0 0.50
+v -25 5 0.04
+v -25 10 0.82
+v -25 15 0.94
+v -25 20 0.29
+v -25 25 0.91
+v -25 30 0.71
+v -25 35 0.15
+v -25 40 0.80
+v -25 45 0.47
+v -25 50 0.76
+v -25 55 0.52
+v -25 60 0.02
+v -25 65 0.65
+v -20 -60 0.43
+v -20 -55 0.79
+v -20 -50 0.26
+v -20 -45 0.09
+v -20 -40 0.20
+v -20 -35 0.92
+v -20 -30 0.69
+v -20 -25 0.89
+v -20 -20 0.66
+v -20 -15 0.47
+v -20 -10 0.74
+v -20 -5 0.32
+v -20 0 0.46
+v -20 5 0.44
+v -20 10 0.92
+v -20 15 0.89
+v -20 20 0.45
+v -20 25 0.12
+v -20 30 0.16
+v -20 35 0.39
+v -20 40 0.72
+v -20 45 0.85
+v -20 50 0.14
+v -20 55 0.74
+v -20 60 0.08
+v -20 65 0.76
+v -15 -60 0.65
+v -15 -55 0.45
+v -15 -50 0.85
+v -15 -45 0.69
+v -15 -40 0.70
+v -15 -35 0.54
+v -15 -30 0.63
+v -15 -25 0.83
+v -15 -20 0.96
+v -15 -15 0.58
+v -15 -10 0.40
+v -15 -5 0.32
+v -15 0 0.66
+v -15 5 0.96
+v -15 10 0.98
+v -15 15 0.83
+v -15 20 0.98
+v -15 25 0.12
+v -15 30 0.08
+v -15 35 0.80
+v -15 40 0.58
+v -15 45 0.29
+v -15 50 0.19
+v -15 55 0.17
+v -15 60 0.86
+v -15 65 0.47
+v -10 -60 0.39
+v -10 -55 0.17
+v -10 -50 0.97
+v -10 -45 0.03
+v -10 -40 0.40
+v -10 -35 0.81
+v -10 -30 0.79
+v -10 -25 0.88
+v -10 -20 0.06
+v -10 -15 0.42
+v -10 -10 0.48
+v -10 -5 0.53
+v -10 0 0.79
+v -10 5 0.11
+v -10 10 0.15
+v -10 15 0.59
+v -10 20 0.06
+v -10 25 0.62
 v -10 30 0.99
-usemtl Light
-v -10 35 0.51
-usemtl Dark
-v -10 40 0.87
-usemtl Light
-v -10 45 0.28
-usemtl Dark
-v -10 50 0.27
-usemtl Light
-v -10 55 0.02
-usemtl Dark
-v -10 60 0.97
-usemtl Light
-v -10 65 0.44
-usemtl Dark
-v -5 -60 0.32
-usemtl Light
-v -5 -55 0.09
-usemtl Dark
-v -5 -50 0.99
-usemtl Light
-v -5 -45 0.45
-usemtl Dark
-v -5 -40 0.76
-usemtl Light
-v -5 -35 0.55
-usemtl Dark
+v -10 35 0.50
+v -10 40 0.53
+v -10 45 0.66
+v -10 50 0.74
+v -10 55 0.05
+v -10 60 0.51
+v -10 65 0.29
+v -5 -60 0.70
+v -5 -55 0.94
+v -5 -50 0.87
+v -5 -45 0.52
+v -5 -40 0.43
+v -5 -35 0.46
 v -5 -30 0.52
-usemtl Light
-v -5 -25 0.13
-usemtl Dark
-v -5 -20 0.51
-usemtl Light
-v -5 -15 0.38
-usemtl Dark
-v -5 -10 0.78
-usemtl Light
-v -5 -5 0.70
-usemtl Dark
-v -5 0 0.75
-usemtl Light
-v -5 5 0.68
-usemtl Light
-v -5 10 0.30
-usemtl Dark
-v -5 15 0.47
-usemtl Light
-v -5 20 0.91
-usemtl Dark
-v -5 25 0.00
-usemtl Light
-v -5 30 0.52
-usemtl Dark
-v -5 35 0.83
-usemtl Light
-v -5 40 0.18
-usemtl Dark
-v -5 45 0.36
-usemtl Light
-v -5 50 0.89
-usemtl Dark
-v -5 55 0.47
-usemtl Light
-v -5 60 0.44
-usemtl Dark
-v -5 65 0.98
-usemtl Light
-v 0 -60 0.32
-usemtl Dark
-v 0 -55 0.91
-usemtl Light
-v 0 -50 0.92
-usemtl Dark
-v 0 -45 0.11
-usemtl Light
-v 0 -40 0.23
-usemtl Dark
-v 0 -35 0.80
-usemtl Light
-v 0 -30 0.70
-usemtl Dark
-v 0 -25 0.70
-usemtl Light
-v 0 -20 0.47
-usemtl Dark
-v 0 -15 0.07
-usemtl Light
-v 0 -10 0.36
-usemtl Dark
-v 0 -5 0.49
-usemtl Light
-v 0 0 0.73
-usemtl Light
-v 0 5 0.94
-usemtl Dark
-v 0 10 0.88
-usemtl Light
-v 0 15 0.76
-usemtl Dark
-v 0 20 0.72
-usemtl Light
-v 0 25 0.74
-usemtl Dark
-v 0 30 0.38
-usemtl Light
-v 0 35 0.05
-usemtl Dark
-v 0 40 0.99
-usemtl Light
-v 0 45 0.33
-usemtl Dark
-v 0 50 0.52
-usemtl Light
-v 0 55 0.46
-usemtl Dark
-v 0 60 0.02
-usemtl Light
-v 0 65 0.10
-usemtl Dark
-v 5 -60 0.04
-usemtl Light
-v 5 -55 0.16
-usemtl Dark
-v 5 -50 0.48
-usemtl Light
-v 5 -45 0.15
-usemtl Dark
-v 5 -40 0.06
-usemtl Light
-v 5 -35 0.26
-usemtl Dark
-v 5 -30 0.58
-usemtl Light
-v 5 -25 0.14
-usemtl Dark
-v 5 -20 0.52
-usemtl Light
-v 5 -15 0.10
-usemtl Dark
-v 5 -10 0.42
-usemtl Light
-v 5 -5 0.21
-usemtl Light
-v 5 0 0.56
-usemtl Dark
-v 5 5 0.16
-usemtl Light
-v 5 10 0.98
-usemtl Dark
-v 5 15 0.57
-usemtl Light
-v 5 20 0.53
-usemtl Dark
-v 5 25 0.92
-usemtl Light
-v 5 30 0.68
-usemtl Dark
-v 5 35 0.66
-usemtl Light
-v 5 40 0.31
-usemtl Dark
-v 5 45 1.00
-usemtl Light
-v 5 50 0.95
-usemtl Dark
-v 5 55 0.42
-usemtl Light
-v 5 60 0.14
-usemtl Dark
-v 5 65 0.21
-usemtl Light
-v 10 -60 0.06
-usemtl Dark
-v 10 -55 0.95
-usemtl Light
-v 10 -50 0.77
-usemtl Dark
-v 10 -45 0.02
-usemtl Light
-v 10 -40 0.76
-usemtl Dark
-v 10 -35 0.93
-usemtl Light
-v 10 -30 0.13
-usemtl Dark
-v 10 -25 0.70
-usemtl Light
-v 10 -20 0.05
-usemtl Dark
-v 10 -15 0.76
-usemtl Light
-v 10 -10 0.56
-usemtl Light
-v 10 -5 0.86
-usemtl Dark
-v 10 0 0.97
-usemtl Light
-v 10 5 0.14
-usemtl Dark
-v 10 10 0.74
-usemtl Light
-v 10 15 0.71
-usemtl Dark
-v 10 20 0.02
-usemtl Light
-v 10 25 0.80
-usemtl Dark
-v 10 30 0.04
-usemtl Light
-v 10 35 0.93
-usemtl Dark
-v 10 40 0.73
-usemtl Light
-v 10 45 0.03
-usemtl Dark
-v 10 50 0.36
-usemtl Light
-v 10 55 0.24
-usemtl Dark
-v 10 60 0.48
-usemtl Light
-v 10 65 0.98
-usemtl Dark
-v 15 -60 0.93
-usemtl Light
-v 15 -55 0.54
-usemtl Dark
-v 15 -50 0.16
-usemtl Light
-v 15 -45 0.50
-usemtl Dark
-v 15 -40 0.63
-usemtl Light
-v 15 -35 0.00
-usemtl Dark
-v 15 -30 0.81
-usemtl Light
-v 15 -25 0.76
-usemtl Dark
-v 15 -20 0.34
-usemtl Light
-v 15 -15 0.54
-usemtl Light
-v 15 -10 0.83
-usemtl Dark
-v 15 -5 0.72
-usemtl Light
-v 15 0 0.46
-usemtl Dark
-v 15 5 0.56
-usemtl Light
-v 15 10 0.36
-usemtl Dark
-v 15 15 0.85
-usemtl Light
-v 15 20 0.32
-usemtl Dark
-v 15 25 0.54
-usemtl Light
-v 15 30 0.38
-usemtl Dark
-v 15 35 0.87
-usemtl Light
-v 15 40 0.92
-usemtl Dark
-v 15 45 0.37
-usemtl Light
-v 15 50 0.20
-usemtl Dark
-v 15 55 0.77
-usemtl Light
-v 15 60 0.54
-usemtl Dark
-v 15 65 0.37
-usemtl Light
-v 20 -60 0.48
-usemtl Dark
-v 20 -55 0.56
-usemtl Light
-v 20 -50 0.48
-usemtl Dark
-v 20 -45 0.36
-usemtl Light
-v 20 -40 0.62
-usemtl Dark
-v 20 -35 0.95
-usemtl Light
-v 20 -30 0.13
-usemtl Dark
-v 20 -25 0.59
-usemtl Light
-v 20 -20 0.66
-usemtl Light
-v 20 -15 0.19
-usemtl Dark
-v 20 -10 0.23
-usemtl Light
-v 20 -5 0.74
-usemtl Dark
-v 20 0 0.14
-usemtl Light
-v 20 5 0.48
-usemtl Dark
-v 20 10 0.59
-usemtl Light
-v 20 15 0.75
-usemtl Dark
-v 20 20 0.96
-usemtl Light
-v 20 25 0.12
-usemtl Dark
-v 20 30 0.83
-usemtl Light
-v 20 35 0.82
-usemtl Dark
-v 20 40 0.51
-usemtl Light
-v 20 45 0.05
-usemtl Dark
-v 20 50 0.96
-usemtl Light
-v 20 55 0.82
-usemtl Dark
-v 20 60 0.12
-usemtl Light
-v 20 65 0.01
-usemtl Dark
-v 25 -60 0.30
-usemtl Light
-v 25 -55 0.64
-usemtl Dark
-v 25 -50 0.41
-usemtl Light
-v 25 -45 0.09
-usemtl Dark
-v 25 -40 0.85
-usemtl Light
-v 25 -35 0.98
-usemtl Dark
-v 25 -30 0.71
-usemtl Light
-v 25 -25 0.26
-usemtl Light
-v 25 -20 0.75
-usemtl Dark
-v 25 -15 0.67
-usemtl Light
-v 25 -10 0.60
-usemtl Dark
-v 25 -5 0.42
-usemtl Light
-v 25 0 0.01
-usemtl Dark
-v 25 5 0.60
-usemtl Light
-v 25 10 0.90
-usemtl Dark
-v 25 15 0.35
-usemtl Light
-v 25 20 0.85
-usemtl Dark
-v 25 25 0.80
-usemtl Light
-v 25 30 0.32
-usemtl Dark
-v 25 35 0.22
-usemtl Light
-v 25 40 0.89
-usemtl Dark
-v 25 45 0.48
-usemtl Light
-v 25 50 0.68
-usemtl Dark
-v 25 55 0.09
-usemtl Light
-v 25 60 0.90
-usemtl Dark
-v 25 65 0.83
-usemtl Light
-v 30 -60 0.29
-usemtl Dark
-v 30 -55 0.96
-usemtl Light
-v 30 -50 0.86
-usemtl Dark
-v 30 -45 0.55
-usemtl Light
-v 30 -40 0.85
-usemtl Dark
-v 30 -35 0.42
-usemtl Light
-v 30 -30 0.14
-usemtl Light
-v 30 -25 0.45
-usemtl Dark
+v -5 -25 0.02
+v -5 -20 0.49
+v -5 -15 0.70
+v -5 -10 0.71
+v -5 -5 0.45
+v -5 0 0.80
+v -5 5 0.53
+v -5 10 0.57
+v -5 15 0.96
+v -5 20 0.33
+v -5 25 0.77
+v -5 30 0.40
+v -5 35 0.73
+v -5 40 0.88
+v -5 45 0.62
+v -5 50 0.51
+v -5 55 0.53
+v -5 60 0.22
+v -5 65 0.21
+v 0 -60 0.83
+v 0 -55 0.43
+v 0 -50 0.16
+v 0 -45 0.34
+v 0 -40 0.15
+v 0 -35 0.96
+v 0 -30 0.33
+v 0 -25 0.18
+v 0 -20 0.09
+v 0 -15 0.30
+v 0 -10 0.25
+v 0 -5 0.61
+v 0 0 0.41
+v 0 5 0.10
+v 0 10 0.03
+v 0 15 0.94
+v 0 20 0.89
+v 0 25 0.34
+v 0 30 0.71
+v 0 35 0.43
+v 0 40 0.07
+v 0 45 0.67
+v 0 50 0.09
+v 0 55 0.96
+v 0 60 0.58
+v 0 65 0.97
+v 5 -60 0.46
+v 5 -55 0.21
+v 5 -50 0.85
+v 5 -45 0.58
+v 5 -40 0.97
+v 5 -35 0.42
+v 5 -30 0.60
+v 5 -25 0.68
+v 5 -20 0.14
+v 5 -15 0.50
+v 5 -10 0.02
+v 5 -5 0.09
+v 5 0 0.93
+v 5 5 0.56
+v 5 10 0.67
+v 5 15 0.87
+v 5 20 0.24
+v 5 25 0.07
+v 5 30 0.62
+v 5 35 0.04
+v 5 40 0.42
+v 5 45 0.53
+v 5 50 1.00
+v 5 55 0.55
+v 5 60 0.39
+v 5 65 0.06
+v 10 -60 0.18
+v 10 -55 0.79
+v 10 -50 0.40
+v 10 -45 0.86
+v 10 -40 0.03
+v 10 -35 0.99
+v 10 -30 0.95
+v 10 -25 0.91
+v 10 -20 0.59
+v 10 -15 0.88
+v 10 -10 0.78
+v 10 -5 0.57
+v 10 0 0.30
+v 10 5 0.23
+v 10 10 0.39
+v 10 15 0.73
+v 10 20 0.78
+v 10 25 0.65
+v 10 30 0.23
+v 10 35 0.24
+v 10 40 0.09
+v 10 45 0.87
+v 10 50 0.91
+v 10 55 0.30
+v 10 60 0.69
+v 10 65 0.37
+v 15 -60 0.90
+v 15 -55 0.26
+v 15 -50 0.98
+v 15 -45 0.32
+v 15 -40 0.44
+v 15 -35 0.31
+v 15 -30 0.19
+v 15 -25 0.56
+v 15 -20 0.73
+v 15 -15 0.06
+v 15 -10 0.21
+v 15 -5 0.82
+v 15 0 0.70
+v 15 5 0.26
+v 15 10 0.76
+v 15 15 0.28
+v 15 20 0.29
+v 15 25 0.67
+v 15 30 0.03
+v 15 35 0.56
+v 15 40 0.28
+v 15 45 0.51
+v 15 50 1.00
+v 15 55 0.10
+v 15 60 0.20
+v 15 65 0.76
+v 20 -60 0.30
+v 20 -55 0.36
+v 20 -50 0.94
+v 20 -45 0.89
+v 20 -40 0.39
+v 20 -35 0.96
+v 20 -30 0.19
+v 20 -25 0.56
+v 20 -20 0.82
+v 20 -15 0.83
+v 20 -10 0.69
+v 20 -5 0.48
+v 20 0 0.30
+v 20 5 0.69
+v 20 10 0.43
+v 20 15 0.26
+v 20 20 0.23
+v 20 25 0.08
+v 20 30 0.75
+v 20 35 0.72
+v 20 40 0.01
+v 20 45 0.49
+v 20 50 0.57
+v 20 55 0.93
+v 20 60 0.54
+v 20 65 0.96
+v 25 -60 0.05
+v 25 -55 0.24
+v 25 -50 0.87
+v 25 -45 0.02
+v 25 -40 0.39
+v 25 -35 0.00
+v 25 -30 0.93
+v 25 -25 0.87
+v 25 -20 0.19
+v 25 -15 0.96
+v 25 -10 0.56
+v 25 -5 0.79
+v 25 0 0.68
+v 25 5 0.73
+v 25 10 0.10
+v 25 15 0.42
+v 25 20 0.60
+v 25 25 0.48
+v 25 30 0.83
+v 25 35 0.23
+v 25 40 0.73
+v 25 45 0.79
+v 25 50 0.14
+v 25 55 0.37
+v 25 60 0.29
+v 25 65 0.70
+v 30 -60 0.14
+v 30 -55 0.62
+v 30 -50 0.36
+v 30 -45 0.74
+v 30 -40 0.59
+v 30 -35 0.67
+v 30 -30 0.69
+v 30 -25 0.27
 v 30 -20 0.75
-usemtl Light
-v 30 -15 0.00
-usemtl Dark
-v 30 -10 0.49
-usemtl Light
-v 30 -5 0.33
-usemtl Dark
-v 30 0 0.45
-usemtl Light
-v 30 5 0.95
-usemtl Dark
-v 30 10 0.93
-usemtl Light
-v 30 15 0.02
-usemtl Dark
-v 30 20 0.77
-usemtl Light
-v 30 25 0.85
-usemtl Dark
-v 30 30 0.86
-usemtl Light
-v 30 35 0.72
-usemtl Dark
-v 30 40 0.68
-usemtl Light
-v 30 45 0.68
-usemtl Dark
-v 30 50 0.09
-usemtl Light
-v 30 55 0.66
-usemtl Dark
-v 30 60 0.87
-usemtl Light
-v 30 65 0.76
-usemtl Dark
-v 35 -60 0.04
-usemtl Light
-v 35 -55 0.50
-usemtl Dark
-v 35 -50 0.31
-usemtl Light
-v 35 -45 0.40
-usemtl Dark
-v 35 -40 0.19
-usemtl Light
-v 35 -35 0.58
-usemtl Light
-v 35 -30 0.77
-usemtl Dark
-v 35 -25 0.52
-usemtl Light
-v 35 -20 0.92
-usemtl Dark
-v 35 -15 0.38
-usemtl Light
-v 35 -10 0.47
-usemtl Dark
-v 35 -5 0.23
-usemtl Light
-v 35 0 0.16
-usemtl Dark
-v 35 5 0.95
-usemtl Light
-v 35 10 0.82
-usemtl Dark
-v 35 15 0.28
-usemtl Light
-v 35 20 0.45
-usemtl Dark
-v 35 25 0.61
-usemtl Light
-v 35 30 0.54
-usemtl Dark
-v 35 35 0.07
-usemtl Light
-v 35 40 0.25
-usemtl Dark
-v 35 45 0.23
-usemtl Light
-v 35 50 0.16
-usemtl Dark
-v 35 55 0.20
-usemtl Light
-v 35 60 0.92
-usemtl Dark
-v 35 65 0.46
-usemtl Light
-v 40 -60 0.93
-usemtl Dark
-v 40 -55 0.62
-usemtl Light
-v 40 -50 0.65
-usemtl Dark
-v 40 -45 0.77
-usemtl Light
-v 40 -40 0.98
-usemtl Light
-v 40 -35 0.51
-usemtl Dark
-v 40 -30 0.17
-usemtl Light
-v 40 -25 0.92
-usemtl Dark
-v 40 -20 0.00
-usemtl Light
-v 40 -15 0.05
-usemtl Dark
-v 40 -10 0.90
-usemtl Light
-v 40 -5 0.08
-usemtl Dark
-v 40 0 0.61
-usemtl Light
-v 40 5 0.63
-usemtl Dark
-v 40 10 0.12
-usemtl Light
-v 40 15 0.36
-usemtl Dark
-v 40 20 0.64
-usemtl Light
-v 40 25 0.85
-usemtl Dark
-v 40 30 0.72
-usemtl Light
-v 40 35 0.55
-usemtl Dark
-v 40 40 0.19
-usemtl Light
-v 40 45 0.00
-usemtl Dark
-v 40 50 0.71
-usemtl Light
-v 40 55 0.57
-usemtl Dark
-v 40 60 0.19
-usemtl Light
-v 40 65 0.87
-usemtl Dark
-v 45 -60 0.81
-usemtl Light
-v 45 -55 0.89
-usemtl Dark
-v 45 -50 0.41
-usemtl Light
-v 45 -45 0.89
-usemtl Light
-v 45 -40 0.15
-usemtl Dark
-v 45 -35 0.80
-usemtl Light
-v 45 -30 0.32
-usemtl Dark
-v 45 -25 0.28
-usemtl Light
-v 45 -20 0.41
-usemtl Dark
-v 45 -15 0.90
-usemtl Light
-v 45 -10 0.40
-usemtl Dark
-v 45 -5 0.82
-usemtl Light
-v 45 0 0.93
-usemtl Dark
-v 45 5 0.67
-usemtl Light
-v 45 10 0.66
-usemtl Dark
-v 45 15 0.72
-usemtl Light
-v 45 20 0.37
-usemtl Dark
-v 45 25 0.18
-usemtl Light
-v 45 30 0.32
-usemtl Dark
-v 45 35 0.65
-usemtl Light
-v 45 40 0.10
-usemtl Dark
-v 45 45 0.58
-usemtl Light
-v 45 50 0.72
-usemtl Dark
-v 45 55 0.62
-usemtl Light
-v 45 60 0.31
-usemtl Dark
-v 45 65 0.19
-usemtl Light
-v 50 -60 0.55
-usemtl Dark
-v 50 -55 0.73
-usemtl Light
-v 50 -50 0.49
-usemtl Light
-v 50 -45 0.56
-usemtl Dark
-v 50 -40 0.94
-usemtl Light
-v 50 -35 0.50
-usemtl Dark
-v 50 -30 0.81
-usemtl Light
-v 50 -25 0.34
-usemtl Dark
+v 30 -15 0.44
+v 30 -10 0.99
+v 30 -5 0.74
+v 30 0 0.28
+v 30 5 0.08
+v 30 10 0.71
+v 30 15 0.88
+v 30 20 0.32
+v 30 25 0.11
+v 30 30 0.52
+v 30 35 0.81
+v 30 40 0.01
+v 30 45 0.80
+v 30 50 0.76
+v 30 55 0.25
+v 30 60 0.10
+v 30 65 0.41
+v 35 -60 0.81
+v 35 -55 0.00
+v 35 -50 0.48
+v 35 -45 0.13
+v 35 -40 0.86
+v 35 -35 0.19
+v 35 -30 0.75
+v 35 -25 0.81
+v 35 -20 0.40
+v 35 -15 0.04
+v 35 -10 0.40
+v 35 -5 0.65
+v 35 0 0.02
+v 35 5 0.22
+v 35 10 0.28
+v 35 15 0.80
+v 35 20 0.71
+v 35 25 0.28
+v 35 30 0.63
+v 35 35 0.06
+v 35 40 0.16
+v 35 45 0.05
+v 35 50 0.63
+v 35 55 0.51
+v 35 60 0.94
+v 35 65 0.95
+v 40 -60 0.89
+v 40 -55 0.72
+v 40 -50 0.80
+v 40 -45 0.24
+v 40 -40 0.80
+v 40 -35 0.22
+v 40 -30 0.65
+v 40 -25 0.23
+v 40 -20 0.08
+v 40 -15 0.14
+v 40 -10 0.97
+v 40 -5 0.58
+v 40 0 0.25
+v 40 5 0.44
+v 40 10 0.70
+v 40 15 0.75
+v 40 20 0.79
+v 40 25 0.02
+v 40 30 0.16
+v 40 35 0.84
+v 40 40 0.56
+v 40 45 0.14
+v 40 50 0.38
+v 40 55 0.86
+v 40 60 0.87
+v 40 65 0.53
+v 45 -60 0.18
+v 45 -55 0.18
+v 45 -50 0.97
+v 45 -45 0.11
+v 45 -40 0.68
+v 45 -35 0.89
+v 45 -30 0.85
+v 45 -25 0.59
+v 45 -20 0.24
+v 45 -15 0.98
+v 45 -10 0.45
+v 45 -5 0.84
+v 45 0 0.92
+v 45 5 0.12
+v 45 10 0.02
+v 45 15 0.21
+v 45 20 0.20
+v 45 25 0.37
+v 45 30 0.41
+v 45 35 0.88
+v 45 40 0.33
+v 45 45 0.88
+v 45 50 0.95
+v 45 55 0.86
+v 45 60 0.37
+v 45 65 0.54
+v 50 -60 0.42
+v 50 -55 0.12
+v 50 -50 0.43
+v 50 -45 0.61
+v 50 -40 0.64
+v 50 -35 0.91
+v 50 -30 0.65
+v 50 -25 0.06
 v 50 -20 0.02
-usemtl Light
-v 50 -15 0.63
-usemtl Dark
-v 50 -10 0.45
-usemtl Light
-v 50 -5 0.21
-usemtl Dark
-v 50 0 0.89
-usemtl Light
-v 50 5 0.52
-usemtl Dark
-v 50 10 0.80
-usemtl Light
-v 50 15 0.87
-usemtl Dark
-v 50 20 0.59
-usemtl Light
-v 50 25 0.05
-usemtl Dark
-v 50 30 0.72
-usemtl Light
-v 50 35 0.43
-usemtl Dark
-v 50 40 0.07
-usemtl Light
-v 50 45 0.88
-usemtl Dark
-v 50 50 0.97
-usemtl Light
-v 50 55 0.54
-usemtl Dark
-v 50 60 0.08
-usemtl Light
-v 50 65 0.74
-usemtl Dark
-v 55 -60 0.21
-usemtl Light
-v 55 -55 0.10
-usemtl Light
-v 55 -50 0.20
-usemtl Dark
-v 55 -45 0.21
-usemtl Light
-v 55 -40 0.92
-usemtl Dark
-v 55 -35 0.42
-usemtl Light
-v 55 -30 0.43
-usemtl Dark
-v 55 -25 0.58
-usemtl Light
-v 55 -20 0.83
-usemtl Dark
-v 55 -15 0.26
-usemtl Light
-v 55 -10 0.17
-usemtl Dark
-v 55 -5 0.00
-usemtl Light
-v 55 0 0.96
-usemtl Dark
-v 55 5 0.14
-usemtl Light
-v 55 10 0.31
-usemtl Dark
-v 55 15 0.52
-usemtl Light
-v 55 20 0.41
-usemtl Dark
-v 55 25 0.49
-usemtl Light
-v 55 30 0.95
-usemtl Dark
-v 55 35 0.05
-usemtl Light
-v 55 40 0.99
-usemtl Dark
-v 55 45 0.53
-usemtl Light
-v 55 50 0.97
-usemtl Dark
-v 55 55 0.16
-usemtl Light
-v 55 60 0.05
-usemtl Dark
-v 55 65 0.96
-usemtl Light
-v 60 -60 0.54
-usemtl Light
-v 60 -55 0.58
-usemtl Dark
-v 60 -50 0.44
-usemtl Light
-v 60 -45 0.11
-usemtl Dark
-v 60 -40 0.64
-usemtl Light
-v 60 -35 0.58
-usemtl Dark
-v 60 -30 0.46
-usemtl Light
-v 60 -25 0.31
-usemtl Dark
-v 60 -20 0.77
-usemtl Light
-v 60 -15 0.60
-usemtl Dark
-v 60 -10 0.35
-usemtl Light
-v 60 -5 0.81
-usemtl Dark
-v 60 0 0.41
-usemtl Light
-v 60 5 0.54
-usemtl Dark
-v 60 10 0.80
-usemtl Light
-v 60 15 0.11
-usemtl Dark
-v 60 20 0.03
-usemtl Light
-v 60 25 0.83
-usemtl Dark
-v 60 30 0.11
-usemtl Light
-v 60 35 0.51
-usemtl Dark
-v 60 40 0.83
-usemtl Light
-v 60 45 0.40
-usemtl Dark
-v 60 50 0.28
-usemtl Light
-v 60 55 0.79
-usemtl Dark
-v 60 60 0.88
-usemtl Light
-v 60 65 0.77
-usemtl Light
-v 65 -60 0.82
-usemtl Dark
-v 65 -55 0.90
-usemtl Light
-v 65 -50 0.82
-usemtl Dark
-v 65 -45 0.16
-usemtl Light
-v 65 -40 0.87
-usemtl Dark
-v 65 -35 0.37
-usemtl Light
-v 65 -30 0.72
-usemtl Dark
-v 65 -25 0.32
-usemtl Light
-v 65 -20 0.11
-usemtl Dark
-v 65 -15 0.54
-usemtl Light
-v 65 -10 0.56
-usemtl Dark
-v 65 -5 0.02
-usemtl Light
-v 65 0 0.70
-usemtl Dark
-v 65 5 0.70
-usemtl Light
-v 65 10 0.64
-usemtl Dark
-v 65 15 0.08
-usemtl Light
-v 65 20 0.36
-usemtl Dark
-v 65 25 0.02
-usemtl Light
-v 65 30 0.01
-usemtl Dark
-v 65 35 0.88
-usemtl Light
-v 65 40 0.24
-usemtl Dark
-v 65 45 0.92
-usemtl Light
-v 65 50 0.72
-usemtl Dark
-v 65 55 0.05
-usemtl Light
-v 65 60 0.12
-usemtl Light
-v 65 65 0.16
+v 50 -15 0.71
+v 50 -10 0.87
+v 50 -5 0.13
+v 50 0 0.12
+v 50 5 0.73
+v 50 10 0.07
+v 50 15 0.80
+v 50 20 0.22
+v 50 25 0.34
+v 50 30 0.95
+v 50 35 0.95
+v 50 40 0.36
+v 50 45 0.67
+v 50 50 0.61
+v 50 55 0.98
+v 50 60 0.06
+v 50 65 0.33
+v 55 -60 0.33
+v 55 -55 0.74
+v 55 -50 0.80
+v 55 -45 0.44
+v 55 -40 0.27
+v 55 -35 0.52
+v 55 -30 0.16
+v 55 -25 0.57
+v 55 -20 0.59
+v 55 -15 0.82
+v 55 -10 0.90
+v 55 -5 0.70
+v 55 0 0.02
+v 55 5 0.13
+v 55 10 0.76
+v 55 15 0.89
+v 55 20 0.47
+v 55 25 0.64
+v 55 30 0.83
+v 55 35 0.98
+v 55 40 0.12
+v 55 45 0.24
+v 55 50 0.79
+v 55 55 0.22
+v 55 60 0.04
+v 55 65 0.24
+v 60 -60 0.46
+v 60 -55 0.84
+v 60 -50 0.22
+v 60 -45 0.14
+v 60 -40 0.89
+v 60 -35 0.67
+v 60 -30 0.15
+v 60 -25 0.71
+v 60 -20 0.61
+v 60 -15 0.41
+v 60 -10 0.72
+v 60 -5 0.36
+v 60 0 0.04
+v 60 5 0.94
+v 60 10 0.28
+v 60 15 0.89
+v 60 20 0.93
+v 60 25 0.31
+v 60 30 0.22
+v 60 35 0.08
+v 60 40 0.40
+v 60 45 0.05
+v 60 50 0.59
+v 60 55 0.85
+v 60 60 0.16
+v 60 65 0.15
+v 65 -60 0.58
+v 65 -55 0.57
+v 65 -50 0.20
+v 65 -45 0.69
+v 65 -40 0.01
+v 65 -35 0.31
+v 65 -30 0.42
+v 65 -25 0.66
+v 65 -20 0.39
+v 65 -15 0.50
+v 65 -10 0.39
+v 65 -5 0.96
+v 65 0 0.15
+v 65 5 1.00
+v 65 10 0.15
+v 65 15 0.01
+v 65 20 0.97
+v 65 25 0.24
+v 65 30 0.11
+v 65 35 0.15
+v 65 40 0.86
+v 65 45 0.53
+v 65 50 0.93
+v 65 55 0.29
+v 65 60 0.85
+v 65 65 0.79
 
+usemtl Light
 f 1 27 28 2
+usemtl Dark
 f 27 53 54 28
+usemtl Light
 f 53 79 80 54
+usemtl Dark
 f 79 105 106 80
+usemtl Light
 f 105 131 132 106
+usemtl Dark
 f 131 157 158 132
+usemtl Light
 f 157 183 184 158
+usemtl Dark
 f 183 209 210 184
+usemtl Light
 f 209 235 236 210
+usemtl Dark
 f 235 261 262 236
+usemtl Light
 f 261 287 288 262
+usemtl Dark
 f 287 313 314 288
+usemtl Light
 f 313 339 340 314
+usemtl Dark
 f 339 365 366 340
+usemtl Light
 f 365 391 392 366
+usemtl Dark
 f 391 417 418 392
+usemtl Light
 f 417 443 444 418
+usemtl Dark
 f 443 469 470 444
+usemtl Light
 f 469 495 496 470
+usemtl Dark
 f 495 521 522 496
+usemtl Light
 f 521 547 548 522
+usemtl Dark
 f 547 573 574 548
+usemtl Light
 f 573 599 600 574
+usemtl Dark
 f 599 625 626 600
+usemtl Light
 f 625 651 652 626
+usemtl Dark
 f 2 28 29 3
+usemtl Light
 f 28 54 55 29
+usemtl Dark
 f 54 80 81 55
+usemtl Light
 f 80 106 107 81
+usemtl Dark
 f 106 132 133 107
+usemtl Light
 f 132 158 159 133
+usemtl Dark
 f 158 184 185 159
+usemtl Light
 f 184 210 211 185
+usemtl Dark
 f 210 236 237 211
+usemtl Light
 f 236 262 263 237
+usemtl Dark
 f 262 288 289 263
+usemtl Light
 f 288 314 315 289
+usemtl Dark
 f 314 340 341 315
+usemtl Light
 f 340 366 367 341
+usemtl Dark
 f 366 392 393 367
+usemtl Light
 f 392 418 419 393
+usemtl Dark
 f 418 444 445 419
+usemtl Light
 f 444 470 471 445
+usemtl Dark
 f 470 496 497 471
+usemtl Light
 f 496 522 523 497
+usemtl Dark
 f 522 548 549 523
+usemtl Light
 f 548 574 575 549
+usemtl Dark
 f 574 600 601 575
+usemtl Light
 f 600 626 627 601
+usemtl Dark
 f 626 652 653 627
+usemtl Light
 f 3 29 30 4
+usemtl Dark
 f 29 55 56 30
+usemtl Light
 f 55 81 82 56
+usemtl Dark
 f 81 107 108 82
+usemtl Light
 f 107 133 134 108
+usemtl Dark
 f 133 159 160 134
+usemtl Light
 f 159 185 186 160
+usemtl Dark
 f 185 211 212 186
+usemtl Light
 f 211 237 238 212
+usemtl Dark
 f 237 263 264 238
+usemtl Light
 f 263 289 290 264
+usemtl Dark
 f 289 315 316 290
+usemtl Light
 f 315 341 342 316
+usemtl Dark
 f 341 367 368 342
+usemtl Light
 f 367 393 394 368
+usemtl Dark
 f 393 419 420 394
+usemtl Light
 f 419 445 446 420
+usemtl Dark
 f 445 471 472 446
+usemtl Light
 f 471 497 498 472
+usemtl Dark
 f 497 523 524 498
+usemtl Light
 f 523 549 550 524
+usemtl Dark
 f 549 575 576 550
+usemtl Light
 f 575 601 602 576
+usemtl Dark
 f 601 627 628 602
+usemtl Light
 f 627 653 654 628
+usemtl Dark
 f 4 30 31 5
+usemtl Light
 f 30 56 57 31
+usemtl Dark
 f 56 82 83 57
+usemtl Light
 f 82 108 109 83
+usemtl Dark
 f 108 134 135 109
+usemtl Light
 f 134 160 161 135
+usemtl Dark
 f 160 186 187 161
+usemtl Light
 f 186 212 213 187
+usemtl Dark
 f 212 238 239 213
+usemtl Light
 f 238 264 265 239
+usemtl Dark
 f 264 290 291 265
+usemtl Light
 f 290 316 317 291
+usemtl Dark
 f 316 342 343 317
+usemtl Light
 f 342 368 369 343
+usemtl Dark
 f 368 394 395 369
+usemtl Light
 f 394 420 421 395
+usemtl Dark
 f 420 446 447 421
+usemtl Light
 f 446 472 473 447
+usemtl Dark
 f 472 498 499 473
+usemtl Light
 f 498 524 525 499
+usemtl Dark
 f 524 550 551 525
+usemtl Light
 f 550 576 577 551
+usemtl Dark
 f 576 602 603 577
+usemtl Light
 f 602 628 629 603
+usemtl Dark
 f 628 654 655 629
+usemtl Light
 f 5 31 32 6
+usemtl Dark
 f 31 57 58 32
+usemtl Light
 f 57 83 84 58
+usemtl Dark
 f 83 109 110 84
+usemtl Light
 f 109 135 136 110
+usemtl Dark
 f 135 161 162 136
+usemtl Light
 f 161 187 188 162
+usemtl Dark
 f 187 213 214 188
+usemtl Light
 f 213 239 240 214
+usemtl Dark
 f 239 265 266 240
+usemtl Light
 f 265 291 292 266
+usemtl Dark
 f 291 317 318 292
+usemtl Light
 f 317 343 344 318
+usemtl Dark
 f 343 369 370 344
+usemtl Light
 f 369 395 396 370
+usemtl Dark
 f 395 421 422 396
+usemtl Light
 f 421 447 448 422
+usemtl Dark
 f 447 473 474 448
+usemtl Light
 f 473 499 500 474
+usemtl Dark
 f 499 525 526 500
+usemtl Light
 f 525 551 552 526
+usemtl Dark
 f 551 577 578 552
+usemtl Light
 f 577 603 604 578
+usemtl Dark
 f 603 629 630 604
+usemtl Light
 f 629 655 656 630
+usemtl Dark
 f 6 32 33 7
+usemtl Light
 f 32 58 59 33
+usemtl Dark
 f 58 84 85 59
+usemtl Light
 f 84 110 111 85
+usemtl Dark
 f 110 136 137 111
+usemtl Light
 f 136 162 163 137
+usemtl Dark
 f 162 188 189 163
+usemtl Light
 f 188 214 215 189
+usemtl Dark
 f 214 240 241 215
+usemtl Light
 f 240 266 267 241
+usemtl Dark
 f 266 292 293 267
+usemtl Light
 f 292 318 319 293
+usemtl Dark
 f 318 344 345 319
+usemtl Light
 f 344 370 371 345
+usemtl Dark
 f 370 396 397 371
+usemtl Light
 f 396 422 423 397
+usemtl Dark
 f 422 448 449 423
+usemtl Light
 f 448 474 475 449
+usemtl Dark
 f 474 500 501 475
+usemtl Light
 f 500 526 527 501
+usemtl Dark
 f 526 552 553 527
+usemtl Light
 f 552 578 579 553
+usemtl Dark
 f 578 604 605 579
+usemtl Light
 f 604 630 631 605
+usemtl Dark
 f 630 656 657 631
+usemtl Light
 f 7 33 34 8
+usemtl Dark
 f 33 59 60 34
+usemtl Light
 f 59 85 86 60
+usemtl Dark
 f 85 111 112 86
+usemtl Light
 f 111 137 138 112
+usemtl Dark
 f 137 163 164 138
+usemtl Light
 f 163 189 190 164
+usemtl Dark
 f 189 215 216 190
+usemtl Light
 f 215 241 242 216
+usemtl Dark
 f 241 267 268 242
+usemtl Light
 f 267 293 294 268
+usemtl Dark
 f 293 319 320 294
+usemtl Light
 f 319 345 346 320
+usemtl Dark
 f 345 371 372 346
+usemtl Light
 f 371 397 398 372
+usemtl Dark
 f 397 423 424 398
+usemtl Light
 f 423 449 450 424
+usemtl Dark
 f 449 475 476 450
+usemtl Light
 f 475 501 502 476
+usemtl Dark
 f 501 527 528 502
+usemtl Light
 f 527 553 554 528
+usemtl Dark
 f 553 579 580 554
+usemtl Light
 f 579 605 606 580
+usemtl Dark
 f 605 631 632 606
+usemtl Light
 f 631 657 658 632
+usemtl Dark
 f 8 34 35 9
+usemtl Light
 f 34 60 61 35
+usemtl Dark
 f 60 86 87 61
+usemtl Light
 f 86 112 113 87
+usemtl Dark
 f 112 138 139 113
+usemtl Light
 f 138 164 165 139
+usemtl Dark
 f 164 190 191 165
+usemtl Light
 f 190 216 217 191
+usemtl Dark
 f 216 242 243 217
+usemtl Light
 f 242 268 269 243
+usemtl Dark
 f 268 294 295 269
+usemtl Light
 f 294 320 321 295
+usemtl Dark
 f 320 346 347 321
+usemtl Light
 f 346 372 373 347
+usemtl Dark
 f 372 398 399 373
+usemtl Light
 f 398 424 425 399
+usemtl Dark
 f 424 450 451 425
+usemtl Light
 f 450 476 477 451
+usemtl Dark
 f 476 502 503 477
+usemtl Light
 f 502 528 529 503
+usemtl Dark
 f 528 554 555 529
+usemtl Light
 f 554 580 581 555
+usemtl Dark
 f 580 606 607 581
+usemtl Light
 f 606 632 633 607
+usemtl Dark
 f 632 658 659 633
+usemtl Light
 f 9 35 36 10
+usemtl Dark
 f 35 61 62 36
+usemtl Light
 f 61 87 88 62
+usemtl Dark
 f 87 113 114 88
+usemtl Light
 f 113 139 140 114
+usemtl Dark
 f 139 165 166 140
+usemtl Light
 f 165 191 192 166
+usemtl Dark
 f 191 217 218 192
+usemtl Light
 f 217 243 244 218
+usemtl Dark
 f 243 269 270 244
+usemtl Light
 f 269 295 296 270
+usemtl Dark
 f 295 321 322 296
+usemtl Light
 f 321 347 348 322
+usemtl Dark
 f 347 373 374 348
+usemtl Light
 f 373 399 400 374
+usemtl Dark
 f 399 425 426 400
+usemtl Light
 f 425 451 452 426
+usemtl Dark
 f 451 477 478 452
+usemtl Light
 f 477 503 504 478
+usemtl Dark
 f 503 529 530 504
+usemtl Light
 f 529 555 556 530
+usemtl Dark
 f 555 581 582 556
+usemtl Light
 f 581 607 608 582
+usemtl Dark
 f 607 633 634 608
+usemtl Light
 f 633 659 660 634
+usemtl Dark
 f 10 36 37 11
+usemtl Light
 f 36 62 63 37
+usemtl Dark
 f 62 88 89 63
+usemtl Light
 f 88 114 115 89
+usemtl Dark
 f 114 140 141 115
+usemtl Light
 f 140 166 167 141
+usemtl Dark
 f 166 192 193 167
+usemtl Light
 f 192 218 219 193
+usemtl Dark
 f 218 244 245 219
+usemtl Light
 f 244 270 271 245
+usemtl Dark
 f 270 296 297 271
+usemtl Light
 f 296 322 323 297
+usemtl Dark
 f 322 348 349 323
+usemtl Light
 f 348 374 375 349
+usemtl Dark
 f 374 400 401 375
+usemtl Light
 f 400 426 427 401
+usemtl Dark
 f 426 452 453 427
+usemtl Light
 f 452 478 479 453
+usemtl Dark
 f 478 504 505 479
+usemtl Light
 f 504 530 531 505
+usemtl Dark
 f 530 556 557 531
+usemtl Light
 f 556 582 583 557
+usemtl Dark
 f 582 608 609 583
+usemtl Light
 f 608 634 635 609
+usemtl Dark
 f 634 660 661 635
+usemtl Light
 f 11 37 38 12
+usemtl Dark
 f 37 63 64 38
+usemtl Light
 f 63 89 90 64
+usemtl Dark
 f 89 115 116 90
+usemtl Light
 f 115 141 142 116
+usemtl Dark
 f 141 167 168 142
+usemtl Light
 f 167 193 194 168
+usemtl Dark
 f 193 219 220 194
+usemtl Light
 f 219 245 246 220
+usemtl Dark
 f 245 271 272 246
+usemtl Light
 f 271 297 298 272
+usemtl Dark
 f 297 323 324 298
+usemtl Light
 f 323 349 350 324
+usemtl Dark
 f 349 375 376 350
+usemtl Light
 f 375 401 402 376
+usemtl Dark
 f 401 427 428 402
+usemtl Light
 f 427 453 454 428
+usemtl Dark
 f 453 479 480 454
+usemtl Light
 f 479 505 506 480
+usemtl Dark
 f 505 531 532 506
+usemtl Light
 f 531 557 558 532
+usemtl Dark
 f 557 583 584 558
+usemtl Light
 f 583 609 610 584
+usemtl Dark
 f 609 635 636 610
+usemtl Light
 f 635 661 662 636
+usemtl Dark
 f 12 38 39 13
+usemtl Light
 f 38 64 65 39
+usemtl Dark
 f 64 90 91 65
+usemtl Light
 f 90 116 117 91
+usemtl Dark
 f 116 142 143 117
+usemtl Light
 f 142 168 169 143
+usemtl Dark
 f 168 194 195 169
+usemtl Light
 f 194 220 221 195
+usemtl Dark
 f 220 246 247 221
+usemtl Light
 f 246 272 273 247
+usemtl Dark
 f 272 298 299 273
+usemtl Light
 f 298 324 325 299
+usemtl Dark
 f 324 350 351 325
+usemtl Light
 f 350 376 377 351
+usemtl Dark
 f 376 402 403 377
+usemtl Light
 f 402 428 429 403
+usemtl Dark
 f 428 454 455 429
+usemtl Light
 f 454 480 481 455
+usemtl Dark
 f 480 506 507 481
+usemtl Light
 f 506 532 533 507
+usemtl Dark
 f 532 558 559 533
+usemtl Light
 f 558 584 585 559
+usemtl Dark
 f 584 610 611 585
+usemtl Light
 f 610 636 637 611
+usemtl Dark
 f 636 662 663 637
+usemtl Light
 f 13 39 40 14
+usemtl Dark
 f 39 65 66 40
+usemtl Light
 f 65 91 92 66
+usemtl Dark
 f 91 117 118 92
+usemtl Light
 f 117 143 144 118
+usemtl Dark
 f 143 169 170 144
+usemtl Light
 f 169 195 196 170
+usemtl Dark
 f 195 221 222 196
+usemtl Light
 f 221 247 248 222
+usemtl Dark
 f 247 273 274 248
+usemtl Light
 f 273 299 300 274
+usemtl Dark
 f 299 325 326 300
+usemtl Light
 f 325 351 352 326
+usemtl Dark
 f 351 377 378 352
+usemtl Light
 f 377 403 404 378
+usemtl Dark
 f 403 429 430 404
+usemtl Light
 f 429 455 456 430
+usemtl Dark
 f 455 481 482 456
+usemtl Light
 f 481 507 508 482
+usemtl Dark
 f 507 533 534 508
+usemtl Light
 f 533 559 560 534
+usemtl Dark
 f 559 585 586 560
+usemtl Light
 f 585 611 612 586
+usemtl Dark
 f 611 637 638 612
+usemtl Light
 f 637 663 664 638
+usemtl Dark
 f 14 40 41 15
+usemtl Light
 f 40 66 67 41
+usemtl Dark
 f 66 92 93 67
+usemtl Light
 f 92 118 119 93
+usemtl Dark
 f 118 144 145 119
+usemtl Light
 f 144 170 171 145
+usemtl Dark
 f 170 196 197 171
+usemtl Light
 f 196 222 223 197
+usemtl Dark
 f 222 248 249 223
+usemtl Light
 f 248 274 275 249
+usemtl Dark
 f 274 300 301 275
+usemtl Light
 f 300 326 327 301
+usemtl Dark
 f 326 352 353 327
+usemtl Light
 f 352 378 379 353
+usemtl Dark
 f 378 404 405 379
+usemtl Light
 f 404 430 431 405
+usemtl Dark
 f 430 456 457 431
+usemtl Light
 f 456 482 483 457
+usemtl Dark
 f 482 508 509 483
+usemtl Light
 f 508 534 535 509
+usemtl Dark
 f 534 560 561 535
+usemtl Light
 f 560 586 587 561
+usemtl Dark
 f 586 612 613 587
+usemtl Light
 f 612 638 639 613
+usemtl Dark
 f 638 664 665 639
+usemtl Light
 f 15 41 42 16
+usemtl Dark
 f 41 67 68 42
+usemtl Light
 f 67 93 94 68
+usemtl Dark
 f 93 119 120 94
+usemtl Light
 f 119 145 146 120
+usemtl Dark
 f 145 171 172 146
+usemtl Light
 f 171 197 198 172
+usemtl Dark
 f 197 223 224 198
+usemtl Light
 f 223 249 250 224
+usemtl Dark
 f 249 275 276 250
+usemtl Light
 f 275 301 302 276
+usemtl Dark
 f 301 327 328 302
+usemtl Light
 f 327 353 354 328
+usemtl Dark
 f 353 379 380 354
+usemtl Light
 f 379 405 406 380
+usemtl Dark
 f 405 431 432 406
+usemtl Light
 f 431 457 458 432
+usemtl Dark
 f 457 483 484 458
+usemtl Light
 f 483 509 510 484
+usemtl Dark
 f 509 535 536 510
+usemtl Light
 f 535 561 562 536
+usemtl Dark
 f 561 587 588 562
+usemtl Light
 f 587 613 614 588
+usemtl Dark
 f 613 639 640 614
+usemtl Light
 f 639 665 666 640
+usemtl Dark
 f 16 42 43 17
+usemtl Light
 f 42 68 69 43
+usemtl Dark
 f 68 94 95 69
+usemtl Light
 f 94 120 121 95
+usemtl Dark
 f 120 146 147 121
+usemtl Light
 f 146 172 173 147
+usemtl Dark
 f 172 198 199 173
+usemtl Light
 f 198 224 225 199
+usemtl Dark
 f 224 250 251 225
+usemtl Light
 f 250 276 277 251
+usemtl Dark
 f 276 302 303 277
+usemtl Light
 f 302 328 329 303
+usemtl Dark
 f 328 354 355 329
+usemtl Light
 f 354 380 381 355
+usemtl Dark
 f 380 406 407 381
+usemtl Light
 f 406 432 433 407
+usemtl Dark
 f 432 458 459 433
+usemtl Light
 f 458 484 485 459
+usemtl Dark
 f 484 510 511 485
+usemtl Light
 f 510 536 537 511
+usemtl Dark
 f 536 562 563 537
+usemtl Light
 f 562 588 589 563
+usemtl Dark
 f 588 614 615 589
+usemtl Light
 f 614 640 641 615
+usemtl Dark
 f 640 666 667 641
+usemtl Light
 f 17 43 44 18
+usemtl Dark
 f 43 69 70 44
+usemtl Light
 f 69 95 96 70
+usemtl Dark
 f 95 121 122 96
+usemtl Light
 f 121 147 148 122
+usemtl Dark
 f 147 173 174 148
+usemtl Light
 f 173 199 200 174
+usemtl Dark
 f 199 225 226 200
+usemtl Light
 f 225 251 252 226
+usemtl Dark
 f 251 277 278 252
+usemtl Light
 f 277 303 304 278
+usemtl Dark
 f 303 329 330 304
+usemtl Light
 f 329 355 356 330
+usemtl Dark
 f 355 381 382 356
+usemtl Light
 f 381 407 408 382
+usemtl Dark
 f 407 433 434 408
+usemtl Light
 f 433 459 460 434
+usemtl Dark
 f 459 485 486 460
+usemtl Light
 f 485 511 512 486
+usemtl Dark
 f 511 537 538 512
+usemtl Light
 f 537 563 564 538
+usemtl Dark
 f 563 589 590 564
+usemtl Light
 f 589 615 616 590
+usemtl Dark
 f 615 641 642 616
+usemtl Light
 f 641 667 668 642
+usemtl Dark
 f 18 44 45 19
+usemtl Light
 f 44 70 71 45
+usemtl Dark
 f 70 96 97 71
+usemtl Light
 f 96 122 123 97
+usemtl Dark
 f 122 148 149 123
+usemtl Light
 f 148 174 175 149
+usemtl Dark
 f 174 200 201 175
+usemtl Light
 f 200 226 227 201
+usemtl Dark
 f 226 252 253 227
+usemtl Light
 f 252 278 279 253
+usemtl Dark
 f 278 304 305 279
+usemtl Light
 f 304 330 331 305
+usemtl Dark
 f 330 356 357 331
+usemtl Light
 f 356 382 383 357
+usemtl Dark
 f 382 408 409 383
+usemtl Light
 f 408 434 435 409
+usemtl Dark
 f 434 460 461 435
+usemtl Light
 f 460 486 487 461
+usemtl Dark
 f 486 512 513 487
+usemtl Light
 f 512 538 539 513
+usemtl Dark
 f 538 564 565 539
+usemtl Light
 f 564 590 591 565
+usemtl Dark
 f 590 616 617 591
+usemtl Light
 f 616 642 643 617
+usemtl Dark
 f 642 668 669 643
+usemtl Light
 f 19 45 46 20
+usemtl Dark
 f 45 71 72 46
+usemtl Light
 f 71 97 98 72
+usemtl Dark
 f 97 123 124 98
+usemtl Light
 f 123 149 150 124
+usemtl Dark
 f 149 175 176 150
+usemtl Light
 f 175 201 202 176
+usemtl Dark
 f 201 227 228 202
+usemtl Light
 f 227 253 254 228
+usemtl Dark
 f 253 279 280 254
+usemtl Light
 f 279 305 306 280
+usemtl Dark
 f 305 331 332 306
+usemtl Light
 f 331 357 358 332
+usemtl Dark
 f 357 383 384 358
+usemtl Light
 f 383 409 410 384
+usemtl Dark
 f 409 435 436 410
+usemtl Light
 f 435 461 462 436
+usemtl Dark
 f 461 487 488 462
+usemtl Light
 f 487 513 514 488
+usemtl Dark
 f 513 539 540 514
+usemtl Light
 f 539 565 566 540
+usemtl Dark
 f 565 591 592 566
+usemtl Light
 f 591 617 618 592
+usemtl Dark
 f 617 643 644 618
+usemtl Light
 f 643 669 670 644
+usemtl Dark
 f 20 46 47 21
+usemtl Light
 f 46 72 73 47
+usemtl Dark
 f 72 98 99 73
+usemtl Light
 f 98 124 125 99
+usemtl Dark
 f 124 150 151 125
+usemtl Light
 f 150 176 177 151
+usemtl Dark
 f 176 202 203 177
+usemtl Light
 f 202 228 229 203
+usemtl Dark
 f 228 254 255 229
+usemtl Light
 f 254 280 281 255
+usemtl Dark
 f 280 306 307 281
+usemtl Light
 f 306 332 333 307
+usemtl Dark
 f 332 358 359 333
+usemtl Light
 f 358 384 385 359
+usemtl Dark
 f 384 410 411 385
+usemtl Light
 f 410 436 437 411
+usemtl Dark
 f 436 462 463 437
+usemtl Light
 f 462 488 489 463
+usemtl Dark
 f 488 514 515 489
+usemtl Light
 f 514 540 541 515
+usemtl Dark
 f 540 566 567 541
+usemtl Light
 f 566 592 593 567
+usemtl Dark
 f 592 618 619 593
+usemtl Light
 f 618 644 645 619
+usemtl Dark
 f 644 670 671 645
+usemtl Light
 f 21 47 48 22
+usemtl Dark
 f 47 73 74 48
+usemtl Light
 f 73 99 100 74
+usemtl Dark
 f 99 125 126 100
+usemtl Light
 f 125 151 152 126
+usemtl Dark
 f 151 177 178 152
+usemtl Light
 f 177 203 204 178
+usemtl Dark
 f 203 229 230 204
+usemtl Light
 f 229 255 256 230
+usemtl Dark
 f 255 281 282 256
+usemtl Light
 f 281 307 308 282
+usemtl Dark
 f 307 333 334 308
+usemtl Light
 f 333 359 360 334
+usemtl Dark
 f 359 385 386 360
+usemtl Light
 f 385 411 412 386
+usemtl Dark
 f 411 437 438 412
+usemtl Light
 f 437 463 464 438
+usemtl Dark
 f 463 489 490 464
+usemtl Light
 f 489 515 516 490
+usemtl Dark
 f 515 541 542 516
+usemtl Light
 f 541 567 568 542
+usemtl Dark
 f 567 593 594 568
+usemtl Light
 f 593 619 620 594
+usemtl Dark
 f 619 645 646 620
+usemtl Light
 f 645 671 672 646
+usemtl Dark
 f 22 48 49 23
+usemtl Light
 f 48 74 75 49
+usemtl Dark
 f 74 100 101 75
+usemtl Light
 f 100 126 127 101
+usemtl Dark
 f 126 152 153 127
+usemtl Light
 f 152 178 179 153
+usemtl Dark
 f 178 204 205 179
+usemtl Light
 f 204 230 231 205
+usemtl Dark
 f 230 256 257 231
+usemtl Light
 f 256 282 283 257
+usemtl Dark
 f 282 308 309 283
+usemtl Light
 f 308 334 335 309
+usemtl Dark
 f 334 360 361 335
+usemtl Light
 f 360 386 387 361
+usemtl Dark
 f 386 412 413 387
+usemtl Light
 f 412 438 439 413
+usemtl Dark
 f 438 464 465 439
+usemtl Light
 f 464 490 491 465
+usemtl Dark
 f 490 516 517 491
+usemtl Light
 f 516 542 543 517
+usemtl Dark
 f 542 568 569 543
+usemtl Light
 f 568 594 595 569
+usemtl Dark
 f 594 620 621 595
+usemtl Light
 f 620 646 647 621
+usemtl Dark
 f 646 672 673 647
+usemtl Light
 f 23 49 50 24
+usemtl Dark
 f 49 75 76 50
+usemtl Light
 f 75 101 102 76
+usemtl Dark
 f 101 127 128 102
+usemtl Light
 f 127 153 154 128
+usemtl Dark
 f 153 179 180 154
+usemtl Light
 f 179 205 206 180
+usemtl Dark
 f 205 231 232 206
+usemtl Light
 f 231 257 258 232
+usemtl Dark
 f 257 283 284 258
+usemtl Light
 f 283 309 310 284
+usemtl Dark
 f 309 335 336 310
+usemtl Light
 f 335 361 362 336
+usemtl Dark
 f 361 387 388 362
+usemtl Light
 f 387 413 414 388
+usemtl Dark
 f 413 439 440 414
+usemtl Light
 f 439 465 466 440
+usemtl Dark
 f 465 491 492 466
+usemtl Light
 f 491 517 518 492
+usemtl Dark
 f 517 543 544 518
+usemtl Light
 f 543 569 570 544
+usemtl Dark
 f 569 595 596 570
+usemtl Light
 f 595 621 622 596
+usemtl Dark
 f 621 647 648 622
+usemtl Light
 f 647 673 674 648
+usemtl Dark
 f 24 50 51 25
+usemtl Light
 f 50 76 77 51
+usemtl Dark
 f 76 102 103 77
+usemtl Light
 f 102 128 129 103
+usemtl Dark
 f 128 154 155 129
+usemtl Light
 f 154 180 181 155
+usemtl Dark
 f 180 206 207 181
+usemtl Light
 f 206 232 233 207
+usemtl Dark
 f 232 258 259 233
+usemtl Light
 f 258 284 285 259
+usemtl Dark
 f 284 310 311 285
+usemtl Light
 f 310 336 337 311
+usemtl Dark
 f 336 362 363 337
+usemtl Light
 f 362 388 389 363
+usemtl Dark
 f 388 414 415 389
+usemtl Light
 f 414 440 441 415
+usemtl Dark
 f 440 466 467 441
+usemtl Light
 f 466 492 493 467
+usemtl Dark
 f 492 518 519 493
+usemtl Light
 f 518 544 545 519
+usemtl Dark
 f 544 570 571 545
+usemtl Light
 f 570 596 597 571
+usemtl Dark
 f 596 622 623 597
+usemtl Light
 f 622 648 649 623
+usemtl Dark
 f 648 674 675 649
+usemtl Light
 f 25 51 52 26
+usemtl Dark
 f 51 77 78 52
+usemtl Light
 f 77 103 104 78
+usemtl Dark
 f 103 129 130 104
+usemtl Light
 f 129 155 156 130
+usemtl Dark
 f 155 181 182 156
+usemtl Light
 f 181 207 208 182
+usemtl Dark
 f 207 233 234 208
+usemtl Light
 f 233 259 260 234
+usemtl Dark
 f 259 285 286 260
+usemtl Light
 f 285 311 312 286
+usemtl Dark
 f 311 337 338 312
+usemtl Light
 f 337 363 364 338
+usemtl Dark
 f 363 389 390 364
+usemtl Light
 f 389 415 416 390
+usemtl Dark
 f 415 441 442 416
+usemtl Light
 f 441 467 468 442
+usemtl Dark
 f 467 493 494 468
+usemtl Light
 f 493 519 520 494
+usemtl Dark
 f 519 545 546 520
+usemtl Light
 f 545 571 572 546
+usemtl Dark
 f 571 597 598 572
+usemtl Light
 f 597 623 624 598
+usemtl Dark
 f 623 649 650 624
+usemtl Light
 f 649 675 676 650
