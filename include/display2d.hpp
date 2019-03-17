@@ -483,7 +483,7 @@ public:
 
     QSize sizeHint() const override
     {
-        return { state.viewport.width, state.viewport.height };
+        return { state.viewport.width * state.viewport.scale, state.viewport.height * state.viewport.scale };
     }
 
 //    void resizeEvent(QResizeEvent* event) override { }
@@ -510,7 +510,7 @@ public:
         const QPoint p_cursor = mapFromGlobal(QCursor::pos());
 
         render3d r(state);
-        r.render(painter, p_cursor);
+        r.render(painter, p_cursor / state.viewport.scale);
 
         // TODO: solve this shit (at least eliminate the redundancy)
         hovered_object = r.hovered_object;
@@ -518,10 +518,13 @@ public:
 
         painter.end();
 
-        // TODO: implement rendering at fractions of the resolution
         painter.begin(this);
-        painter.drawPixmap(0, 0, state.viewport.width, state.viewport.height, back_buffer);
+
+        const int scale = state.viewport.scale;
+        painter.drawPixmap(0, 0, state.viewport.width * scale, state.viewport.height * scale, back_buffer);
+
         draw_hud(painter);
+
         painter.end();
     }
 
@@ -572,7 +575,7 @@ public:
         painter.setOpacity(0.75);
         painter.setPen(QPen(Qt::white, 1, Qt::DotLine));
 
-        painter.drawArc(state.viewport.width / 2 - 2, state.viewport.height / 2 - 2, 5, 5, 0, 16 * 360);
+        painter.drawArc(width() / 2 - 2, height() / 2 - 2, 5, 5, 0, 16 * 360);
     }
 
     QFont f_hud{"Courier"};
@@ -589,7 +592,7 @@ public:
             painter.setPen(Qt::white);
         }
 
-        QRect rect(state.viewport.width / 2 - 75, state.viewport.height - 60, 150, 55);
+        QRect rect(width() / 2 - 75, height() - 60, 150, 55);
         QRect rect_top(rect.x(), rect.y() - 24, 150, 55);
 
         painter.drawText(rect, Qt::AlignHCenter | Qt::AlignBottom, object.id.c_str());
@@ -753,17 +756,15 @@ public:
             right_color = Qt::green;
         }
 
-        const int height = state.viewport.height;
-
         painter.setPen(up_color);
-        painter.drawLine(10, height - 11, 10, height - 50);
+        painter.drawLine(10, height() - 11, 10, height() - 50);
 
         painter.setPen(right_color);
-        painter.drawLine(11, height - 10, 50, height - 10);
+        painter.drawLine(11, height() - 10, 50, height() - 10);
 
         painter.setPen(Qt::white);
-        painter.drawText(QRect(10, height - 65, 15, 15), Qt::AlignVCenter | Qt::AlignLeft, up_text);
-        painter.drawText(QRect(50, height - 25, 15, 15), Qt::AlignHCenter | Qt::AlignBottom, right_text);
+        painter.drawText(QRect(10, height() - 65, 15, 15), Qt::AlignVCenter | Qt::AlignLeft, up_text);
+        painter.drawText(QRect(50, height() - 25, 15, 15), Qt::AlignHCenter | Qt::AlignBottom, right_text);
     }
 
     int draw_viewport_hud(QPainter& painter, int x, int y)

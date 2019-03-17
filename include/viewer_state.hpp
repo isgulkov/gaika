@@ -170,6 +170,7 @@ struct wf_state
 
     struct {
         int width, height;
+        int scale;
     } viewport;
 
     struct {

@@ -127,7 +127,8 @@ class wf_viewer : public QMainWindow
                 (float)(M_PI * 2 / 3), 1, 1.0f, 1000.0f
         };
 
-        state.viewport = { 640, 640 };
+        state.viewport = { 640, 640, 1 };
+//        state.viewport = { 320, 320, 2 };
 
         // REMOVE:
         state.perf_stats.n = 7709;
@@ -292,6 +293,18 @@ protected:
         }
     }
 
+    void set_scale(int scale)
+    {
+        if(scale < 1) {
+            return;
+        }
+
+        state.viewport.scale = scale;
+
+        state.viewport.width = p_widget->width() / scale;
+        state.viewport.height = p_widget->height() / scale;
+    }
+
     void keyPressEvent(QKeyEvent* event) override
     {
         if(event->isAutoRepeat()) {
@@ -351,6 +364,12 @@ protected:
             case Qt::Key_Equal:
                 state.projection.set_perspective();
                 stop_drag();
+                return;
+            case Qt::Key_BracketLeft:
+                set_scale(state.viewport.scale - 1);
+                return;
+            case Qt::Key_BracketRight:
+                set_scale(state.viewport.scale + 1);
                 return;
             case Qt::Key_I:
                 state.projection.set_z_near(state.projection.z_near() / 10.0f);
@@ -490,10 +509,10 @@ protected:
 
     void resizeEvent(QResizeEvent* event) override
     {
-        state.viewport.width = p_widget->size().width();
-        state.viewport.height = p_widget->size().height();
+        state.viewport.width = p_widget->width() / state.viewport.scale;
+        state.viewport.height = p_widget->height() / state.viewport.scale;
 
-        state.projection.set_wh_ratio((float)state.viewport.width / state.viewport.height);
+        state.projection.set_wh_ratio(float(state.viewport.width) / state.viewport.height);
     }
 
     wf_state::th_object* drag_target = nullptr;
@@ -547,13 +566,11 @@ protected:
 
             xy_prev = xy_current;
 
-            // TODO: instead of using deltas, calculate the current position based on mouse coords transformed into world
-            // TODO: -> don't stop drag on keyboard control and allow starting it with keyboard control
-            // TODO: -> implement Shift-lock
+            // TODO: instead of using deltas, calculate the current position based on mouse coords transformed into world?
 
-            const float d_x = xy_rel.x() / state.projection.scale() * 2 * state.viewport.width / state.viewport.height /
-                              state.viewport.width;
-            const float d_y = -xy_rel.y() / state.projection.scale() * 2 / state.viewport.height;
+            // REVIEW: do I pointlessly multiply by width then divide by it?..
+            const float d_x = xy_rel.x() / state.projection.scale() * 2 * p_widget->width() / p_widget->height() / p_widget->width();
+            const float d_y = -xy_rel.y() / state.projection.scale() * 2 / p_widget->height();
 
             switch(state.projection.axis()) {
                 case wf_projection::X:
@@ -578,9 +595,8 @@ protected:
         else if(state.hovering.mode == wf_state::INT_ROTATE) {
             const QPoint xy_rel = QCursor::pos() - xy_center;
 
-            const float d_x = xy_rel.x() / state.projection.scale() * 2 * state.viewport.width / state.viewport.height /
-                              state.viewport.width;
-            const float d_y = -xy_rel.y() / state.projection.scale() * 2 / state.viewport.height;
+            const float d_x = xy_rel.x() / state.projection.scale() * 2 * p_widget->width() / p_widget->height() / p_widget->width();
+            const float d_y = -xy_rel.y() / state.projection.scale() * 2 / p_widget->height();
 
             if(d_x != 0 || d_y != 0) {
                 /**
@@ -669,12 +685,12 @@ protected:
 
     float calc_x_rotation(int d_x) const
     {
-        return 1.0f * d_x * (float)M_PI / state.viewport.width;
+        return 1.0f * d_x * (float)M_PI / p_widget->width();
     }
 
     float calc_y_rotation(int d_y) const
     {
-        return 1.0f * d_y * (float)M_PI / state.viewport.height;
+        return 1.0f * d_y * (float)M_PI / p_widget->height();
     }
 };
 
