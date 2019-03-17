@@ -138,7 +138,26 @@ struct wf_state
         mutable std::vector<vec3f> vertices_world;
     };
 
+    // TODO: angle representation for camera (e.g. which is which)
+    // TODO: represent object orientation with quaternions?
+
     std::vector<th_object> th_objects;
+
+    struct dir_light {
+        float azimuth, altitude;
+
+        vec3f color;
+        float intensity;
+    };
+
+    std::vector<dir_light> dir_lights;
+
+    struct point_light {
+        vec3f pos, color;
+        float intensity;
+    };
+
+    std::vector<point_light> point_lights;
 
     struct {
         vec3f pos, orient;

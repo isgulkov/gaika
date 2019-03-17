@@ -323,11 +323,6 @@ protected:
         return true;
     }
 
-    // TODO: move these!
-    float sun_azimuth = 1.57f, sun_altitude = 0.785f;
-    const vec3f sun_color { 1.0f, 1.0f, 0.95f };
-    const float amb_intensity = 0.1f;
-
     void paintEvent(QPaintEvent* event) override
     {
         QPixmap back_buffer(state.viewport.width, state.viewport.height);
@@ -361,7 +356,10 @@ protected:
         z_buffer.resize((size_t)(zb_width * state.viewport.height));
         std::fill(z_buffer.begin(), z_buffer.end(), MAXFLOAT);
 
-        const vec3f dir_sun = mx_tx::rotate_z(-sun_azimuth) * mx_tx::rotate_y(-sun_altitude) * vec3f(1, 0, 0);
+        // TODO: support multiple directional lights
+        const wf_state::dir_light& sun = state.dir_lights.back();
+
+        const vec3f dir_sun = mx_tx::rotate_z(-sun.azimuth) * mx_tx::rotate_y(-sun.altitude) * vec3f(1, 0, 0);
 
         // TODO: move where other light sources will be drawn
         if(state.projection.is_perspective()) {
@@ -562,9 +560,9 @@ protected:
                 const vec3f c_diffuse = object.model->materials[triangle.i_mtl].c_diffuse * 255.0f;
 
                 QColor color {
-                        int(c_diffuse.x * (face_sunlight * sun_color.x * 0.9f + 0.1f)),
-                        int(c_diffuse.y * (face_sunlight * sun_color.y * 0.9f + 0.1f)),
-                        int(c_diffuse.z * (face_sunlight * sun_color.z * 0.9f + 0.1f))
+                        int(c_diffuse.x * (face_sunlight * sun.color.x * sun.intensity * 0.9f + 0.1f)),
+                        int(c_diffuse.y * (face_sunlight * sun.color.y * sun.intensity * 0.9f + 0.1f)),
+                        int(c_diffuse.z * (face_sunlight * sun.color.z * sun.intensity * 0.9f + 0.1f))
                 };
 
                 face_pen.setColor(color);
