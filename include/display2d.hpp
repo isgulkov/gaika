@@ -603,19 +603,19 @@ protected:
         const mat_sq4f tx_camera = create_tx_camera();
         const mat_sq4f tx_projection = create_tx_projection();
 
-        // TODO: don't apply the divide to Z for better Z-buffer resolution?
-        const std::vector<vec3f> vertices_clipping = tx_projection * tx_camera * vx_world;
+        // The clipping is done before the perspective divide to conserve precision.
+        const std::vector<vec4f> vertices_clipping = tx_projection.mul_homo(tx_camera * vx_world);
 
         std::vector<uint8_t> vertex_outcodes;
 
-        for(const vec3f& vertex : vertices_clipping) {
+        for(const vec4f& vertex : vertices_clipping) {
             uint8_t outcode = 0;
 
-            outcode |= (vertex.x > 1);
-            outcode |= (vertex.x < -1) << 1;
-            outcode |= (vertex.y > 1) << 2;
-            outcode |= (vertex.y < -1) << 3;
-            outcode |= (vertex.z > 1) << 4;
+            outcode |= (vertex.x > vertex.w);
+            outcode |= (vertex.x < -vertex.w) << 1;
+            outcode |= (vertex.y > vertex.w) << 2;
+            outcode |= (vertex.y < -vertex.w) << 3;
+            outcode |= (vertex.z > vertex.w) << 4;
             outcode |= (vertex.z < 0) << 5;
 
             vertex_outcodes.push_back(outcode);

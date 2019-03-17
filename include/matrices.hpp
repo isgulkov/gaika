@@ -83,8 +83,12 @@ public:
     vec3f operator*(const vec3f& v) const;
     vec4f mul_homo(const vec3f& v) const;
 
+    vec3f operator*(const vec4f& v) const;
+
     std::vector<vec3f> operator*(const std::vector<vec3f>& vs) const;
     std::vector<vec4f> mul_homo(const std::vector<vec3f>& vs) const;
+
+    std::vector<vec3f> operator*(const std::vector<vec4f>& vs) const;
 
 private:
     void multiply_row(int i_row, float x);

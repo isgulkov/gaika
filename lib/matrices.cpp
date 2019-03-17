@@ -244,6 +244,11 @@ vec4f mat_sq4f::mul_homo(const vec3f& v) const
     return { x, y, z, w };
 }
 
+vec3f mat_sq4f::operator*(const vec4f& v) const
+{
+    return operator*(vec3f(v.x / v.w, v.y / v.w, v.z / v.w));
+}
+
 std::vector<vec3f> mat_sq4f::operator*(const std::vector<vec3f>& vs) const
 {
     std::vector<vec3f> new_vs(vs.size());
@@ -258,6 +263,15 @@ std::vector<vec4f> mat_sq4f::mul_homo(const std::vector<vec3f>& vs) const
     std::vector<vec4f> new_vs(vs.size());
 
     std::transform(vs.begin(), vs.end(), new_vs.begin(), [this](const vec3f& v){ return mul_homo(v); });
+
+    return new_vs;
+}
+
+std::vector<vec3f> mat_sq4f::operator*(const std::vector<vec4f>& vs) const
+{
+    std::vector<vec3f> new_vs(vs.size());
+
+    std::transform(vs.begin(), vs.end(), new_vs.begin(), [this](const vec4f& v){ return operator*(v); });
 
     return new_vs;
 }
