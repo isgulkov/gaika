@@ -64,8 +64,6 @@ vec3f read_color(const std::string& s)
 
     ss >> x >> y >> z;
 
-    std::cerr << x << " " << y << " " << z << '\n';
-
     return { x, y, z };
 }
 
@@ -195,7 +193,7 @@ model read_obj_model(std::string path)
                 i_mtl = it->second;
             }
         }
-        else if(first_word == "v") {
+        else if(first_word == "v" || first_word == "vn") {
             float x, y, z;
 
             std::string rest;
@@ -206,32 +204,51 @@ model read_obj_model(std::string path)
             std::istringstream ss(rest);
             ss >> x >> y >> z;
 
-            m.vertices.emplace_back(x, y, z);
+            if(first_word == "v") {
+                m.vertices.emplace_back(x, y, z);
+            }
+            else if(first_word == "vn") {
+                m.normals.emplace_back(x, y, z);
+            }
         }
         else if(first_word == "f") {
             std::vector<size_t> ix_vertices;
+            std::vector<size_t> ix_normals;
 
             std::string word;
 
             while(!(word = read_word(fin)).empty()) {
                 size_t i_slash = word.find_first_of('/');
 
-                // TODO: parse indices for vt and vn as well
-                if(i_slash != std::string::npos) {
-                    word = word.substr(0, i_slash);
-                }
-
                 try {
-                    ix_vertices.push_back(std::stoll(word) - 1);
+                    ix_vertices.push_back(std::stoll(word.substr(0, i_slash)) - 1);
                 }
-                catch(const std::invalid_argument& ex) {
+                catch(const std::invalid_argument& ex) { }
 
+                // TODO: parse texture coords index as well (and refactor this three-index shit overall)
+
+                if(std::count(word.begin(), word.end(), '/') != 2) {
+                    ix_normals.push_back(SIZE_T_MAX);
+                    continue;
+                }
+
+                i_slash = word.find_last_of('/');
+
+                if(i_slash < word.size() - 1) {
+                    ix_normals.push_back(std::stoll(word.substr(i_slash + 1)) - 1);
+                }
+                else {
+                    ix_normals.push_back(SIZE_T_MAX);
                 }
             }
 
             if(ix_vertices.size() >= 3) {
                 for(int i = 2; i < ix_vertices.size(); i++) {
-                    m.faces.emplace_back(ix_vertices[0], ix_vertices[i - 1], ix_vertices[i], i_mtl);
+                    m.faces.emplace_back(
+                            ix_vertices[0], ix_vertices[i - 1], ix_vertices[i],
+                            ix_normals[0], ix_normals[i - 1], ix_normals[i],
+                            i_mtl
+                    );
                 }
             }
             else {
@@ -256,6 +273,7 @@ model read_obj_model(std::string path)
 
     std::cerr << "\x1b[1mDone.\x1b[0m\n"
               << "Vertices: " << m.vertices.size() << ", "
+              << "normals: " << m.normals.size() << ", "
               << "faces: " << m.faces.size() << ", "
               << "ignored " << n_ignored << " lines out of " << n_line << ".\n\n";
 

@@ -33,14 +33,17 @@ struct model
     struct face
     {
         size_t i_a, i_b, i_c;
+        size_t in_a, in_b, in_c;
         size_t i_mtl;
 
-        face(size_t i_a, size_t i_b, size_t i_c, size_t i_mtl = 0) : i_a(i_a), i_b(i_b), i_c(i_c), i_mtl(i_mtl) { }
+        face(size_t i_a, size_t i_b, size_t i_c,
+             size_t in_a, size_t in_b = SIZE_T_MAX, size_t in_c = SIZE_T_MAX,
+             size_t i_mtl = 0) : i_a(i_a), i_b(i_b), i_c(i_c), in_a(in_a), in_b(in_b), in_c(in_c), i_mtl(i_mtl) { }
     };
 
     std::string name;
 
-    std::vector<vec3f> vertices;
+    std::vector<vec3f> vertices, normals;
     std::vector<material> materials;
     std::vector<segment> segments;
     std::vector<face> faces;
