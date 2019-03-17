@@ -19,9 +19,9 @@ struct vec3f
     vec3f& operator+=(const vec3f& other);
     vec3f operator+(const vec3f& other) const;
 
-    // TODO: make * the by-element product, add .dot() for dot product
-//    vec3f& operator*=(const vec3f& other);
-    float operator*(const vec3f& other) const;
+    vec3f& operator*=(const vec3f& other);
+    vec3f operator*(const vec3f& other) const;
+    float dot(const vec3f& other) const;
     vec3f cross(const vec3f& other) const;
 
     vec3f& operator-=(const vec3f& other);
@@ -35,6 +35,8 @@ struct vec3f
 
     std::string to_string() const;
 };
+
+vec3f operator*(float u, const vec3f& v);
 
 struct vec4f
 {

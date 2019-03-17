@@ -428,8 +428,8 @@ protected:
                      */
                     const vec3f tri_norm = (b - a).cross(c - a).normalize();
 
-                    tri_culled[i_triangle] = dir_out * tri_norm >= 0;
-                    tri_sunlight[i_triangle] = std::max(dir_sun * tri_norm, 0.0f);
+                    tri_culled[i_triangle] = dir_out.dot(tri_norm) >= 0;
+                    tri_sunlight[i_triangle] = std::max(dir_sun.dot(tri_norm), 0.0f);
 
                     i_triangle -= 1;
                 }
@@ -557,13 +557,11 @@ protected:
                 const vec3f a = vertices_screen[triangle.i_a], b = vertices_screen[triangle.i_b], c = vertices_screen[triangle.i_c];
 
                 // TODO: add ambient lighting and shit
-                const vec3f c_diffuse = object.model->materials[triangle.i_mtl].c_diffuse * 255.0f;
+                const vec3f c_final = 255.0f * object.model->materials[triangle.i_mtl].c_diffuse * (
+                        (sun.color * sun.intensity * face_sunlight * 0.9f) + vec3f(0.1f, 0.1f, 0.1f)
+                );
 
-                QColor color {
-                        int(c_diffuse.x * (face_sunlight * sun.color.x * sun.intensity * 0.9f + 0.1f)),
-                        int(c_diffuse.y * (face_sunlight * sun.color.y * sun.intensity * 0.9f + 0.1f)),
-                        int(c_diffuse.z * (face_sunlight * sun.color.z * sun.intensity * 0.9f + 0.1f))
-                };
+                QColor color { int(c_final.x), int(c_final.y), int(c_final.z) };
 
                 face_pen.setColor(color);
                 painter.setPen(face_pen);

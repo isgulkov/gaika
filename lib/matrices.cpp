@@ -21,6 +21,11 @@ vec3f vec3f::operator*(float u) const
     return { x * u, y * u, z * u };
 }
 
+vec3f operator*(float u, const vec3f& v)
+{
+    return v.operator*(u);
+}
+
 vec3f vec3f::cross(const vec3f& other) const
 {
     return {
@@ -46,7 +51,12 @@ vec3f vec3f::operator+(const vec3f& other) const
     return result += other;
 }
 
-float vec3f::operator*(const vec3f& other) const
+vec3f vec3f::operator*(const vec3f& other) const
+{
+    return { x * other.x, y * other.y, z * other.z };
+}
+
+float vec3f::dot(const vec3f& other) const
 {
     return x * other.x + y * other.y + z * other.z;
 }
