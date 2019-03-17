@@ -556,8 +556,18 @@ protected:
             draw_crosshair(painter);
         }
 
-        // TODO: move all these methods into a separate file (as functions of const state& and QPainter, probably)
+        draw_hud(painter);
 
+        painter.end();
+
+        // TODO: implement rendering at fractions of the resolution
+        painter.begin(this);
+        painter.drawPixmap(0, 0, state.viewport.width, state.viewport.height, back_buffer);
+        painter.end();
+    }
+
+    void draw_hud(QPainter& painter)
+    {
         painter.setOpacity(1.0);
         int y_hud = 5;
 
@@ -588,13 +598,6 @@ protected:
         if(hud_performance) {
             y_hud += draw_perf_hud(painter, 5, y_hud);
         }
-
-        painter.end();
-
-        // TODO: implement rendering at fractions of the resolution
-        painter.begin(this);
-        painter.drawPixmap(0, 0, state.viewport.width, state.viewport.height, back_buffer);
-        painter.end();
     }
 
     void draw_crosshair(QPainter& painter)
