@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser(description='Generate a polygonal mesh of a sol
 
 main_sel = parser.add_mutually_exclusive_group(required=True)
 
-main_sel.add_argument('-P', '--platonic', dest='n_faces_plato', metavar='N_FACES', type=int,
+main_sel.add_argument('-P', '--platonic', dest='n_faces_plato', metavar='N', type=int,
 							help='create a Platonic solid (4, 6, 8, 12 or 20 faces)')
 main_sel.add_argument('-K', '--kepler-poinsot', dest='id_kepler', metavar='ID', choices=['gD', 'gS', 'gI', 'sgD'], type=str,
 							help='create a Kepler-Poinsot solid (gD, gS, gI or sgD -- Conway\'s abbreviations)')
@@ -21,8 +21,8 @@ main_sel.add_argument('-R', '--revolution', dest='id_revolution', metavar='ID', 
 
 solid_size = parser.add_mutually_exclusive_group()
 
-solid_size.add_argument('-s', '--size', dest='h_total', metavar='H', type=float, default=10.0, help='total height (default: 10)')
-solid_size.add_argument('-e', '--edge', dest='l_edge', metavar='L', type=float, default=None, help='edge length')
+solid_size.add_argument('-s', '--size', dest='size', metavar='H', type=float, default=10.0, help='total height (default: 10)')
+solid_size.add_argument('-e', '--edge', dest='l_edge', metavar='L', type=float, default=None, help='edge length, where applicable')
 
 
 def tetrahedron(l_edge=None, h_total=None):
@@ -206,6 +206,52 @@ def icosahedron(l_edge=None, h_total=None):
 	return vx, tuple(faces)
 
 
+def sphere_latlong(diameter, n_vertices=None):
+	nvx_lat, nvx_long = 5 + 1, 8
+	r = diameter / 2
+
+	v_north = np.array([0, 0, r])
+	vx_sphere = [v_north]
+	vnx_sphere = [(0, 0, 1)]
+
+	faces = []
+
+	for i in xrange(1, nvx_lat):
+		angle_lat = np.pi / nvx_lat * i
+
+		for j in xrange(nvx_long):
+			angle_long = 2 * np.pi / nvx_long * j
+
+			v_surface = np.array([np.sin(angle_lat) * np.cos(angle_long), np.sin(angle_lat) * np.sin(angle_long), np.cos(angle_lat)])
+			v_surface *= r / np.linalg.norm(v_surface)
+
+			i_v = len(vx_sphere)
+			vx_sphere.append(v_surface)
+			vnx_sphere.append(v_surface / np.linalg.norm(v_surface))
+
+			if i != 1 and j != 0:
+				faces.append((i_v - 1, i_v, i_v - nvx_long,  i_v - nvx_long - 1))
+
+	# 2. Cover the seam jumping across a row
+	for i in xrange(1, nvx_lat - 1):
+		faces.append((i * nvx_long, (i + 1) * nvx_long, i * nvx_long + 1, (i - 1) * nvx_long + 1))
+
+	# 3. Cover the holes at the poles with triangle faces
+	for i in xrange(nvx_long - 1):
+		faces.append((i + 1, i + 2, 0))
+	faces.append((nvx_long, 1, 0))
+
+	v_south = np.array([0, 0, -r])
+	vx_sphere.append(v_south)
+	vnx_sphere.append((0, 0, -1))
+
+	for i in xrange(len(vx_sphere) - nvx_long, len(vx_sphere) - 1):
+		faces.append((i - 1, len(vx_sphere) - 1, i))
+	faces.append((len(vx_sphere) - 2, len(vx_sphere) - 1, len(vx_sphere) - nvx_long - 1))
+
+	return vx_sphere, vnx_sphere, tuple(faces)
+
+
 def norm(xs, ys):
 	return sqrt(sum([(x - y) ** 2 for (x, y) in zip(xs, ys)]))
 
@@ -220,12 +266,28 @@ def edge_norms(vx, faces):
 	return np.array([norm(vx[a], vx[b]) for (a, b) in edges])
 
 
+def print_wavefront_obj(title, vx, faces, vnx=None):
+	print "o {}{:d}\n".format(title, len(vx) - 2)
+
+	for x, y, z in vx:
+		print "v {} {} {}".format(x, y, z)
+	print
+
+	for x, y, z in vnx:
+		print "vn {} {} {}".format(x, y, z)
+	print
+
+	for face_vx in faces:
+		print 'f', ' '.join([("{:d}//{:d}" if vnx is not None else "{:d}").format(v + 1, v + 1) for v in face_vx])
+	print
+
+
 if __name__ == '__main__':
 	args = parser.parse_args()
 
 	if args.n_faces_plato:
 		n_faces = args.n_faces_plato
-		h_total = args.h_total
+		h_total = args.size
 		l_edge = args.l_edge
 
 		if l_edge is not None:
@@ -255,17 +317,7 @@ if __name__ == '__main__':
 
 		vx, faces = f_create(l_edge=l_edge) if l_edge is not None else f_create(h_total=h_total)
 
-		print vx.mean(axis=0)
-
-		print "o {}\n".format(title)
-
-		for x, y, z in vx:
-			print "v {} {} {}".format(x, y, z)
-		print
-
-		for face_vx in faces:
-			print 'f', ' '.join([str(v + 1) for v in face_vx])
-		print
+		print_wavefront_obj(title, vx, faces)
 
 		lengths_edges = edge_norms(vx, faces)
 		stderr.write("Total number of edges: \x1b[1m{:d}\x1b[0m.\n".format(len(lengths_edges)))
@@ -278,5 +330,15 @@ if __name__ == '__main__':
 				lengths_edges.std(),
 			)
 		)
+	elif args.id_revolution:
+		if args.id_revolution == 'sphere':
+			d = args.size
+
+			vx, vnx, faces = sphere_latlong(d, n_vertices=40)
+
+			print_wavefront_obj("Sphere", vx, faces, vnx=vnx)
+
+			# for v in vx:
+			# 	print v
 
 	exit(1337)

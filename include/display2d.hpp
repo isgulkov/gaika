@@ -342,15 +342,24 @@ protected:
 
         /**
          * TODO: reorganize everything
-         *  - perform vertex transformations on all vertices at once
-         *  - assemble all triangles while culling backfaces
-         *    as tuples of vertices: coords, color, etc.; store face normals as well
-         *  - do the perspective divide
-         *  - clip
-         *  - rasterize
+         *
+         * 1. Assemble world vertices and normals
+         * 2. Assemble triangles
+         *    - culling backfaces along the way
+         *    - for each vertex:
+         *      - world coords
+         *      - with Phong shading:
+         *        - world normal (default to face normal)
+         *        - material reference
+         *      - without Phong shading:
+         *        - final color
+         * 3. Transfer (just the vertices) to clipping space
+         * 4. Clip faces
+         * 5. Rasterize
+         * 6. Display on the canvas, add HUD
          *
          * TODO: put all the 3D rendering stuff (especially intra-frame state) into a `pipeline3d` object
-         * TODO: draw onto a bitmap as a backbuffer, not the canvas itself (`drawPoint` seems to take the most CPU)
+         * TODO: see if a uint16_t z-buffer is any faster
          */
         zb_width = state.viewport.width;
         z_buffer.resize((size_t)(zb_width * state.viewport.height));

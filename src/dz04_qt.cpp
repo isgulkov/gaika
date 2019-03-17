@@ -51,10 +51,6 @@ class wf_viewer : public QMainWindow
 
         using namespace isg;
 
-        std::shared_ptr<const isg::model> sphere_crude = std::make_shared<const isg::model>(
-                obj_io::read_obj_model("../resources/meshes/simple/sphere_crude.obj")
-        );
-
         std::shared_ptr<const isg::model> tetrahedron = std::make_shared<const isg::model>(
                 obj_io::read_obj_model("../resources/meshes/simple/tetrahedron.obj")
         );
@@ -75,7 +71,7 @@ class wf_viewer : public QMainWindow
                 obj_io::read_obj_model("../resources/meshes/simple/icosahedron.obj")
         );
 
-        std::shared_ptr<const isg::model> sphere200 = std::make_shared<const isg::model>(
+        std::shared_ptr<const isg::model> sphere40 = std::make_shared<const isg::model>(
                 obj_io::read_obj_model("../resources/meshes/simple/sphere40.obj")
         );
 
@@ -110,7 +106,7 @@ class wf_viewer : public QMainWindow
                 wf_state::th_object(octahedron).set_pos({ 40, -60, 0 }).set_hoverable(true),
                 wf_state::th_object(dodecahedron).set_pos({ 50, -50, 0 }).set_hoverable(true),
                 wf_state::th_object(icosahedron).set_pos({ 60, -40, 0 }).set_hoverable(true),
-                wf_state::th_object(sphere200).set_pos({ 70, -30, 5 }).set_hoverable(true),
+                wf_state::th_object(sphere40).set_pos({ 70, -30, 5 }).set_hoverable(true),
                 wf_state::th_object(tomato).set_pos({ -45, -30, 5 }).set_scale(0.25f).set_hoverable(true),
                 wf_state::th_object(cubecol).set_pos({ 20, 20, 2.5f }).set_hoverable(true),
                 wf_state::th_object(fish).set_pos({ 20, 50, 5 }).set_orient({ float(M_PI_2), 0, float(M_PI) / 4 }).set_scale(2.0f).set_hoverable(true)
