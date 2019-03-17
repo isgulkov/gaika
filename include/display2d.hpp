@@ -273,6 +273,38 @@ protected:
     std::vector<const wf_state::th_object*> px_objects;
     std::vector<QPen> tri_pens;
 
+    vec3f calc_light_diffuse(const vec3f& color, const vec3f& norm_world)
+    {
+        vec3f light_color;
+
+        for(size_t i = 0; i < state.dir_lights.size(); i++) {
+            const auto& light = state.dir_lights[i];
+            const vec3f& dir = vx_dir_lights[i];
+
+            light_color += light.color * light.intensity * std::max(dir.dot(norm_world), 0.0f);
+        }
+
+        // TODO: ambient light
+        light_color *= 0.9f;
+        light_color += vec3f(0.1f, 0.1f, 0.1f);
+
+        if(light_color.x > 1) {
+            light_color.x = 1;
+        }
+
+        if(light_color.y > 1) {
+            light_color.y = 1;
+        }
+
+        if(light_color.z > 1) {
+            light_color.z = 1;
+        }
+
+        // TODO: point lights
+
+        return color * light_color;
+    }
+
     void collect_triangles()
     {
         const mat_sq4f tx_camera = create_tx_camera();
@@ -360,10 +392,13 @@ protected:
 
                     const float sunlight = std::max(dir_sun.dot(tri_norm), 0.0f);
 
-                    vec3f color = 255 * object.model->materials[triangle.i_mtl].c_diffuse;
+                    vec3f color = object.model->materials[triangle.i_mtl].c_diffuse;
 
                     if(!state.projection.is_orthographic()) {
-                        color = color * (vec3f(0.1f, 0.1f, 0.1f) + (sun.color * sun.intensity * sunlight * 0.9f));
+                        color = 255 * calc_light_diffuse(color, tri_norm);
+                    }
+                    else {
+                        color *= 255;
                     }
 
                     v_colors.push_back(color);
@@ -451,6 +486,8 @@ protected:
         }
     }
 
+    std::vector<vec3f> vx_dir_lights;
+
 public:
     void render(QPainter& painter, QPoint p_cursor)
     {
@@ -463,23 +500,28 @@ public:
         const mat_sq4f tx_camera = create_tx_camera();
         const mat_sq4f tx_projection = create_tx_projection();
 
-        // TODO: support multiple directional lights
-        const wf_state::dir_light& sun = state.dir_lights.back();
+        vx_dir_lights.clear();
 
-        const vec3f dir_sun = mx_tx::rotate_z(-sun.azimuth) * mx_tx::rotate_y(-sun.altitude) * vec3f(1, 0, 0);
+        for(const auto& light : state.dir_lights) {
+            const vec3f dir = mx_tx::rotate_z(-light.azimuth) * mx_tx::rotate_y(-light.altitude) * vec3f(1, 0, 0);
 
-        // TODO: move where other light sources will be drawn
-        if(state.projection.is_perspective()) {
-            const vec3f sun_pos = (dir_sun * 50.0f) + state.camera.pos;
+            // TODO: draw as objects (s.t. apparent size depends on FOV)
+            if(state.projection.is_perspective()) {
+                const vec3f pos_clip = tx_projection * tx_camera * ((dir * 50.0f) + state.camera.pos);
 
-            const vec4f sun_clip = tx_projection.mul_homo(tx_camera * sun_pos);
+                if(pos_clip.z > 0) {
+                    const vec3f pos_screen = to_screen(pos_clip);
 
-            if(sun_clip.z > 0) {
-                const vec3f hui = to_screen(sun_clip.to_cartesian());
+                    const vec3f color = 255 * light.color;
+                    painter.setPen(QColor(int(color.x), int(color.y), int(color.z)));
 
-                painter.setPen(Qt::yellow);
-                painter.drawEllipse((int)hui.x - 10, (int)hui.y - 10, 20, 20);
+                    const int d = 1 + int(20 * light.intensity);
+
+                    painter.drawEllipse((int)pos_screen.x - 10, (int)pos_screen.y - 10, d, d);
+                }
             }
+
+            vx_dir_lights.push_back(dir);
         }
 
         collect_triangles();

@@ -112,11 +112,21 @@ class wf_viewer : public QMainWindow
                 wf_state::th_object(fish).set_pos({ 20, 50, 5 }).set_orient({ float(M_PI_2), 0, float(M_PI) / 4 }).set_scale(2.0f).set_hoverable(true)
         };
 
-        state.dir_lights.push_back({
-                1.57f, 0.785f,
-                { 1.0f, 1.0f, 0.95f },
-                1.0f
-        });
+        state.dir_lights.push_back(
+                {
+                        0.77f, 0.357f,
+                        { 0, 1.0f, 0.15f },
+                        0.25f
+                }
+        );
+
+        state.dir_lights.push_back(
+                {
+                        1.57f, 0.785f,
+                        { 1.0f, 1.0f, 0.95f },
+                        1.0f
+                }
+        );
 
         state.camera = {
 //                { 0, 0, 10 }, { 0, 0, 0 }
