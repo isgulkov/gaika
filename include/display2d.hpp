@@ -488,56 +488,7 @@ protected:
                 object.hovered = false;
             }
 
-            painter.setOpacity(0.75);
-
-//            for(const auto& segment : object.model->segments) {
-//                if(vertex_outcodes[segment.i_a] & vertex_outcodes[segment.i_b]) {
-//                    continue;
-//                }
-//
-//                segment_pen.setColor(QColor(segment.r, segment.g, segment.b));
-//                painter.setPen(segment_pen);
-//
-//                const uint8_t ab_out = vertex_outcodes[segment.i_a] | vertex_outcodes[segment.i_b];
-//
-//                if(!ab_out) {
-//                    draw_line(painter, vertices_screen[segment.i_a], vertices_screen[segment.i_b]);
-//                    continue;
-//                }
-//
-//                /**
-//                 * TODO: refactor using t_in and t_out
-//                 * TODO: there are still occasional artifacts as well
-//                 *
-//                 * –Pick an outside endpoint (with nonzero outcode)
-//                 * –Pick an edge that is crossed (nonzero bit of outcode)
-//                 * –Find line's intersection with that edge
-//                 * –Replace outside endpoint with intersection point
-//                 * –Repeat until trivial accept or reject
-//                 */
-//                uint32_t i_a = segment.i_a, i_b = segment.i_b;
-//
-//                if(vertex_outcodes[i_a]) {
-//                    std::swap(i_a, i_b);
-//                }
-//
-//                vec4f b = vertices_clipping[i_b];
-//
-//                if(!intersect_line_frustum(ab_out, vertices_clipping[i_a], b, b)) {
-//                    continue;
-//                }
-//
-//                if(!vertex_outcodes[i_a]) {
-//                    draw_line(painter, vertices_screen[i_a], to_screen(b.to_cartesian()));
-//                    continue;
-//                }
-//
-//                vec4f a = vertices_clipping[i_a];
-//
-//                if(intersect_line_frustum(ab_out, b, a, a)) {
-//                    draw_line(painter, to_screen(a.to_cartesian()), to_screen(b.to_cartesian()));
-//                }
-//            }
+            // Segment rendering code was here
 
             for(const auto& triangle : object.model->faces) {
                 painter.setOpacity(state.projection.is_orthographic() ? 0.75 : 1);
