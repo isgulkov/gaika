@@ -36,6 +36,9 @@ struct vec3f
     vec3f& normalize();
     vec3f unit() const;
 
+    vec3f& clamp(float low, float high);
+    vec3f clamped(float low, float high) const;
+
     std::string to_string() const;
 };
 

@@ -144,21 +144,24 @@ struct wf_state
 
     std::vector<th_object> th_objects;
 
-    struct dir_light {
+    struct dir_light_t {
         float azimuth, altitude;
 
         vec3f color;
-        float intensity;
     };
 
-    std::vector<dir_light> dir_lights;
-
-    struct point_light {
+    struct point_light_t {
         vec3f pos, color;
-        float intensity;
     };
 
-    std::vector<point_light> point_lights;
+    struct lighting_t {
+        vec3f amb_color = { 0.1f, 0.1f, 0.15f };
+
+        std::vector<dir_light_t> dir_lights;
+        std::vector<point_light_t> point_lights;
+    };
+
+    lighting_t lighting;
 
     struct {
         vec3f pos, orient;

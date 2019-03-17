@@ -112,19 +112,17 @@ class wf_viewer : public QMainWindow
                 wf_state::th_object(fish).set_pos({ 20, 50, 5 }).set_orient({ float(M_PI_2), 0, float(M_PI) / 4 }).set_scale(2.0f).set_hoverable(true)
         };
 
-        state.dir_lights.push_back(
+        state.lighting.dir_lights.push_back(
                 {
                         0.77f, 0.357f,
-                        { 0, 1.0f, 0.15f },
-                        0.25f
+                        vec3f(0, 1.0f, 0.15f) * 0.2f
                 }
         );
 
-        state.dir_lights.push_back(
+        state.lighting.dir_lights.push_back(
                 {
                         1.57f, 0.785f,
-                        { 1.0f, 1.0f, 0.95f },
-                        1.0f
+                        vec3f(1.0f, 1.0f, 0.95f) * .9f
                 }
         );
 
@@ -212,7 +210,7 @@ public slots:
         state.v_camera = calculate_v_camera();
 
         // Sun movement: one full circle every 60s
-        state.dir_lights.back().azimuth += 3.14f * 2 * sec_since_update / 60;
+        state.lighting.dir_lights.back().azimuth += 3.14f * 2 * sec_since_update / 60;
 
         /**
          * 2. Redraw

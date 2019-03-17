@@ -115,6 +115,25 @@ vec3f vec3f::unit() const
     return n != 0 ? operator*(1.0f / n) : *this;
 }
 
+inline float clamp(float x, float low, float high)
+{
+    return x >= low ? (x < high ? x : (high - std::numeric_limits<float>::epsilon())) : low;
+}
+
+vec3f& vec3f::clamp(float low, float high)
+{
+    x = ::clamp(x, low, high);
+    y = ::clamp(y, low, high);
+    z = ::clamp(z, low, high);
+
+    return *this;
+}
+
+vec3f vec3f::clamped(float low, float high) const
+{
+    return { ::clamp(x, low, high), ::clamp(y, low, high), ::clamp(z, low, high) };
+}
+
 std::string vec3f::to_string() const
 {
     return (std::stringstream() << std::fixed << std::setprecision(2) << "(" << x << "," << y << "," << z << ")").str();

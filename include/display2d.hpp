@@ -26,6 +26,7 @@
 #include "matrices.hpp"
 #include "geometry.hpp"
 #include "viewer_state.hpp"
+#include "model.hpp"
 
 class render3d
 {
@@ -52,11 +53,9 @@ public:
 
     static QColor clamped_rgb24(const vec3f& color)
     {
-        return {
-                uint8_t(color.x >= 0 ? (color.x < 256 ? color.x : 255) : 0),
-                uint8_t(color.y >= 0 ? (color.y < 256 ? color.y : 255) : 0),
-                uint8_t(color.z >= 0 ? (color.z < 256 ? color.z : 255) : 0)
-        };
+        const vec3f c = color.clamped(0, 256);
+
+        return { uint8_t(c.x), uint8_t(c.y), uint8_t(c.z) };
     }
 
 //    void put_pixel(int x, int y, const vec3f& color)
@@ -448,36 +447,23 @@ protected:
 
     std::vector<char> tri_nonorms;
 
-    vec3f calc_light_diffuse(const vec3f& color, const vec3f& norm_world)
+    vec3f calc_light(const isg::material& mtl, const vec3f& norm_world)
     {
-        vec3f light_color;
+        const auto& lighting = state.lighting;
 
-        for(size_t i = 0; i < state.dir_lights.size(); i++) {
-            const auto& light = state.dir_lights[i];
+        vec3f color = mtl.c_ambient * lighting.amb_color;
+
+        for(size_t i = 0; i < lighting.dir_lights.size(); i++) {
+            const auto& light = state.lighting.dir_lights[i];
             const vec3f& dir = vx_dir_lights[i];
 
-            light_color += light.color * light.intensity * std::max(dir.dot(norm_world), 0.0f);
-        }
-
-        // TODO: ambient light
-        light_color *= 0.9f;
-        light_color += vec3f(0.1f, 0.1f, 0.1f);
-
-        if(light_color.x > 1) {
-            light_color.x = 1;
-        }
-
-        if(light_color.y > 1) {
-            light_color.y = 1;
-        }
-
-        if(light_color.z > 1) {
-            light_color.z = 1;
+            color += mtl.c_diffuse * light.color * std::max(dir.dot(norm_world), 0.0f);
+            // TODO: specular
         }
 
         // TODO: point lights
 
-        return color * light_color;
+        return color.clamp(0, 1);
     }
 
     void collect_triangles()
@@ -564,13 +550,13 @@ protected:
                     vx_world.push_back(b);
                     vx_world.push_back(c);
 
-                    vec3f color = object.model->materials[triangle.i_mtl].c_diffuse;
+                    const auto& mtl = object.model->materials[triangle.i_mtl];
 
                     if(state.projection.is_orthographic() || state.options.shading == wf_state::SHD_NONE) {
-                        v_colors.push_back(255 * color);
+                        v_colors.push_back(255 * mtl.c_diffuse);
                     }
                     else if(state.options.shading == wf_state::SHD_FLAT) {
-                        v_colors.push_back(255 * calc_light_diffuse(color, tri_norm));
+                        v_colors.push_back(255 * calc_light(mtl, tri_norm));
                     }
                     else if(state.options.shading == wf_state::SHD_GOURAUD) {
                         bool has_norms = false;
@@ -586,7 +572,7 @@ protected:
                                 p_norm = &tri_norm;
                             }
 
-                            v_colors.push_back(255 * calc_light_diffuse(color, *p_norm));
+                            v_colors.push_back(255 * calc_light(mtl, *p_norm));
                         }
 
                         /**
@@ -707,7 +693,7 @@ public:
 
         vx_dir_lights.clear();
 
-        for(const auto& light : state.dir_lights) {
+        for(const auto& light : state.lighting.dir_lights) {
             const vec3f dir = mx_tx::rotate_z(-light.azimuth) * mx_tx::rotate_y(-light.altitude) * vec3f(1, 0, 0);
 
             // TODO: draw as objects (s.t. apparent size depends on FOV)
@@ -720,7 +706,7 @@ public:
                     const vec3f color = 255 * light.color;
                     painter.setPen(QColor(int(color.x), int(color.y), int(color.z)));
 
-                    const int d = 1 + int(20 * light.intensity);
+                    const int d = 1 + int(20 * light.color.norm());
 
                     painter.drawEllipse((int)pos_screen.x - 10, (int)pos_screen.y - 10, d, d);
                 }
