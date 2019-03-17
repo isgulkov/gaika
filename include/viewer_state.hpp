@@ -134,8 +134,9 @@ struct wf_state
             hoverable = new_hoverable; return *this;
         }
 
-        // Cached world-transformed vertices
+        // Cached world-transformed vectors
         mutable std::vector<vec3f> vertices_world;
+        mutable std::vector<vec3f> normals_world;
     };
 
     // TODO: angle representation for camera (e.g. which is which)

@@ -140,9 +140,9 @@ public:
     }
 
 protected:
-    void draw_triangle(QPainter& painter, vec3f a, vec3f b, vec3f c, const QColor& color)
+    void draw_triangle(QPainter& painter, vec3f a, vec3f b, vec3f c, const vec3f& color)
     {
-        painter.setPen(color);
+        painter.setPen({ int(color.x), int(color.y), int(color.z) });
 
         // Sort: `a` at the top, `c` at the bottom
         if(a.y > b.y) std::swap(a, b);
@@ -448,6 +448,8 @@ protected:
     std::vector<const wf_state::th_object*> px_objects;
     std::vector<QPen> tri_pens;
 
+    std::vector<char> tri_nonorms;
+
     vec3f calc_light_diffuse(const vec3f& color, const vec3f& norm_world)
     {
         vec3f light_color;
@@ -489,9 +491,11 @@ protected:
 
         for(const wf_state::th_object& object : state.th_objects) {
             if(object.vertices_world.empty()) {
-                const mat_sq4f tx_world = mx_tx::translate(object.pos) * mx_tx::rotate_xyz(object.orient) * mx_tx::scale(object.scale);
+                const mat_sq4f rot_world = mx_tx::rotate_xyz(object.orient);
+                const mat_sq4f tx_world = mx_tx::translate(object.pos) * rot_world * mx_tx::scale(object.scale);
 
                 object.vertices_world = tx_world * object.model->vertices;
+                object.normals_world = rot_world * object.model->normals;
             }
 
             if(state.options.use_backface_cull != wf_state::BFC_DISABLE) {
@@ -571,11 +575,27 @@ protected:
                         v_colors.push_back(255 * calc_light_diffuse(color, tri_norm));
                     }
                     else if(state.options.shading == wf_state::SHD_GOURAUD) {
-                        for(size_t i_norm : { triangle.in_a, triangle.in_b, triangle.in_c }) {
-                            const vec3f& norm = i_norm != SIZE_T_MAX ? object.model->normals[i_norm] : tri_norm;
+                        bool has_norms = false;
 
-                            v_colors.push_back(255 * calc_light_diffuse(color, norm));
+                        for(size_t i_norm : { triangle.in_a, triangle.in_b, triangle.in_c }) {
+                            const vec3f* p_norm;
+
+                            if(i_norm != SIZE_T_MAX) {
+                                p_norm = &object.normals_world[i_norm];
+                                has_norms = true;
+                            }
+                            else {
+                                p_norm = &tri_norm;
+                            }
+
+                            v_colors.push_back(255 * calc_light_diffuse(color, *p_norm));
                         }
+
+                        /**
+                         * Short circuit models without normals to flat shading, which Gouraud is equivalent to when
+                         * the face normal is used by default.
+                         */
+                        tri_nonorms.push_back(!has_norms);
                     }
                     else if(state.options.shading == wf_state::SHD_PHONG) {
                         // ...
@@ -640,12 +660,15 @@ protected:
                 draw_line(painter, b, c);
             }
             else if(state.options.shading == wf_state::SHD_FLAT) {
-                const vec3f color = v_colors[i / 3];
-
-                draw_triangle(painter, a, b, c, { int(color.x), int(color.y), int(color.z) });
+                draw_triangle(painter, a, b, c, v_colors[i / 3]);
             }
             else if(state.options.shading == wf_state::SHD_GOURAUD) {
-                draw_triangle_gouraud(painter, a, b, c, v_colors[i], v_colors[i + 1], v_colors[i + 2]);
+                if(!tri_nonorms[i / 3]) {
+                    draw_triangle_gouraud(painter, a, b, c, v_colors[i], v_colors[i + 1], v_colors[i + 2]);
+                }
+                else {
+                    draw_triangle(painter, a, b, c, v_colors[i]);
+                }
             }
             else if(state.options.shading == wf_state::SHD_PHONG) {
 
