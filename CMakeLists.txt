@@ -3,6 +3,8 @@ project(dz_gaika)
 
 set(CMAKE_CXX_STANDARD 11)
 
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -ffast-math")
+
 add_library(dz04_matrices lib/matrices.cpp)
 target_include_directories(dz04_matrices PUBLIC include)
 
