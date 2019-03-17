@@ -31,6 +31,9 @@ class render3d
 {
     const wf_state& state;
 
+    const int width, height;
+//    const std::unique_ptr<uint8_t[]> buffer;
+
     int zb_width;
     std::vector<float> z_buffer;
 
@@ -39,12 +42,22 @@ public:
     bool hovered_multiple;
 
 public:
-    render3d(const wf_state& state) : state(state) { }
+    render3d(const wf_state& state) : state(state),
+                                      width(state.viewport.width), height(state.viewport.height) { }
 
     static void draw_line(QPainter& painter, vec3f a, vec3f b)
     {
         painter.drawLine(a.x, a.y, b.x, b.y);
     }
+
+//    void put_pixel(int x, int y, const vec3f& color)
+//    {
+//        const size_t i_px = size_t(3 * x + 3 * y * width);
+//
+//        buffer[i_px] = uint8_t(255 * color.x);
+//        buffer[i_px + 1] = uint8_t(255 * color.y);
+//        buffer[i_px + 2] = uint8_t(255 * color.z);
+//    }
 
     void draw_triangle_flat_top(QPainter& painter, vec3f a, vec3f b, vec3f c)
     {
@@ -70,7 +83,7 @@ public:
             float z = z_left + dz_line * (x_start - x_left);
 
             for(int x = (int)x_start; x < x_end; x++) {
-                float& z_value = z_buffer[x + y * zb_width];
+                float& z_value = z_buffer[x + y * width];
 
                 if(z < z_value) {
                     painter.drawPoint(x, y);
@@ -111,7 +124,7 @@ public:
             float z = z_left + dz_line * (x_start - x_left);
 
             for(int x = (int)x_start; x < x_end; x++) {
-                float& z_value = z_buffer[x + y * zb_width];
+                float& z_value = z_buffer[x + y * width];
 
                 if(z < z_value) {
                     painter.drawPoint(x, y);
@@ -166,8 +179,8 @@ protected:
     vec3f to_screen(const vec3f& v)
     {
         return {
-                (v.x / 2.0f + 0.5f) * state.viewport.width,
-                (-v.y / 2.0f + 0.5f) * state.viewport.height,
+                (v.x / 2.0f + 0.5f) * width,
+                (-v.y / 2.0f + 0.5f) * height,
                 v.z
         };
     }
@@ -230,7 +243,7 @@ protected:
          * - To avoid distortion on non-square viewport, the hor. axis (camera's X) is squeezed by its aspect ratio
          * - For orthographic projections, near-far clipping is prevented by fixing Z
          */
-        const float hw_ratio = (float)state.viewport.height / state.viewport.width;
+        const float hw_ratio = (float)height / width;
 
         if(state.projection.is_orthographic()) {
             return mx_tx::scale(state.projection.scale()) * mx_tx::scale(hw_ratio, 1, 0);
@@ -243,40 +256,212 @@ protected:
                * mx_tx::scale(hw_ratio, 1, 1);
     }
 
-public:
-    void render(QPainter& painter, QPoint p_cursor)
-    {
-        painter.fillRect(0, 0, state.viewport.width, state.viewport.height, Qt::black);
+    std::vector<vec3f> vx_world;
 
+    /**
+     * TODO: for each vertex
+     *  - world coords
+     *  - with Phong shading:
+     *    - world normal (default to face normal)
+     *    - material reference
+     *  - without Phong shading:
+     *    - final color (per vertex or per face)
+     */
+    std::vector<vec3f> vns_world;
+    std::vector<vec3f> v_colors;
+
+    std::vector<const wf_state::th_object*> px_objects;
+    std::vector<QPen> tri_pens;
+
+    void collect_triangles()
+    {
         const mat_sq4f tx_camera = create_tx_camera();
-        const mat_sq4f tx_projection = create_tx_projection();
 
         hovered_object = nullptr;
         hovered_multiple = false;
 
-        /**
-         * TODO: reorganize everything
-         *
-         * 1. Assemble world vertices and normals
-         * 2. Assemble triangles
-         *    - culling backfaces along the way
-         *    - for each vertex:
-         *      - world coords
-         *      - with Phong shading:
-         *        - world normal (default to face normal)
-         *        - material reference
-         *      - without Phong shading:
-         *        - final color
-         * 3. Transfer (just the vertices) to clipping space
-         * 4. Clip faces
-         * 5. Rasterize
-         * 6. Display on the canvas, add HUD
-         *
-         * TODO: see if a uint16_t z-buffer is any faster
-         */
-        zb_width = state.viewport.width;
-        z_buffer.resize((size_t)(zb_width * state.viewport.height));
+        for(const wf_state::th_object& object : state.th_objects) {
+            if(object.vertices_world.empty()) {
+                const mat_sq4f tx_world = mx_tx::translate(object.pos) * mx_tx::rotate_xyz(object.orient) * mx_tx::scale(object.scale);
+
+                object.vertices_world = tx_world * object.model->vertices;
+            }
+
+            if(state.options.use_backface_cull != wf_state::BFC_DISABLE) {
+                vec3f dir_out;
+
+                if(state.projection.is_parallel()) {
+                    dir_out = mx_tx::rotate_xyz(state.camera.orient) * vec3f(0, 0, -1);
+                }
+                else {
+                    switch(state.projection.axis()) {
+                        case wf_projection::X:
+                            dir_out = vec3f(-1, 0, 0);
+                            break;
+                        case wf_projection::Y:
+                            dir_out = vec3f(0, -1, 0);
+                            break;
+                        case wf_projection::Z:
+                            dir_out = vec3f(0, 0, -1);
+                            break;
+                    }
+                }
+
+                QPen face_pen;
+
+                if(state.projection.is_orthographic()) {
+                    if(state.hovering.fixed) {
+                        if(&object == state.hovering.object) {
+                            face_pen.setStyle(Qt::SolidLine);
+                            face_pen.setWidth(2);
+                        }
+                    }
+                    else if(object.hovered) {
+                        if(state.hovering.limited) {
+                            face_pen.setDashPattern({ 1, 5 });
+                        }
+                        else {
+                            face_pen.setStyle(Qt::DashLine);
+                            face_pen.setWidth(2);
+                        }
+                    }
+                }
+
+                if(!state.hovering.fixed) {
+                    object.hovered = false;
+                }
+
+                for(const auto& triangle : object.model->faces) {
+                    const vec3f& a = object.vertices_world[triangle.i_a],
+                            b = object.vertices_world[triangle.i_b],
+                            c = object.vertices_world[triangle.i_c];
+
+                    // TODO: make sure this doesn't break when a model is flipped (scaled by a negative factor)
+                    if(state.projection.is_perspective()) {
+                        dir_out = a - state.camera.pos;
+                    }
+
+                    /**
+                     * Triangles with COUNTERCLOCKWISE order of vertices are considered FRONT-FACING here. This is
+                     * apparently how OpenGL does it by default, so most meshes out there are like this as well.
+                     */
+                    const vec3f tri_norm = (b - a).cross(c - a).normalize();
+
+                    if(dir_out.dot(tri_norm) >= 0) {
+                        continue;
+                    }
+
+                    vx_world.push_back(a);
+                    vx_world.push_back(b);
+                    vx_world.push_back(c);
+
+                    const auto& sun = state.dir_lights.back();
+                    const vec3f dir_sun = mx_tx::rotate_z(-sun.azimuth) * mx_tx::rotate_y(-sun.altitude) * vec3f(1, 0, 0);
+
+                    const float sunlight = std::max(dir_sun.dot(tri_norm), 0.0f);
+
+                    vec3f color = 255 * object.model->materials[triangle.i_mtl].c_diffuse;
+
+                    if(!state.projection.is_orthographic()) {
+                        color = color * (vec3f(0.1f, 0.1f, 0.1f) + (sun.color * sun.intensity * sunlight * 0.9f));
+                    }
+
+                    v_colors.push_back(color);
+
+                    px_objects.push_back(&object);
+
+                    if(state.projection.is_orthographic()) {
+                        tri_pens.push_back(face_pen);
+                    }
+                }
+            }
+        }
+    }
+
+    void render_triangles(QPainter& painter, QPoint p_cursor)
+    {
+        z_buffer.resize(size_t(width * height));
         std::fill(z_buffer.begin(), z_buffer.end(), MAXFLOAT);
+
+        const mat_sq4f tx_camera = create_tx_camera();
+        const mat_sq4f tx_projection = create_tx_projection();
+
+        // TODO: don't apply the divide to Z for better Z-buffer resolution?
+        const std::vector<vec3f> vertices_clipping = tx_projection * tx_camera * vx_world;
+
+        std::vector<uint8_t> vertex_outcodes;
+
+        for(const vec3f& vertex : vertices_clipping) {
+            uint8_t outcode = 0;
+
+            outcode |= (vertex.x > 1);
+            outcode |= (vertex.x < -1) << 1;
+            outcode |= (vertex.y > 1) << 2;
+            outcode |= (vertex.y < -1) << 3;
+            outcode |= (vertex.z > 1) << 4;
+            outcode |= (vertex.z < 0) << 5;
+
+            vertex_outcodes.push_back(outcode);
+        }
+
+        // TODO: Clip faces by interpolating to intersections
+
+        const std::vector<vec3f> vertices_screen = mx_tx::scale(width / 2.0f, -height / 2.0f, 1) * mx_tx::translate(1, -1, 0) * vertices_clipping;
+
+        for(size_t i = 0; i < vx_world.size(); i += 3) {
+            if(vertex_outcodes[i] || vertex_outcodes[i + 1] || vertex_outcodes[i + 2]) {
+                continue;
+            }
+
+            const vec3f v_color = v_colors[i / 3];
+
+            const vec3f& a = vertices_screen[i], b = vertices_screen[i + 1], c = vertices_screen[i + 2];
+
+            QColor color { int(v_color.x), int(v_color.y), int(v_color.z) };
+
+            QPen face_pen = state.projection.is_orthographic() ? tri_pens[i / 3] : QPen();
+            face_pen.setColor(color);
+            painter.setPen(face_pen);
+
+            if(!state.projection.is_orthographic()) {
+                draw_triangle(painter, a, b, c);
+            }
+            else {
+                draw_line(painter, a, b);
+                draw_line(painter, a, c);
+                draw_line(painter, b, c);
+            }
+
+            if(state.hovering.disabled || state.hovering.fixed) {
+                continue;
+            }
+
+            const auto& object = *px_objects[i / 3];
+
+            if(!object.hovered && object.hoverable && test_p_in_triangle(p_cursor, a, b, c)) {
+                object.hovered = true;
+
+                if(!hovered_multiple && hovered_object != nullptr) {
+                    hovered_multiple = true;
+                    hovered_object = nullptr;
+                }
+
+                hovered_object = &object;
+            }
+        }
+    }
+
+public:
+    void render(QPainter& painter, QPoint p_cursor)
+    {
+        painter.fillRect(0, 0, width, height, Qt::black);
+
+        hovered_object = nullptr;
+        hovered_multiple = false;
+
+        // TODO: eliminate repetitions of this shit
+        const mat_sq4f tx_camera = create_tx_camera();
+        const mat_sq4f tx_projection = create_tx_projection();
 
         // TODO: support multiple directional lights
         const wf_state::dir_light& sun = state.dir_lights.back();
@@ -297,173 +482,9 @@ public:
             }
         }
 
-        // TODO: benchmark, investigate possible CPU parallelism (both SIMD and threads)
-        for(const wf_state::th_object& object : state.th_objects) {
-            if(object.vertices_world.empty()) {
-                const mat_sq4f tx_world = mx_tx::translate(object.pos) * mx_tx::rotate_xyz(object.orient) * mx_tx::scale(object.scale);
+        collect_triangles();
 
-                object.vertices_world = tx_world * object.model->vertices;
-            }
-
-            // TODO: decide whether to copy stuff over instead of setting flags
-            std::vector<char> tri_culled;
-            std::vector<float> tri_sunlight;
-
-            if(state.options.use_backface_cull != wf_state::BFC_DISABLE) {
-                // TODO: extract all this mess
-                vec3f dir_out;
-
-                if(state.projection.is_parallel()) {
-                    dir_out = mx_tx::rotate_xyz(state.camera.orient) * vec3f(0, 0, -1);
-                }
-                else {
-                    switch(state.projection.axis()) {
-                        case wf_projection::X:
-                            dir_out = vec3f(-1, 0, 0);
-                            break;
-                        case wf_projection::Y:
-                            dir_out = vec3f(0, -1, 0);
-                            break;
-                        case wf_projection::Z:
-                            dir_out = vec3f(0, 0, -1);
-                            break;
-                    }
-                }
-
-                tri_culled.resize(object.model->faces.size(), false);
-                tri_sunlight.resize(object.model->faces.size());
-                size_t i_triangle = tri_culled.size() - 1;
-
-                for(const auto& triangle : object.model->faces) {
-                    const vec3f& a = object.vertices_world[triangle.i_a],
-                            b = object.vertices_world[triangle.i_b],
-                            c = object.vertices_world[triangle.i_c];
-
-                    // TODO: make sure this doesn't break when a model is flipped (scaled by a negative factor)
-                    if(state.projection.is_perspective()) {
-                        dir_out = a - state.camera.pos;
-                    }
-
-                    /**
-                     * Triangles with COUNTERCLOCKWISE order of vertices are considered FRONT-FACING here. This is
-                     * apparently how OpenGL does it by default, so most meshes out there are like this as well.
-                     */
-                    const vec3f tri_norm = (b - a).cross(c - a).normalize();
-
-                    tri_culled[i_triangle] = dir_out.dot(tri_norm) >= 0;
-                    tri_sunlight[i_triangle] = std::max(dir_sun.dot(tri_norm), 0.0f);
-
-                    i_triangle -= 1;
-                }
-            }
-
-            const std::vector<vec4f> vertices_clipping = tx_projection.mul_homo(tx_camera * object.vertices_world);
-
-            std::vector<uint8_t> vertex_outcodes(vertices_clipping.size(), 0);
-            std::vector<vec3f> vertices_screen;
-            vertices_screen.reserve(vertices_clipping.size());
-
-            for(const vec4f& vertex : vertices_clipping) {
-                uint8_t outcode = 0;
-
-                outcode |= (vertex.x > vertex.w);
-                outcode |= (vertex.x < -vertex.w) << 1;
-                outcode |= (vertex.y > vertex.w) << 2;
-                outcode |= (vertex.y < -vertex.w) << 3;
-                outcode |= (vertex.z > vertex.w) << 4;
-                outcode |= (vertex.z < 0) << 5;
-
-                vertex_outcodes[vertices_screen.size()] = outcode;
-
-                // TODO: gut to_screen after removing segment rendering
-                vertices_screen.push_back(to_screen(vertex.to_cartesian()));
-            }
-
-            QPen face_pen(Qt::white);
-
-            if(state.hovering.fixed) {
-                if(&object == state.hovering.object) {
-                    face_pen.setStyle(Qt::SolidLine);
-                    face_pen.setWidth(2);
-                }
-            }
-            else if(object.hovered) {
-                if(state.hovering.limited) {
-                    face_pen.setDashPattern({ 1, 5 });
-                }
-                else {
-                    face_pen.setStyle(Qt::DashLine);
-                    face_pen.setWidth(2);
-                }
-            }
-
-            if(!state.hovering.fixed) {
-                object.hovered = false;
-            }
-
-            // Segment rendering code was here
-
-            for(const auto& triangle : object.model->faces) {
-                painter.setOpacity(state.projection.is_orthographic() ? 0.75 : 1);
-
-                const float face_sunlight = state.projection.is_orthographic() ? 1 : tri_sunlight.back();
-                tri_sunlight.pop_back();
-
-                if(state.options.use_backface_cull != wf_state::BFC_DISABLE) {
-                    const bool face_culled = tri_culled.back();
-                    tri_culled.pop_back();
-
-                    if(face_culled) {
-                        if(state.options.use_backface_cull == wf_state::BFC_TRANSPARENT) {
-                            painter.setOpacity(0.2);
-                        }
-                        else {
-                            continue;
-                        }
-                    }
-                }
-
-                if(vertex_outcodes[triangle.i_a] != 0 || vertex_outcodes[triangle.i_b] != 0 || vertex_outcodes[triangle.i_c] != 0) {
-                    continue;
-                }
-
-                const vec3f a = vertices_screen[triangle.i_a], b = vertices_screen[triangle.i_b], c = vertices_screen[triangle.i_c];
-
-                // TODO: add ambient lighting and shit
-                const vec3f c_final = 255.0f * object.model->materials[triangle.i_mtl].c_diffuse * (
-                        (sun.color * sun.intensity * face_sunlight * 0.9f) + vec3f(0.1f, 0.1f, 0.1f)
-                );
-
-                QColor color { int(c_final.x), int(c_final.y), int(c_final.z) };
-
-                face_pen.setColor(color);
-                painter.setPen(face_pen);
-
-                if(state.projection.is_orthographic()) {
-                    draw_line(painter, a, b);
-                    draw_line(painter, a, c);
-                    draw_line(painter, b, c);
-                }
-                else {
-                    draw_triangle(painter, a, b, c);
-                }
-
-                if(state.hovering.disabled || state.hovering.fixed) {
-                    continue;
-                }
-
-                if(!object.hovered && object.hoverable && test_p_in_triangle(p_cursor, a, b, c)) {
-                    object.hovered = true;
-
-                    if(!hovered_multiple && hovered_object != nullptr) {
-                        hovered_multiple = true;
-                        hovered_object = nullptr;
-                    }
-
-                    hovered_object = &object;
-                }
-            }
-        }
+        render_triangles(painter, p_cursor);
     }
 };
 
@@ -501,6 +522,7 @@ public:
 
     void paintEvent(QPaintEvent* event) override
     {
+        // TODO: write directly into pixels of a QImage, bypassing QPainter?
         QPixmap back_buffer(state.viewport.width, state.viewport.height);
         QPainter painter;
 
