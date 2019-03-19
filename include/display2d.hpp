@@ -58,14 +58,49 @@ public:
         return { uint8_t(c.x), uint8_t(c.y), uint8_t(c.z) };
     }
 
-//    void put_pixel(int x, int y, const vec3f& color)
-//    {
-//        const size_t i_px = size_t(3 * x + 3 * y * width);
-//
-//        buffer[i_px] = uint8_t(255 * color.x);
-//        buffer[i_px + 1] = uint8_t(255 * color.y);
-//        buffer[i_px + 2] = uint8_t(255 * color.z);
-//    }
+    inline void draw_pixel(QPainter& painter, int x, int y, const vec3f& color)
+    {
+        /**
+         * Color values go out of range because both X and Y extremes can actually land outside the triangle during
+         * interpolation. This is not the only time colors need to be clamped, so might as well.
+         *
+         * REVIEW: is this right:
+         */
+        painter.setPen(clamped_rgb24(color));
+        painter.drawPoint(x, y);
+    }
+
+    inline void put_pixel(QPainter& painter, int x, int y, float z)
+    {
+        if(state.options.occlusion != wf_state::OCC_BFC_ZBUF) {
+            painter.drawPoint(x, y);
+            return;
+        }
+
+        float& z_value = z_buffer[x + y * width];
+
+        if(z < z_value) {
+            painter.drawPoint(x, y);
+
+            z_value = z;
+        }
+    }
+
+    inline void put_pixel(QPainter& painter, int x, int y, float z, const vec3f& color)
+    {
+        if(state.options.occlusion != wf_state::OCC_BFC_ZBUF) {
+            draw_pixel(painter, x, y, color);
+            return;
+        }
+
+        float& z_value = z_buffer[x + y * width];
+
+        if(z < z_value) {
+            draw_pixel(painter, x, y, color);
+
+            z_value = z;
+        }
+    }
 
     void draw_triangle_flat_top(QPainter& painter, vec3f a, vec3f b, vec3f c)
     {
@@ -91,12 +126,7 @@ public:
             float z = z_left + dz_line * (x_start - x_left);
 
             for(int x = (int)x_start; x < x_end; x++) {
-                float& z_value = z_buffer[x + y * width];
-
-                if(z < z_value) {
-                    painter.drawPoint(x, y);
-                    z_value = z;
-                }
+                put_pixel(painter, x, y, z);
 
                 z += dz_line;
             }
@@ -132,12 +162,7 @@ public:
             float z = z_left + dz_line * (x_start - x_left);
 
             for(int x = (int)x_start; x < x_end; x++) {
-                float& z_value = z_buffer[x + y * width];
-
-                if(z < z_value) {
-                    painter.drawPoint(x, y);
-                    z_value = z;
-                }
+                put_pixel(painter, x, y, z);
 
                 z += dz_line;
             }
@@ -220,13 +245,7 @@ private:
             vec3f color = c_left + dc_line * (x_start - x_left);
 
             for(int x = (int)x_start; x < x_end; x++) {
-                float& z_value = z_buffer[x + y * width];
-
-                if(z < z_value) {
-                    painter.setPen(clamped_rgb24(color));
-                    painter.drawPoint(x, y);
-                    z_value = z;
-                }
+                put_pixel(painter, x, y, z, color);
 
                 z += dz_line;
                 color += dc_line;
@@ -275,17 +294,7 @@ private:
             vec3f color = c_left + dc_line * (x_start - x_left);
 
             for(int x = (int)x_start; x < x_end; x++) {
-                float& z_value = z_buffer[x + y * width];
-
-                if(z < z_value) {
-                    /**
-                     * Color values go out of range because both X and Y extremes can actually land outside the
-                     * triangle. This is not the only time colors need to be clamped, so might as well.
-                     */
-                    painter.setPen(clamped_rgb24(color));
-                    painter.drawPoint(x, y);
-                    z_value = z;
-                }
+                put_pixel(painter, x, y, z, color);
 
                 z += dz_line;
                 color += dc_line;
@@ -570,7 +579,8 @@ protected:
                  */
                 const vec3f tri_norm = (b - a).cross(c - a).normalize();
 
-                if(dir_out.dot(tri_norm) >= 0) {
+                // REVIEW: See if this flag check really has no overhead
+                if(state.options.occlusion != wf_state::OCC_NONE && dir_out.dot(tri_norm) >= 0) {
                     continue;
                 }
 
@@ -652,8 +662,10 @@ protected:
 
     void render_triangles(QPainter& painter, QPoint p_cursor)
     {
-        z_buffer.resize(size_t(width * height));
-        std::fill(z_buffer.begin(), z_buffer.end(), MAXFLOAT);
+        if(state.options.occlusion == wf_state::OCC_BFC_ZBUF) {
+            z_buffer.resize(size_t(width * height));
+            std::fill(z_buffer.begin(), z_buffer.end(), MAXFLOAT);
+        }
 
         const mat_sq4f tx_camera = create_tx_camera();
         const mat_sq4f tx_projection = create_tx_projection();
@@ -924,7 +936,7 @@ public:
         painter.drawText(rect, Qt::AlignHCenter | Qt::AlignBottom, object.id.c_str());
 
         if(state.hovering.mode == wf_state::INT_CARRY) {
-            painter.drawText(rect_top, Qt::AlignHCenter | Qt::AlignTop, "Press E to drop");
+            painter.drawText(rect_top, Qt::AlignHCenter | Qt::AlignTop, "Release E to drop");
         }
         else if(state.hovering.mode == wf_state::INT_ROTATE) {
             painter.drawText(rect_top, Qt::AlignHCenter | Qt::AlignTop, "Release F to drop");

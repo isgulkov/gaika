@@ -199,7 +199,7 @@ struct wf_state
     };
 
     struct {
-        occlusion_mode occlusion = OCC_NONE; // TODO: implement
+        occlusion_mode occlusion = OCC_NONE;
         shading_mode shading = SHD_FLAT;
         lighting_mode lighting = LGH_AMBIENT;
     } options;

@@ -152,6 +152,7 @@ class wf_viewer : public QMainWindow
                 (float)(M_PI * 2 / 3), 1, 1.0f, 1000.0f
         };
 
+        state.options.occlusion = wf_state::OCC_BFC_ZBUF;
         state.options.shading = wf_state::SHD_GOURAUD;
 
         state.viewport = { 640, 640, 1 };
