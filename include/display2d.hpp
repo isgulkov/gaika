@@ -665,7 +665,7 @@ protected:
     void render_triangles(QPainter& painter, QPoint p_cursor)
     {
         if(state.options.occlusion == wf_state::OCC_BFC_ZBUF) {
-            z_buffer.resize(size_t(width * height));
+            z_buffer.resize(size_t(width) * size_t(height));
             std::fill(z_buffer.begin(), z_buffer.end(), MAXFLOAT);
         }
 

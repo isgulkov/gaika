@@ -525,7 +525,14 @@ protected:
 
     void wheelEvent(QWheelEvent* event) override
     {
-        if(state.projection.is_perspective()) {
+        if(state.hovering.mode == wf_state::INT_CARRY) {
+            d_carrying *= 1 - event->angleDelta().y() / 1000.0f;
+        }
+        else if(state.hovering.mode == wf_state::INT_ROTATE) {
+            drag_target->scale *= 1 - event->angleDelta().y() / 1000.0f;
+            drag_target->vertices_world.clear();
+        }
+        else if(state.projection.is_perspective()) {
             float theta = state.projection.theta();
 
             theta += event->angleDelta().y() / 1000.f;
