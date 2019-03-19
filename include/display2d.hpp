@@ -861,7 +861,13 @@ public:
         painter.begin(this);
 
         const int scale = state.viewport.scale;
-        painter.drawPixmap(0, 0, state.viewport.width * scale, state.viewport.height * scale, back_buffer);
+        const int w_final = state.viewport.width * scale, h_final = state.viewport.height * scale;
+
+        painter.drawPixmap(0, 0, w_final, h_final, back_buffer);
+
+        // Fill in the gaps which may arise from dimensions not being divisible by canvas size
+        painter.fillRect(0, h_final, width(), height() - h_final, Qt::black);
+        painter.fillRect(w_final, 0, width() - w_final, height(), Qt::black);
 
         draw_hud(painter);
 
@@ -1123,7 +1129,13 @@ public:
         s_text << state.viewport.width << " x " << state.viewport.height;
         painter.drawText(QRect(5, y + 20, 150, 55), Qt::AlignHCenter, text);
 
-        return 45;
+        painter.drawText(QRect(5, y + 40, 150, 55), Qt::AlignLeft, "Downscale factor");
+
+        text = "";
+        s_text << state.viewport.scale;
+        painter.drawText(QRect(5, y + 40, 150, 55), Qt::AlignRight, text);
+
+        return 65;
     }
 
     int draw_geometry_hud(QPainter& painter, int x, int y)
