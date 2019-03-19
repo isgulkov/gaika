@@ -119,7 +119,8 @@ class wf_viewer : public QMainWindow
                 wf_state::th_object(tomato).set_pos({ -45, -30, 5 }).set_scale(0.25f).set_hoverable(true),
                 wf_state::th_object(tomato_smooth).set_pos({ -25, -40, 5 }).set_orient({ float(M_PI) / 2, 0, 0 }).set_scale(0.15f).set_hoverable(true),
                 wf_state::th_object(cubecol).set_pos({ 20, 20, 2.5f }).set_hoverable(true),
-                wf_state::th_object(fish).set_pos({ 20, 50, 5 }).set_orient({ float(M_PI_2), 0, float(M_PI) / 4 }).set_scale(2.0f).set_hoverable(true)
+                wf_state::th_object(fish).set_pos({ 20, 50, 5 }).set_orient({ float(M_PI_2), 0, float(M_PI) / 4 }).set_scale(2.0f).set_hoverable(true),
+                wf_state::th_object(sphere40).set_pos({ -45, -45, 9 }).set_scale(0.1f).set_light({ 100.0f, 0.5f, 0.5f }).set_hoverable(true)
         };
 
         state.lighting.dir_lights.push_back(
@@ -133,13 +134,6 @@ class wf_viewer : public QMainWindow
                 {
                         1.57f, 0.785f,
                         vec3f(1.0f, 1.0f, 0.95f) * .9f
-                }
-        );
-
-        state.lighting.point_lights.push_back(
-                {
-                        { -45, -43, 9 },
-                        { 0.5f, 0.5f, 0.9f }
                 }
         );
 

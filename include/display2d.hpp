@@ -482,8 +482,10 @@ protected:
         }
 
         // TODO: D R Y
-        for(size_t i = 0; i < lighting.point_lights.size(); i++) {
-            const auto& light = state.lighting.point_lights[i];
+        for(const auto& light : state.th_objects) {
+            if(!light.is_point_light) {
+                continue;
+            }
 
             vec3f dir_light = light.pos - pos_world;
             const float d_light = dir_light.norm();
@@ -494,13 +496,13 @@ protected:
             const float attenuation = 1.0f / std::powf(d_light / 2.5f + 1, 2);
 
             // Diffuse component
-            color += mtl.c_diffuse * light.color * std::max(0.0f, dir_light.dot(norm_world)) * attenuation; // TODO: apply attenuation
+            color += mtl.c_diffuse * light.light_color * std::max(0.0f, dir_light.dot(norm_world)) * attenuation; // TODO: apply attenuation
 
             // Specular component
             const vec3f dir_reflected = 2 * (dir_light.dot(norm_world)) * norm_world - dir_light;
             const vec3f dir_camera = (state.camera.pos - pos_world).normalize();
 
-            const vec3f light_specular = mtl.c_specular * std::powf(std::max(0.0f, dir_reflected.dot(dir_camera)), mtl.exp_specular) * light.color;
+            const vec3f light_specular = mtl.c_specular * std::powf(std::max(0.0f, dir_reflected.dot(dir_camera)), mtl.exp_specular) * light.light_color;
 
             color += light_specular * attenuation;
         }

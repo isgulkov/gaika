@@ -115,6 +115,9 @@ struct wf_state
         vec3f orient = { 0, 0, 0 };
         vec3f scale = { 1, 1, 1 };
 
+        bool is_point_light = false;
+        vec3f light_color = { 0, 0, 0 };
+
         th_object& set_id(const std::string new_id) {
             id = new_id; return *this;
         }
@@ -133,6 +136,12 @@ struct wf_state
         th_object& set_hoverable(bool new_hoverable) {
             hoverable = new_hoverable; return *this;
         }
+        th_object& set_light(vec3f color) {
+            is_point_light = true;
+            light_color = color;
+
+            return *this;
+        }
 
         // Cached world-transformed vectors
         mutable std::vector<vec3f> vertices_world;
@@ -150,15 +159,10 @@ struct wf_state
         vec3f color;
     };
 
-    struct point_light_t {
-        vec3f pos, color;
-    };
-
     struct lighting_t {
         vec3f amb_color = { 0.1f, 0.1f, 0.15f };
 
         std::vector<dir_light_t> dir_lights;
-        std::vector<point_light_t> point_lights;
     };
 
     lighting_t lighting;
