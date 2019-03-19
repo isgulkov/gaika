@@ -34,6 +34,7 @@ struct vec3f
     float norm() const;
 
     vec3f& normalize();
+    vec3f normalized() const;
     vec3f unit() const;
 
     vec3f& clamp(float low, float high);

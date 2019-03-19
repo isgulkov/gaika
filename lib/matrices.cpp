@@ -108,6 +108,13 @@ vec3f& vec3f::normalize()
     return n != 0 ? operator*=(1.0f / n) : *this;
 }
 
+vec3f vec3f::normalized() const
+{
+    vec3f v = *this;
+
+    return v.normalize();
+}
+
 vec3f vec3f::unit() const
 {
     const float n = norm();

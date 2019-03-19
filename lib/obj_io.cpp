@@ -109,6 +109,7 @@ std::unordered_map<std::string, material> read_mtllib(const std::string& path)
         }
         else if(first_word == "Ka") {
             mtl.c_ambient = read_color(rest);
+            mtl.has_ambient = true;
         }
         else if(first_word == "Ks") {
             mtl.c_specular = read_color(rest);

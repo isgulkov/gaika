@@ -11,10 +11,13 @@ namespace isg
 {
 struct material
 {
-    vec3f c_ambient = { 1.0f, 1.0f, 1.0f };
-    vec3f c_diffuse = { 1.0f, 1.0f, 1.0f };
-    vec3f c_specular = { 1.0f, 1.0f, 1.0f };
+    // For materials which don't have ambient color specified, diffuse color is used instead.
+    bool has_ambient = false;
+    vec3f c_ambient;
 
+    vec3f c_diffuse = { 1.0f, 1.0f, 1.0f };
+
+    vec3f c_specular = { 0, 0, 0 };
     float exp_specular = 0;
 
     // TODO: corresponding texture maps
@@ -39,6 +42,15 @@ struct model
         face(size_t i_a, size_t i_b, size_t i_c,
              size_t in_a, size_t in_b = SIZE_T_MAX, size_t in_c = SIZE_T_MAX,
              size_t i_mtl = 0) : i_a(i_a), i_b(i_b), i_c(i_c), in_a(in_a), in_b(in_b), in_c(in_c), i_mtl(i_mtl) { }
+
+        std::vector<std::pair<size_t, size_t>> ix_vectors() const
+        {
+            return {
+                    { i_a, in_a },
+                    { i_b, in_b },
+                    { i_c, in_c }
+            };
+        }
     };
 
     std::string name;

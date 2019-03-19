@@ -186,17 +186,22 @@ struct wf_state
                 duck = false;
     } controls;
 
-    enum backface_cull {
-        BFC_DISABLE, BFC_TRANSPARENT, BFC_CULL
+    enum occlusion_mode {
+        OCC_NONE = 0, OCC_BFC, OCC_BFC_ZBUF
     };
 
-    enum shading {
+    enum lighting_mode {
+        LGH_AMBIENT = 0, LGH_DIFFUSE, LGH_SPECULAR
+    };
+
+    enum shading_mode {
         SHD_NONE = 0, SHD_FLAT, SHD_GOURAUD, SHD_PHONG
     };
 
     struct {
-        backface_cull use_backface_cull = BFC_CULL;
-        shading shading = SHD_FLAT;
+        occlusion_mode occlusion = OCC_NONE; // TODO: implement
+        shading_mode shading = SHD_FLAT;
+        lighting_mode lighting = LGH_AMBIENT;
     } options;
 
     enum interaction_mode {

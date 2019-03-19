@@ -75,8 +75,16 @@ class wf_viewer : public QMainWindow
                 obj_io::read_obj_model("../resources/meshes/simple/sphere40.obj")
         );
 
+        std::shared_ptr<const isg::model> sphere200 = std::make_shared<const isg::model>(
+                obj_io::read_obj_model("../resources/meshes/simple/sphere200.obj")
+        );
+
         std::shared_ptr<const isg::model> tomato = std::make_shared<const isg::model>(
                 obj_io::read_obj_model("../resources/meshes/simple/tomato.obj")
+        );
+
+        std::shared_ptr<const isg::model> tomato_smooth = std::make_shared<const isg::model>(
+                obj_io::read_obj_model("../resources/meshes/simple/tomato_smooth.obj")
         );
 
         std::shared_ptr<const isg::model> cubecol = std::make_shared<const isg::model>(
@@ -107,7 +115,9 @@ class wf_viewer : public QMainWindow
                 wf_state::th_object(dodecahedron).set_pos({ 50, -50, 0 }).set_hoverable(true),
                 wf_state::th_object(icosahedron).set_pos({ 60, -40, 0 }).set_hoverable(true),
                 wf_state::th_object(sphere40).set_pos({ 70, -30, 5 }).set_hoverable(true),
+                wf_state::th_object(sphere200).set_pos({ 85, -45, 10 }).set_scale(2).set_hoverable(true),
                 wf_state::th_object(tomato).set_pos({ -45, -30, 5 }).set_scale(0.25f).set_hoverable(true),
+                wf_state::th_object(tomato_smooth).set_pos({ -25, -40, 5 }).set_orient({ float(M_PI) / 2, 0, 0 }).set_scale(0.15f).set_hoverable(true),
                 wf_state::th_object(cubecol).set_pos({ 20, 20, 2.5f }).set_hoverable(true),
                 wf_state::th_object(fish).set_pos({ 20, 50, 5 }).set_orient({ float(M_PI_2), 0, float(M_PI) / 4 }).set_scale(2.0f).set_hoverable(true)
         };
@@ -126,6 +136,13 @@ class wf_viewer : public QMainWindow
                 }
         );
 
+        state.lighting.point_lights.push_back(
+                {
+                        { -45, -43, 9 },
+                        { 0.5f, 0.5f, 0.9f }
+                }
+        );
+
         state.camera = {
 //                { 0, 0, 10 }, { 0, 0, 0 }
                 { -15, 35, 35 }, { float(M_PI) / 4, 0, -float(M_PI) / 4 * 3 }
@@ -134,6 +151,8 @@ class wf_viewer : public QMainWindow
         state.projection = {
                 (float)(M_PI * 2 / 3), 1, 1.0f, 1000.0f
         };
+
+        state.options.shading = wf_state::SHD_GOURAUD;
 
         state.viewport = { 640, 640, 1 };
 //        state.viewport = { 320, 320, 2 };
@@ -391,17 +410,18 @@ protected:
             case Qt::Key_L:
                 state.projection.set_z_far(state.projection.z_far() * 10.0f);
                 return;
-            case Qt::Key_B:
-                switch(state.options.use_backface_cull) {
-                    case wf_state::BFC_DISABLE:
-                        state.options.use_backface_cull = wf_state::BFC_TRANSPARENT;
+            case Qt::Key_C:
+                switch(state.options.occlusion) {
+                    case wf_state::OCC_NONE:
+                        state.options.occlusion = wf_state::OCC_BFC;
                         break;
-                    case wf_state::BFC_TRANSPARENT:
-                        state.options.use_backface_cull = wf_state::BFC_CULL;
+                    case wf_state::OCC_BFC:
+                        state.options.occlusion = wf_state::OCC_BFC_ZBUF;
                         break;
-                    case wf_state::BFC_CULL:
+                    case wf_state::OCC_BFC_ZBUF:
                     default:
-                        state.options.use_backface_cull = wf_state::BFC_DISABLE;
+                        state.options.occlusion = wf_state::OCC_NONE;
+                        break;
                 }
                 return;
             case Qt::Key_V:
@@ -422,8 +442,22 @@ protected:
                         break;
                 }
                 return;
+            case Qt::Key_B:
+                switch(state.options.lighting) {
+                    case wf_state::LGH_AMBIENT:
+                        state.options.lighting = wf_state::LGH_DIFFUSE;
+                        break;
+                    case wf_state::LGH_DIFFUSE:
+                        state.options.lighting = wf_state::LGH_SPECULAR;
+                        break;
+                    case wf_state::LGH_SPECULAR:
+                    default:
+                        state.options.lighting = wf_state::LGH_AMBIENT;
+                        break;
+                }
+                break;
             case Qt::Key_E:
-                if(state.hovering.mode == wf_state::INT_CARRY) {
+                if(state.hovering.mode != wf_state::INT_NONE) {
                     stop_drag();
                 }
                 else if(state.projection.is_perspective() && p_widget->hovered_object) {
@@ -468,6 +502,11 @@ protected:
                 return;
             case Qt::Key_Control:
                 state.controls.duck = false;
+                return;
+            case Qt::Key_E:
+                if(state.hovering.mode != wf_state::INT_NONE) {
+                    stop_drag();
+                }
                 return;
             case Qt::Key_F:
                 if(state.hovering.mode != wf_state::INT_NONE) {

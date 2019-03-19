@@ -207,7 +207,7 @@ def icosahedron(l_edge=None, h_total=None):
 
 
 def sphere_latlong(diameter, n_vertices=None):
-	nvx_lat, nvx_long = 5 + 1, 8
+	nvx_lat, nvx_long = 10 + 1, 20
 	r = diameter / 2
 
 	v_north = np.array([0, 0, r])

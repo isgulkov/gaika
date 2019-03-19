@@ -447,23 +447,189 @@ protected:
 
     std::vector<char> tri_nonorms;
 
-    vec3f calc_light(const isg::material& mtl, const vec3f& norm_world)
+    vec3f calc_light(const isg::material& mtl, const vec3f& norm_world, const vec3f& pos_world)
     {
         const auto& lighting = state.lighting;
 
-        vec3f color = mtl.c_ambient * lighting.amb_color;
+        vec3f color = (mtl.has_ambient ? mtl.c_ambient : mtl.c_diffuse) * lighting.amb_color;
+
+        // TODO: Process state.options.lighting
+        // If ...lighting == ...AMBIENT, return color
 
         for(size_t i = 0; i < lighting.dir_lights.size(); i++) {
             const auto& light = state.lighting.dir_lights[i];
             const vec3f& dir = vx_dir_lights[i];
 
-            color += mtl.c_diffuse * light.color * std::max(dir.dot(norm_world), 0.0f);
-            // TODO: specular
+            // Diffuse component
+            color += mtl.c_diffuse * light.color * std::max(0.0f, dir.dot(norm_world));
+
+            // Specular component
+            const vec3f dir_reflected = 2 * (vx_dir_lights[i].dot(norm_world)) * norm_world - vx_dir_lights[i];
+            const vec3f dir_camera = (state.camera.pos - pos_world).normalize();
+
+            const vec3f light_specular = mtl.c_specular * std::powf(std::max(0.0f, dir_reflected.dot(dir_camera)), mtl.exp_specular) * light.color;
+
+            color += light_specular;
         }
 
-        // TODO: point lights
+        // TODO: D R Y
+        for(size_t i = 0; i < lighting.point_lights.size(); i++) {
+            const auto& light = state.lighting.point_lights[i];
+
+            vec3f dir_light = light.pos - pos_world;
+            const float d_light = dir_light.norm();
+
+            dir_light /= d_light;
+
+            // TODO: Point lights have to have a "radius" parameter (2.5f below)
+            const float attenuation = 1.0f / std::powf(d_light / 2.5f + 1, 2);
+
+            // Diffuse component
+            color += mtl.c_diffuse * light.color * std::max(0.0f, dir_light.dot(norm_world)) * attenuation; // TODO: apply attenuation
+
+            // Specular component
+            const vec3f dir_reflected = 2 * (dir_light.dot(norm_world)) * norm_world - dir_light;
+            const vec3f dir_camera = (state.camera.pos - pos_world).normalize();
+
+            const vec3f light_specular = mtl.c_specular * std::powf(std::max(0.0f, dir_reflected.dot(dir_camera)), mtl.exp_specular) * light.color;
+
+            color += light_specular * attenuation;
+        }
 
         return color.clamp(0, 1);
+    }
+
+    void collect_triangles(const wf_state::th_object& object)
+    {
+        if(object.vertices_world.empty()) {
+            const mat_sq4f rot_world = mx_tx::rotate_xyz(object.orient);
+            const mat_sq4f tx_world = mx_tx::translate(object.pos) * rot_world * mx_tx::scale(object.scale);
+
+            object.vertices_world = tx_world * object.model->vertices;
+            object.normals_world = rot_world * object.model->normals;
+        }
+
+        // TODO: implement occlusion modes
+        {
+            vec3f dir_out;
+
+            if(state.projection.is_parallel()) {
+                dir_out = mx_tx::rotate_xyz(state.camera.orient) * vec3f(0, 0, -1);
+            }
+            else {
+                switch(state.projection.axis()) {
+                    case wf_projection::X:
+                        dir_out = vec3f(-1, 0, 0);
+                        break;
+                    case wf_projection::Y:
+                        dir_out = vec3f(0, -1, 0);
+                        break;
+                    case wf_projection::Z:
+                        dir_out = vec3f(0, 0, -1);
+                        break;
+                }
+            }
+
+            QPen face_pen;
+
+            if(state.projection.is_orthographic()) {
+                if(state.hovering.fixed) {
+                    if(&object == state.hovering.object) {
+                        face_pen.setStyle(Qt::SolidLine);
+                        face_pen.setWidth(2);
+                    }
+                }
+                else if(object.hovered) {
+                    if(state.hovering.limited) {
+                        face_pen.setDashPattern({ 1, 5 });
+                    }
+                    else {
+                        face_pen.setStyle(Qt::DashLine);
+                        face_pen.setWidth(2);
+                    }
+                }
+            }
+
+            if(!state.hovering.fixed) {
+                object.hovered = false;
+            }
+
+            for(const auto& triangle : object.model->faces) {
+                const vec3f& a = object.vertices_world[triangle.i_a],
+                        b = object.vertices_world[triangle.i_b],
+                        c = object.vertices_world[triangle.i_c];
+
+                // TODO: make sure this doesn't break when a model is flipped (scaled by a negative factor)
+                if(state.projection.is_perspective()) {
+                    dir_out = a - state.camera.pos;
+                }
+
+                /**
+                 * Triangles with COUNTERCLOCKWISE order of vertices are considered FRONT-FACING here. This is
+                 * apparently how OpenGL does it by default, so most meshes out there are like this as well.
+                 */
+                const vec3f tri_norm = (b - a).cross(c - a).normalize();
+
+                if(dir_out.dot(tri_norm) >= 0) {
+                    continue;
+                }
+
+                vx_world.push_back(a);
+                vx_world.push_back(b);
+                vx_world.push_back(c);
+
+                const auto& mtl = object.model->materials[triangle.i_mtl];
+
+                if(state.projection.is_orthographic() || state.options.shading == wf_state::SHD_NONE) {
+                    // TODO: Display wireframes with SHD_NONE ()
+                    v_colors.push_back(255 * mtl.c_diffuse);
+                }
+                else if(state.options.shading == wf_state::SHD_FLAT) {
+                    v_colors.push_back(255 * calc_light(mtl, tri_norm, (a + b + c) / 3));
+                }
+                else if(state.options.shading == wf_state::SHD_GOURAUD) {
+                    bool has_norms = false;
+
+                    for(const auto& pv : triangle.ix_vectors()) {
+                        const vec3f& norm_world = pv.second != SIZE_T_MAX ? object.normals_world[pv.second] : tri_norm;
+                        const vec3f& pos_world = object.vertices_world[pv.first];
+
+                        if(pv.second != SIZE_T_MAX) {
+                            has_norms = true;
+                        }
+
+                        v_colors.push_back(255 * calc_light(mtl, norm_world, pos_world));
+                    }
+
+                    /**
+                     * Short circuit models without normals to flat shading, which Gouraud is equivalent to when
+                     * the face normal is used by default.
+                     */
+                    tri_nonorms.push_back(!has_norms);
+                }
+                else if(state.options.shading == wf_state::SHD_PHONG) {
+                    bool has_norms = false;
+
+                    for(const auto& pv : triangle.ix_vectors()) {
+                        if(pv.second != SIZE_T_MAX) {
+                            vns_world.push_back(object.normals_world[pv.second]);
+                            has_norms = true;
+                        }
+                        else {
+                            vns_world.push_back(tri_norm);
+                        }
+                    }
+
+                    tri_nonorms.push_back(!has_norms);
+                }
+
+                px_objects.push_back(&object);
+
+                if(state.projection.is_orthographic()) {
+                    tri_pens.push_back(face_pen);
+                }
+            }
+        }
     }
 
     void collect_triangles()
@@ -474,125 +640,14 @@ protected:
         hovered_multiple = false;
 
         for(const wf_state::th_object& object : state.th_objects) {
-            if(object.vertices_world.empty()) {
-                const mat_sq4f rot_world = mx_tx::rotate_xyz(object.orient);
-                const mat_sq4f tx_world = mx_tx::translate(object.pos) * rot_world * mx_tx::scale(object.scale);
-
-                object.vertices_world = tx_world * object.model->vertices;
-                object.normals_world = rot_world * object.model->normals;
-            }
-
-            if(state.options.use_backface_cull != wf_state::BFC_DISABLE) {
-                vec3f dir_out;
-
-                if(state.projection.is_parallel()) {
-                    dir_out = mx_tx::rotate_xyz(state.camera.orient) * vec3f(0, 0, -1);
-                }
-                else {
-                    switch(state.projection.axis()) {
-                        case wf_projection::X:
-                            dir_out = vec3f(-1, 0, 0);
-                            break;
-                        case wf_projection::Y:
-                            dir_out = vec3f(0, -1, 0);
-                            break;
-                        case wf_projection::Z:
-                            dir_out = vec3f(0, 0, -1);
-                            break;
-                    }
-                }
-
-                QPen face_pen;
-
-                if(state.projection.is_orthographic()) {
-                    if(state.hovering.fixed) {
-                        if(&object == state.hovering.object) {
-                            face_pen.setStyle(Qt::SolidLine);
-                            face_pen.setWidth(2);
-                        }
-                    }
-                    else if(object.hovered) {
-                        if(state.hovering.limited) {
-                            face_pen.setDashPattern({ 1, 5 });
-                        }
-                        else {
-                            face_pen.setStyle(Qt::DashLine);
-                            face_pen.setWidth(2);
-                        }
-                    }
-                }
-
-                if(!state.hovering.fixed) {
-                    object.hovered = false;
-                }
-
-                for(const auto& triangle : object.model->faces) {
-                    const vec3f& a = object.vertices_world[triangle.i_a],
-                            b = object.vertices_world[triangle.i_b],
-                            c = object.vertices_world[triangle.i_c];
-
-                    // TODO: make sure this doesn't break when a model is flipped (scaled by a negative factor)
-                    if(state.projection.is_perspective()) {
-                        dir_out = a - state.camera.pos;
-                    }
-
-                    /**
-                     * Triangles with COUNTERCLOCKWISE order of vertices are considered FRONT-FACING here. This is
-                     * apparently how OpenGL does it by default, so most meshes out there are like this as well.
-                     */
-                    const vec3f tri_norm = (b - a).cross(c - a).normalize();
-
-                    if(dir_out.dot(tri_norm) >= 0) {
-                        continue;
-                    }
-
-                    vx_world.push_back(a);
-                    vx_world.push_back(b);
-                    vx_world.push_back(c);
-
-                    const auto& mtl = object.model->materials[triangle.i_mtl];
-
-                    if(state.projection.is_orthographic() || state.options.shading == wf_state::SHD_NONE) {
-                        v_colors.push_back(255 * mtl.c_diffuse);
-                    }
-                    else if(state.options.shading == wf_state::SHD_FLAT) {
-                        v_colors.push_back(255 * calc_light(mtl, tri_norm));
-                    }
-                    else if(state.options.shading == wf_state::SHD_GOURAUD) {
-                        bool has_norms = false;
-
-                        for(size_t i_norm : { triangle.in_a, triangle.in_b, triangle.in_c }) {
-                            const vec3f* p_norm;
-
-                            if(i_norm != SIZE_T_MAX) {
-                                p_norm = &object.normals_world[i_norm];
-                                has_norms = true;
-                            }
-                            else {
-                                p_norm = &tri_norm;
-                            }
-
-                            v_colors.push_back(255 * calc_light(mtl, *p_norm));
-                        }
-
-                        /**
-                         * Short circuit models without normals to flat shading, which Gouraud is equivalent to when
-                         * the face normal is used by default.
-                         */
-                        tri_nonorms.push_back(!has_norms);
-                    }
-                    else if(state.options.shading == wf_state::SHD_PHONG) {
-                        // ...
-                    }
-
-                    px_objects.push_back(&object);
-
-                    if(state.projection.is_orthographic()) {
-                        tri_pens.push_back(face_pen);
-                    }
-                }
-            }
+            collect_triangles(object);
         }
+
+        /**
+         * TODO: draw light sources
+         *  - point lights must be movable like other objects
+         *  - directional lights must have constant angular size (s.t. you could zoom in on them)
+         */
     }
 
     void render_triangles(QPainter& painter, QPoint p_cursor)
@@ -603,7 +658,13 @@ protected:
         const mat_sq4f tx_camera = create_tx_camera();
         const mat_sq4f tx_projection = create_tx_projection();
 
-        // The clipping is done before the perspective divide to conserve precision.
+        /**
+         * The clipping is done before the perspective divide to conserve precision.
+         *
+         * For each of the 6 planes, go through all the triangles, clipping or discarding ones that have vertices
+         * beyond that plane. If a triangle is culled, mark it (or do all this with the backface culling?), if new
+         * triangles are created, put them at the end of the vector.
+         */
         const std::vector<vec4f> vertices_clipping = tx_projection.mul_homo(tx_camera * vx_world);
 
         std::vector<uint8_t> vertex_outcodes;
@@ -703,8 +764,13 @@ public:
                 if(pos_clip.z > 0) {
                     const vec3f pos_screen = to_screen(pos_clip.to_cartesian());
 
-                    const vec3f color = 255 * light.color;
-                    painter.setPen(QColor(int(color.x), int(color.y), int(color.z)));
+                    const QColor color = {
+                            int(255 * light.color.x),
+                            int(255 * light.color.y),
+                            int(255 * light.color.z)
+                    };
+
+                    painter.setPen(QColor::fromHsl(color.hue(), 255, 128));
 
                     const int d = 1 + int(20 * light.color.norm());
 
@@ -716,6 +782,12 @@ public:
         }
 
         collect_triangles();
+
+        /**
+         * TODO: Test rasterization top-left rule:
+         *  - Create an X formation of four different-colored triangles
+         *  - Rotate camera while looking down onto it against black background
+         */
 
         render_triangles(painter, p_cursor);
     }
@@ -1078,22 +1150,50 @@ public:
         QTextStream s_text(&text);
 
         text = "";
-        s_text << "Backface cull" << '\n' << "Hidden line rem.";
+        s_text << "Occlusion" << '\n' << "Shading" << '\n' << "Lighting";
         painter.drawText(QRect(x, y + 20, 150, 55), Qt::AlignLeft, text);
 
         painter.setPen(Qt::white);
         text = "";
-        switch(state.options.use_backface_cull) {
-            case wf_state::BFC_DISABLE:
-                s_text << "off";
+        switch(state.options.occlusion) {
+            case wf_state::OCC_NONE:
+                s_text << "None";
                 break;
-            case wf_state::BFC_TRANSPARENT:
-                s_text << "ON";
+            case wf_state::OCC_BFC:
+                s_text << "BFC only";
                 break;
-            case wf_state::BFC_CULL:
-                s_text << "HIDE";
+            case wf_state::OCC_BFC_ZBUF:
+                s_text << "Z-buf";
         }
-        s_text << '\n' << "--";
+        s_text << '\n';
+        switch(state.options.shading) {
+            case wf_state::SHD_NONE:
+            default:
+                s_text << "None";
+                break;
+            case wf_state::SHD_FLAT:
+                s_text << "Flat";
+                break;
+            case wf_state::SHD_GOURAUD:
+                s_text << "Gouraud";
+                break;
+            case wf_state::SHD_PHONG:
+                s_text << "Phong";
+                break;
+        }
+        s_text << '\n';
+        switch(state.options.lighting) {
+            case wf_state::LGH_AMBIENT:
+            default:
+                s_text << "None";
+                break;
+            case wf_state::LGH_DIFFUSE:
+                s_text << "Lambert";
+                break;
+            case wf_state::LGH_SPECULAR:
+                s_text << "Phong";
+                break;
+        }
         painter.drawText(QRect(x, y + 20, 150, 55), Qt::AlignRight, text);
 
         return 70;
