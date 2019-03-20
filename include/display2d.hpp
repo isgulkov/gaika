@@ -520,126 +520,123 @@ protected:
             object.normals_world = rot_world * object.model->normals;
         }
 
-        // TODO: implement occlusion modes
-        {
-            vec3f dir_out;
+        vec3f dir_out;
 
-            if(state.projection.is_parallel()) {
-                dir_out = mx_tx::rotate_xyz(state.camera.orient) * vec3f(0, 0, -1);
+        if(state.projection.is_parallel()) {
+            dir_out = mx_tx::rotate_xyz(state.camera.orient) * vec3f(0, 0, -1);
+        }
+        else {
+            switch(state.projection.axis()) {
+                case wf_projection::X:
+                    dir_out = vec3f(-1, 0, 0);
+                    break;
+                case wf_projection::Y:
+                    dir_out = vec3f(0, -1, 0);
+                    break;
+                case wf_projection::Z:
+                    dir_out = vec3f(0, 0, -1);
+                    break;
             }
-            else {
-                switch(state.projection.axis()) {
-                    case wf_projection::X:
-                        dir_out = vec3f(-1, 0, 0);
-                        break;
-                    case wf_projection::Y:
-                        dir_out = vec3f(0, -1, 0);
-                        break;
-                    case wf_projection::Z:
-                        dir_out = vec3f(0, 0, -1);
-                        break;
+        }
+
+        QPen face_pen;
+
+        if(state.projection.is_orthographic()) {
+            if(state.hovering.fixed) {
+                if(&object == state.hovering.object) {
+                    face_pen.setStyle(Qt::SolidLine);
+                    face_pen.setWidth(2);
                 }
             }
-
-            QPen face_pen;
-
-            if(state.projection.is_orthographic()) {
-                if(state.hovering.fixed) {
-                    if(&object == state.hovering.object) {
-                        face_pen.setStyle(Qt::SolidLine);
-                        face_pen.setWidth(2);
-                    }
+            else if(object.hovered) {
+                if(state.hovering.limited) {
+                    face_pen.setDashPattern({ 1, 5 });
                 }
-                else if(object.hovered) {
-                    if(state.hovering.limited) {
-                        face_pen.setDashPattern({ 1, 5 });
-                    }
-                    else {
-                        face_pen.setStyle(Qt::DashLine);
-                        face_pen.setWidth(2);
-                    }
+                else {
+                    face_pen.setStyle(Qt::DashLine);
+                    face_pen.setWidth(2);
                 }
             }
+        }
 
-            if(!state.hovering.fixed) {
-                object.hovered = false;
+        if(!state.hovering.fixed) {
+            object.hovered = false;
+        }
+
+        for(const auto& triangle : object.model->faces) {
+            const vec3f& a = object.vertices_world[triangle.i_a],
+                    b = object.vertices_world[triangle.i_b],
+                    c = object.vertices_world[triangle.i_c];
+
+            // TODO: make sure this doesn't break when a model is flipped (scaled by a negative factor)
+            if(state.projection.is_perspective()) {
+                dir_out = a - state.camera.pos;
             }
 
-            for(const auto& triangle : object.model->faces) {
-                const vec3f& a = object.vertices_world[triangle.i_a],
-                        b = object.vertices_world[triangle.i_b],
-                        c = object.vertices_world[triangle.i_c];
+            /**
+             * Triangles with COUNTERCLOCKWISE order of vertices are considered FRONT-FACING here. This is
+             * apparently how OpenGL does it by default, so most meshes out there are like this as well.
+             */
+            const vec3f tri_norm = (b - a).cross(c - a).normalize();
 
-                // TODO: make sure this doesn't break when a model is flipped (scaled by a negative factor)
-                if(state.projection.is_perspective()) {
-                    dir_out = a - state.camera.pos;
+            // REVIEW: See if this flag check really has no overhead
+            if(state.options.occlusion != wf_state::OCC_NONE && dir_out.dot(tri_norm) >= 0) {
+                continue;
+            }
+
+            vx_world.push_back(a);
+            vx_world.push_back(b);
+            vx_world.push_back(c);
+
+            const auto& mtl = object.model->materials[triangle.i_mtl];
+
+            if(state.projection.is_orthographic() || state.options.shading == wf_state::SHD_NONE) {
+                // TODO: Display wireframes with SHD_NONE ()
+                v_colors.push_back(255 * mtl.c_diffuse);
+            }
+            else if(state.options.shading == wf_state::SHD_FLAT) {
+                v_colors.push_back(255 * calc_light(mtl, tri_norm, (a + b + c) / 3));
+            }
+            else if(state.options.shading == wf_state::SHD_GOURAUD) {
+                bool has_norms = false;
+
+                for(const auto& pv : triangle.ix_vectors()) {
+                    const vec3f& norm_world = pv.second != SIZE_T_MAX ? object.normals_world[pv.second] : tri_norm;
+                    const vec3f& pos_world = object.vertices_world[pv.first];
+
+                    if(pv.second != SIZE_T_MAX) {
+                        has_norms = true;
+                    }
+
+                    v_colors.push_back(255 * calc_light(mtl, norm_world, pos_world));
                 }
 
                 /**
-                 * Triangles with COUNTERCLOCKWISE order of vertices are considered FRONT-FACING here. This is
-                 * apparently how OpenGL does it by default, so most meshes out there are like this as well.
+                 * Short circuit models without normals to flat shading, which Gouraud is equivalent to when
+                 * the face normal is used by default.
                  */
-                const vec3f tri_norm = (b - a).cross(c - a).normalize();
+                tri_nonorms.push_back(!has_norms);
+            }
+            else if(state.options.shading == wf_state::SHD_PHONG) {
+                bool has_norms = false;
 
-                // REVIEW: See if this flag check really has no overhead
-                if(state.options.occlusion != wf_state::OCC_NONE && dir_out.dot(tri_norm) >= 0) {
-                    continue;
-                }
-
-                vx_world.push_back(a);
-                vx_world.push_back(b);
-                vx_world.push_back(c);
-
-                const auto& mtl = object.model->materials[triangle.i_mtl];
-
-                if(state.projection.is_orthographic() || state.options.shading == wf_state::SHD_NONE) {
-                    // TODO: Display wireframes with SHD_NONE ()
-                    v_colors.push_back(255 * mtl.c_diffuse);
-                }
-                else if(state.options.shading == wf_state::SHD_FLAT) {
-                    v_colors.push_back(255 * calc_light(mtl, tri_norm, (a + b + c) / 3));
-                }
-                else if(state.options.shading == wf_state::SHD_GOURAUD) {
-                    bool has_norms = false;
-
-                    for(const auto& pv : triangle.ix_vectors()) {
-                        const vec3f& norm_world = pv.second != SIZE_T_MAX ? object.normals_world[pv.second] : tri_norm;
-                        const vec3f& pos_world = object.vertices_world[pv.first];
-
-                        if(pv.second != SIZE_T_MAX) {
-                            has_norms = true;
-                        }
-
-                        v_colors.push_back(255 * calc_light(mtl, norm_world, pos_world));
+                for(const auto& pv : triangle.ix_vectors()) {
+                    if(pv.second != SIZE_T_MAX) {
+                        vns_world.push_back(object.normals_world[pv.second]);
+                        has_norms = true;
                     }
-
-                    /**
-                     * Short circuit models without normals to flat shading, which Gouraud is equivalent to when
-                     * the face normal is used by default.
-                     */
-                    tri_nonorms.push_back(!has_norms);
-                }
-                else if(state.options.shading == wf_state::SHD_PHONG) {
-                    bool has_norms = false;
-
-                    for(const auto& pv : triangle.ix_vectors()) {
-                        if(pv.second != SIZE_T_MAX) {
-                            vns_world.push_back(object.normals_world[pv.second]);
-                            has_norms = true;
-                        }
-                        else {
-                            vns_world.push_back(tri_norm);
-                        }
+                    else {
+                        vns_world.push_back(tri_norm);
                     }
-
-                    tri_nonorms.push_back(!has_norms);
                 }
 
-                px_objects.push_back(&object);
+                tri_nonorms.push_back(!has_norms);
+            }
 
-                if(state.projection.is_orthographic()) {
-                    tri_pens.push_back(face_pen);
-                }
+            px_objects.push_back(&object);
+
+            if(state.projection.is_orthographic()) {
+                tri_pens.push_back(face_pen);
             }
         }
     }
