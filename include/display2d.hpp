@@ -674,35 +674,22 @@ protected:
         const mat_sq4f tx_projection = create_tx_projection();
 
         /**
-         * The clipping is done before the perspective divide to conserve precision.
-         *
-         * For each of the 6 planes, go through all the triangles, clipping or discarding ones that have vertices
-         * beyond that plane. If a triangle is culled, mark it (or do all this with the backface culling?), if new
-         * triangles are created, put them at the end of the vector.
+         * TODO: Implement proper z-clipping
+         *  - Produce up to three triangles through interpolation (probably on collection stage)
          */
         const std::vector<vec4f> vertices_clipping = tx_projection.mul_homo(tx_camera * vx_world);
 
-        std::vector<uint8_t> vertex_outcodes;
+        std::vector<char> vertex_beyond_near;
+        vertex_beyond_near.reserve(vertices_clipping.size());
 
         for(const vec4f& vertex : vertices_clipping) {
-            uint8_t outcode = 0;
-
-//            outcode |= (vertex.x > vertex.w);
-//            outcode |= (vertex.x < -vertex.w) << 1;
-//            outcode |= (vertex.y > vertex.w) << 2;
-//            outcode |= (vertex.y < -vertex.w) << 3;
-//            outcode |= (vertex.z > vertex.w) << 4;
-            outcode |= (vertex.z < 0) << 5;
-
-            vertex_outcodes.push_back(outcode);
+            vertex_beyond_near.push_back(vertex.z < 0);
         }
-
-        // TODO: Clip faces by interpolating to intersections
 
         const std::vector<vec3f> vertices_screen = mx_tx::scale(width / 2.0f, -height / 2.0f, 1) * mx_tx::translate(1, -1, 0) * vertices_clipping;
 
         for(size_t i = 0; i < vx_world.size(); i += 3) {
-            if(vertex_outcodes[i] || vertex_outcodes[i + 1] || vertex_outcodes[i + 2]) {
+            if(vertex_beyond_near[i] || vertex_beyond_near[i + 1] || vertex_beyond_near[i + 2]) {
                 continue;
             }
 

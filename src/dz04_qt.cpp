@@ -144,6 +144,8 @@ class wf_viewer : public QMainWindow
                 create_light_source({ 100.0f, 0.5f, 0.5f }, 2.5f).set_pos({ -45, -45, 9 })
         };
 
+        // TODO: make light source's surface not depend on lighting when it's on
+
         state.lighting.dir_lights.push_back(
                 {
                         0.77f, 0.357f,
