@@ -239,9 +239,7 @@ private:
     void draw_triangle_flat_top_gouraud(QPainter& painter, vec3f a, vec3f b, vec3f c, vec3f c_a, vec3f c_b, vec3f c_c)
     {
         /**
-         * The 0.5f offset to pixel's y makes all the difference.
-         *
-         * REVIEW: Wut... Also, shouldn't it also apply to y_start on initialization? And x?
+         * The 0.5f offset to pixel coords makes all the difference
          */
 
         const float alpha_left = (c.x - a.x) / (c.y - a.y);
@@ -267,10 +265,10 @@ private:
             const vec3f c_right = (c_b * (c.y - y - 0.5f) + c_c * (y + 0.5f - b.y)) / (c.y - b.y);
 
             const float dz_line = (z_right - z_left) / (x_right - x_left);
-            float z = z_left + dz_line * (x_start - x_left);
+            float z = z_left + dz_line * (x_start + 0.5f - x_left);
 
             const vec3f dc_line = (c_right - c_left) / (x_right - x_left);
-            vec3f color = (c_left * x_right - c_right * x_left) / (x_right - x_left) + x_start * dc_line;
+            vec3f color = (c_left * x_right - c_right * x_left) / (x_right - x_left) + (x_start + 0.5f) * dc_line;
 
             for(int x = x_start; x < x_end; x++) {
                 put_pixel(painter, x, y, z, color);
@@ -310,10 +308,10 @@ private:
             const vec3f c_right = (c_a * (c.y - y - 0.5f) + c_c * (y + 0.5f - a.y)) / (c.y - a.y);
 
             const float dz_line = (z_right - z_left) / (x_right - x_left);
-            float z = z_left + dz_line * (x_start - x_left);
+            float z = z_left + dz_line * (x_start + 0.5f - x_left);
 
             const vec3f dc_line = (c_right - c_left) / (x_right - x_left);
-            vec3f color = (c_left * x_right - c_right * x_left) / (x_right - x_left) + x_start * dc_line;
+            vec3f color = (c_left * x_right - c_right * x_left) / (x_right - x_left) + (x_start + 0.5f) * dc_line;
 
             for(int x = x_start; x < x_end; x++) {
                 put_pixel(painter, x, y, z, color);
@@ -419,10 +417,10 @@ private:
             float z = z_left + dz_line * (x_start + 0.5f - x_left);
 
             const vec3f dn_line = (n_right - n_left) / (x_right - x_left);
-            vec3f norm_world = n_left + dn_line * (x_start - x_left);
+            vec3f norm_world = n_left + dn_line * (x_start + 0.5f - x_left);
 
             const vec3f dw_line = (w_right - w_left) / (x_right - x_left);
-            vec3f pos_world = w_left + dw_line * (x_start - x_left);
+            vec3f pos_world = w_left + dw_line * (x_start + 0.5f - x_left);
 
             for(int x = x_start; x < x_end; x++) {
                 put_pixel(painter, x, y, z, [this, &mtl, &norm_world, &pos_world]() {
@@ -480,13 +478,13 @@ private:
             const int x_end = std::min(width - 1, (int)std::ceil(x_right - 0.5f));
 
             const float dz_line = (z_right - z_left) / (x_right - x_left);
-            float z = z_left + dz_line * (x_start - x_left);
+            float z = z_left + dz_line * (x_start + 0.5f - x_left);
 
             const vec3f dn_line = (n_right - n_left) / (x_right - x_left);
-            vec3f norm_world = n_left + dn_line * (x_start - x_left);
+            vec3f norm_world = n_left + dn_line * (x_start + 0.5f - x_left);
 
             const vec3f dw_line = (w_right - w_left) / (x_right - x_left);
-            vec3f pos_world = w_left + dw_line * (x_start - x_left);
+            vec3f pos_world = w_left + dw_line * (x_start + 0.5f - x_left);
 
             for(int x = x_start; x < x_end; x++) {
                 put_pixel(painter, x, y, z, [this, &mtl, &norm_world, &pos_world]() {
