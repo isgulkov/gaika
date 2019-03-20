@@ -96,6 +96,10 @@ class wf_viewer : public QMainWindow
                 obj_io::read_obj_model("../resources/meshes/simple/sphere200.obj")
         );
 
+        std::shared_ptr<const isg::model> sphere200black = std::make_shared<const isg::model>(
+                obj_io::read_obj_model("../resources/meshes/simple/sphere200black.obj")
+        );
+
         std::shared_ptr<const isg::model> tomato = std::make_shared<const isg::model>(
                 obj_io::read_obj_model("../resources/meshes/simple/tomato.obj")
         );
@@ -137,6 +141,7 @@ class wf_viewer : public QMainWindow
                 wf_state::th_object(icosahedron).set_pos({ 60, -40, 0 }).set_hoverable(true),
                 wf_state::th_object(sphere40).set_pos({ 70, -30, 5 }).set_hoverable(true),
                 wf_state::th_object(sphere200).set_pos({ 85, -45, 10 }).set_scale(2).set_hoverable(true),
+                wf_state::th_object(sphere200black).set_pos({ 85, -75, 10 }).set_scale(2).set_hoverable(true),
                 wf_state::th_object(tomato).set_pos({ -45, -30, 5 }).set_scale(0.25f).set_hoverable(true),
                 wf_state::th_object(tomato_smooth).set_pos({ -25, -40, 5 }).set_orient({ float(M_PI) / 2, 0, 0 }).set_scale(0.15f).set_hoverable(true),
                 wf_state::th_object(cubecol).set_pos({ 20, 20, 2.5f }).set_hoverable(true),
