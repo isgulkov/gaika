@@ -177,10 +177,7 @@ class wf_viewer : public QMainWindow
 //        state.viewport = { 320, 320, 2 };
 
         // REMOVE:
-        state.perf_stats.n = 7709;
-        state.perf_stats.sum_frame = 89789.109f;
-        state.perf_stats.sum_transform = 67899.79f;
-        state.perf_stats.sum_lines = 10990.88f;
+        state.perf_stats.t_frame_avg = 0;
     }
 
 public:
@@ -207,6 +204,10 @@ public:
 
         new QShortcut(QKeySequence::StandardKey::Close, this, SLOT(close()));
 
+        for(float& t : frame_times) {
+            t = 0;
+        }
+
         last_tick_end.start();
         last_update.start();
         QTimer::singleShot(0, this, &wf_viewer::tick);
@@ -216,6 +217,9 @@ public:
 
     QElapsedTimer last_tick_end, last_update;
 
+    std::array<float, 60> frame_times;
+    int i_frame_time = 0;
+
 public slots:
     void tick()
     {
@@ -224,6 +228,10 @@ public slots:
          */
         const float sec_since_update = last_update.elapsed() / 1000.0f;
         last_update.restart();
+
+        i_frame_time = (i_frame_time + 1) % (int)frame_times.size();
+        state.perf_stats.t_frame_avg -= frame_times[i_frame_time] / frame_times.size();
+        state.perf_stats.t_frame_avg += (frame_times[i_frame_time] = sec_since_update) / frame_times.size();
 
         if(freelook_on) {
             /**

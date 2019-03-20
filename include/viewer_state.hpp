@@ -224,8 +224,7 @@ struct wf_state
     } hovering;
 
     struct {
-        int n = 0;
-        float sum_frame = 0, sum_transform = 0, sum_lines = 0;
+        float t_frame_avg;
     } perf_stats;
 };
 

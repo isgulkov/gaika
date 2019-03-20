@@ -852,7 +852,7 @@ public:
             hud_viewport = false,
             hud_geometry = false,
             hud_render_options = true,
-            hud_performance = false;
+            hud_performance = true;
 
 public:
     const wf_state::th_object* hovered_object;
@@ -1251,29 +1251,14 @@ public:
 
         painter.drawText(QRect(x, y, 150, 55), Qt::AlignHCenter, "Performance");
 
-        QString text;
+        painter.drawText(QRect(x, y + 20, 150, 55), Qt::AlignLeft, "FPS:");
 
+        QString text;
         QTextStream s_text(&text);
         s_text.setRealNumberNotation(QTextStream::RealNumberNotation::FixedNotation);
         s_text.setRealNumberPrecision(2);
-
-        painter.drawText(QRect(x, y + 20, 150, 55), Qt::AlignLeft, "FRAME:");
-
-        text = "";
-        s_text << state.perf_stats.sum_frame / state.perf_stats.n << " ms";
+        s_text << (1.0f / state.perf_stats.t_frame_avg);
         painter.drawText(QRect(x, y + 20, 150, 55), Qt::AlignRight, text);
-
-        painter.setPen(QColor::fromRgb(180, 180, 180));
-
-        text = "";
-        s_text << "Update:" << '\n' << "Vertices:" << '\n' << "Lines:";
-        painter.drawText(QRect(x, y + 35, 150, 55), Qt::AlignLeft, text);
-
-        text = "";
-        s_text << "0.00 ms" << '\n'
-               << state.perf_stats.sum_transform / state.perf_stats.n << " ms" << '\n'
-               << state.perf_stats.sum_lines / state.perf_stats.n << " ms";
-        painter.drawText(QRect(x, y + 35, 150, 55), Qt::AlignRight, text);
 
         return y + 35;
     }
