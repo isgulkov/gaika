@@ -238,6 +238,12 @@ protected:
 private:
     void draw_triangle_flat_top_gouraud(QPainter& painter, vec3f a, vec3f b, vec3f c, vec3f c_a, vec3f c_b, vec3f c_c)
     {
+        /**
+         * The 0.5f offset to pixel's y makes all the difference.
+         *
+         * REVIEW: Wut... Also, shouldn't it also apply to y_start on initialization? And x?
+         */
+
         const float alpha_left = (c.x - a.x) / (c.y - a.y);
         const float alpha_right = (c.x - b.x) / (c.y - b.y);
 
@@ -257,17 +263,12 @@ private:
             const int x_start = std::max(0, (int)std::ceil(x_left - 0.5f));
             const int x_end = std::min(width - 1, (int)std::ceil(x_right - 0.5f));
 
-            const vec3f c_left = (c_a * (c.y - y) + c_c * (y - a.y)) / (c.y - a.y);
-            const vec3f c_right = (c_b * (c.y - y) + c_c * (y - b.y)) / (c.y - b.y);
+            const vec3f c_left = (c_a * (c.y - y - 0.5f) + c_c * (y + 0.5f - a.y)) / (c.y - a.y);
+            const vec3f c_right = (c_b * (c.y - y - 0.5f) + c_c * (y + 0.5f - b.y)) / (c.y - b.y);
 
             const float dz_line = (z_right - z_left) / (x_right - x_left);
             float z = z_left + dz_line * (x_start - x_left);
 
-            /**
-             * I've expanded this from the regular interpolation formula; seems to work just like it
-             *
-             * TODO: do the same for c_left and c_right
-             */
             const vec3f dc_line = (c_right - c_left) / (x_right - x_left);
             vec3f color = (c_left * x_right - c_right * x_left) / (x_right - x_left) + x_start * dc_line;
 
@@ -305,8 +306,8 @@ private:
             const int x_start = std::max(0, (int)std::ceil(x_left - 0.5f));
             const int x_end = std::min(width - 1, (int)std::ceil(x_right - 0.5f));
 
-            const vec3f c_left = (c_a * (b.y - y) + c_b * (y - a.y)) / (b.y - a.y);
-            const vec3f c_right = (c_a * (c.y - y) + c_c * (y - a.y)) / (c.y - a.y);
+            const vec3f c_left = (c_a * (b.y - y - 0.5f) + c_b * (y + 0.5f - a.y)) / (b.y - a.y);
+            const vec3f c_right = (c_a * (c.y - y - 0.5f) + c_c * (y + 0.5f - a.y)) / (c.y - a.y);
 
             const float dz_line = (z_right - z_left) / (x_right - x_left);
             float z = z_left + dz_line * (x_start - x_left);
@@ -330,10 +331,6 @@ private:
 protected:
     void draw_triangle_gouraud(QPainter& painter, vec3f a, vec3f b, vec3f c, vec3f c_a, vec3f c_b, vec3f c_c)
     {
-        /**
-         * TODO: Consider perspective correction during interpolation (here and in Phong)
-         */
-
         // Sort: `a` at the top, `c` at the bottom
         if(a.y > b.y) {
             std::swap(a, b);
@@ -402,14 +399,14 @@ private:
         const int y_start = std::max(0, (int)std::ceil(a.y - 0.5f));
         const int y_end = std::min(height - 1, (int)std::ceil(c.y - 0.5f));
 
-        float z_left = a.z + dz_left * (y_start - a.y);
-        float z_right = b.z + dz_right * (y_start - b.y);
+        float z_left = a.z + dz_left * (y_start + 0.5f - a.y);
+        float z_right = b.z + dz_right * (y_start + 0.5f - b.y);
 
-        vec3f n_left = n_a + dn_left * (y_start - a.y);
-        vec3f n_right = n_b + dn_right * (y_start - b.y);
+        vec3f n_left = n_a + dn_left * (y_start + 0.5f - a.y);
+        vec3f n_right = n_b + dn_right * (y_start + 0.5f - b.y);
 
-        vec3f w_left = w_a + dw_left * (y_start - a.y);
-        vec3f w_right = w_b + dw_right * (y_start - b.y);
+        vec3f w_left = w_a + dw_left * (y_start + 0.5f - a.y);
+        vec3f w_right = w_b + dw_right * (y_start + 0.5f - b.y);
 
         for(int y = y_start; y < y_end; y++) {
             const float x_left = a.x + alpha_left * (y - a.y + 0.5f);
@@ -419,7 +416,7 @@ private:
             const int x_end = std::min(width - 1, (int)std::ceil(x_right - 0.5f));
 
             const float dz_line = (z_right - z_left) / (x_right - x_left);
-            float z = z_left + dz_line * (x_start - x_left);
+            float z = z_left + dz_line * (x_start + 0.5f - x_left);
 
             const vec3f dn_line = (n_right - n_left) / (x_right - x_left);
             vec3f norm_world = n_left + dn_line * (x_start - x_left);
@@ -466,14 +463,14 @@ private:
         const int y_start = std::max(0, (int)std::ceil(a.y - 0.5f));
         const int y_end = std::min(height - 1, (int)std::ceil(c.y - 0.5f));
 
-        float z_left = a.z + dz_left * (y_start - a.y);
-        float z_right = a.z + dz_right * (y_start - a.y);
+        float z_left = a.z + dz_left * (y_start + 0.5f - a.y);
+        float z_right = a.z + dz_right * (y_start + 0.5f - a.y);
 
-        vec3f n_left = n_a + dn_left * (y_start - a.y);
-        vec3f n_right = n_a + dn_right * (y_start - a.y);
+        vec3f n_left = n_a + dn_left * (y_start + 0.5f - a.y);
+        vec3f n_right = n_a + dn_right * (y_start + 0.5f - a.y);
 
-        vec3f w_left = w_a + dw_left * (y_start - a.y);
-        vec3f w_right = w_a + dw_right * (y_start - a.y);
+        vec3f w_left = w_a + dw_left * (y_start + 0.5f - a.y);
+        vec3f w_right = w_a + dw_right * (y_start + 0.5f - a.y);
 
         for(int y = y_start; y < y_end; y++) {
             const float x_left = a.x + alpha_left * (y - a.y + 0.5f);
@@ -708,7 +705,7 @@ protected:
             const float attenuation = 1.0f / std::powf(d_light / (object.scale.z / 2) + 1, 2);
 
             // Diffuse component
-            color += mtl.c_diffuse * object.light.color * std::max(0.0f, dir_light.dot(norm_world)) * attenuation; // TODO: apply attenuation
+            color += mtl.c_diffuse * object.light.color * std::max(0.0f, dir_light.dot(norm_world)) * attenuation;
 
             // Specular component
             if(state.options.lighting == wf_state::LGH_SPECULAR) {
