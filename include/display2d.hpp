@@ -48,11 +48,6 @@ public:
     render3d(const wf_state& state) : state(state),
                                       width(state.viewport.width), height(state.viewport.height) { }
 
-    static void draw_line(QPainter& painter, vec3f a, vec3f b)
-    {
-        painter.drawLine((int)a.x, (int)a.y, (int)b.x, (int)b.y);
-    }
-
     static QColor clamped_rgb24(const vec3f& color)
     {
         const vec3f c = color.clamped(0, 256);
@@ -86,6 +81,15 @@ public:
 
             z_value = z;
         }
+    }
+
+    void draw_line(QPainter& painter, vec3f a, vec3f b)
+    {
+        /**
+         * TODO: Bresenham over Z-buffer
+         */
+
+        painter.drawLine(int(a.x), int(a.y), int(b.x), int(b.y));
     }
 
     inline void put_pixel(QPainter& painter, int x, int y, float z, const vec3f& color)
@@ -240,14 +244,8 @@ private:
         const float dz_left = (c.z - a.z) / (c.y - a.y);
         const float dz_right = (c.z - b.z) / (c.y - b.y);
 
-        const vec3f dc_left = (c_c - c_a) / (c.y - a.y);
-        const vec3f dc_right = (c_c - c_b) / (c.y - b.y);
-
         const int y_start = std::max(0, (int)std::ceil(a.y - 0.5f));
         const int y_end = std::min(height - 1, (int)std::ceil(c.y - 0.5f));
-
-        vec3f c_left = c_a + dc_left * (y_start - a.y);
-        vec3f c_right = c_b + dc_right * (y_start - b.y);
 
         float z_left = a.z + dz_left * (y_start - a.y);
         float z_right = b.z + dz_right * (y_start - b.y);
@@ -259,48 +257,46 @@ private:
             const int x_start = std::max(0, (int)std::ceil(x_left - 0.5f));
             const int x_end = std::min(width - 1, (int)std::ceil(x_right - 0.5f));
 
+            const vec3f c_left = (c_a * (c.y - y) + c_c * (y - a.y)) / (c.y - a.y);
+            const vec3f c_right = (c_b * (c.y - y) + c_c * (y - b.y)) / (c.y - b.y);
+
             const float dz_line = (z_right - z_left) / (x_right - x_left);
             float z = z_left + dz_line * (x_start - x_left);
 
+            /**
+             * I've expanded this from the regular interpolation formula; seems to work just like it
+             *
+             * TODO: do the same for c_left and c_right
+             */
             const vec3f dc_line = (c_right - c_left) / (x_right - x_left);
-            vec3f color = c_left + dc_line * (x_start - x_left);
+            vec3f color = (c_left * x_right - c_right * x_left) / (x_right - x_left) + x_start * dc_line;
 
             for(int x = x_start; x < x_end; x++) {
                 put_pixel(painter, x, y, z, color);
 
                 z += dz_line;
+
                 color += dc_line;
             }
 
             z_left += dz_left;
             z_right += dz_right;
-
-            c_left += dc_left;
-            c_right += dc_right;
         }
     }
 
     void draw_triangle_flat_bottom_gouraud(QPainter& painter, vec3f a, vec3f b, vec3f c, vec3f c_a, vec3f c_b, vec3f c_c)
     {
-        // TODO: refactor commonalities out of ..._top and ..._bottom
-
         const float alpha_left = (b.x - a.x) / (b.y - a.y);
         const float alpha_right = (c.x - a.x) / (c.y - a.y);
 
         const float dz_left = (b.z - a.z) / (b.y - a.y);
         const float dz_right = (c.z - a.z) / (c.y - a.y);
 
-        const vec3f dc_left = (c_b - c_a) / (b.y - a.y);
-        const vec3f dc_right = (c_c - c_a) / (c.y - a.y);
-
         const int y_start = std::max(0, (int)std::ceil(a.y - 0.5f));
         const int y_end = std::min(height - 1, (int)std::ceil(c.y - 0.5f));
 
         float z_left = a.z + dz_left * (y_start - a.y);
         float z_right = a.z + dz_right * (y_start - a.y);
-
-        vec3f c_left = c_a + dc_left * (y_start - a.y);
-        vec3f c_right = c_a + dc_right * (y_start - a.y);
 
         for(int y = y_start; y < y_end; y++) {
             const float x_left = a.x + alpha_left * (y + 0.5f - a.y);
@@ -309,30 +305,35 @@ private:
             const int x_start = std::max(0, (int)std::ceil(x_left - 0.5f));
             const int x_end = std::min(width - 1, (int)std::ceil(x_right - 0.5f));
 
+            const vec3f c_left = (c_a * (b.y - y) + c_b * (y - a.y)) / (b.y - a.y);
+            const vec3f c_right = (c_a * (c.y - y) + c_c * (y - a.y)) / (c.y - a.y);
+
             const float dz_line = (z_right - z_left) / (x_right - x_left);
             float z = z_left + dz_line * (x_start - x_left);
 
             const vec3f dc_line = (c_right - c_left) / (x_right - x_left);
-            vec3f color = c_left + dc_line * (x_start - x_left);
+            vec3f color = (c_left * x_right - c_right * x_left) / (x_right - x_left) + x_start * dc_line;
 
             for(int x = x_start; x < x_end; x++) {
                 put_pixel(painter, x, y, z, color);
 
                 z += dz_line;
+
                 color += dc_line;
             }
 
             z_left += dz_left;
             z_right += dz_right;
-
-            c_left += dc_left;
-            c_right += dc_right;
         }
     }
 
 protected:
     void draw_triangle_gouraud(QPainter& painter, vec3f a, vec3f b, vec3f c, vec3f c_a, vec3f c_b, vec3f c_c)
     {
+        /**
+         * TODO: Consider perspective correction during interpolation (here and in Phong)
+         */
+
         // Sort: `a` at the top, `c` at the bottom
         if(a.y > b.y) {
             std::swap(a, b);
