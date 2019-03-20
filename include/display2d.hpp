@@ -658,6 +658,7 @@ protected:
     std::vector<const wf_state::th_object*> px_objects;
     std::vector<QPen> tri_pens;
 
+    std::vector<char> tri_ignorelighing;
     std::vector<char> tri_nonorms;
     std::vector<const isg::material*> tri_mtls;
 
@@ -665,7 +666,7 @@ protected:
 
     vec3f calc_light(const isg::material& mtl, const vec3f& norm_world, const vec3f& pos_world)
     {
-        if(state.options.lighting == wf_state::LGH_AMBIENT) {
+        if(state.options.lighting == wf_state::LGH_AMBIENT || mtl.ignore_lighting) {
             return mtl.c_diffuse;
         }
 
@@ -676,16 +677,16 @@ protected:
         // TODO: Process state.options.lighting
         // If ...lighting == ...AMBIENT, return color
 
-        for(size_t i = 0; i < lighting.dir_lights.size(); i++) {
-            const auto& light = state.lighting.dir_lights[i];
-            const vec3f& dir = vx_dir_lights[i];
+        for(const auto p_dir_light : px_dir_lights) {
+            const auto& light = p_dir_light->light;
+            const vec3f& dir = light.dir;
 
             // Diffuse component
             color += mtl.c_diffuse * light.color * std::max(0.0f, dir.dot(norm_world));
 
             // Specular component
             if(state.options.lighting == wf_state::LGH_SPECULAR) {
-                const vec3f dir_reflected = 2 * (vx_dir_lights[i].dot(norm_world)) * norm_world - vx_dir_lights[i];
+                const vec3f dir_reflected = 2 * (dir.dot(norm_world)) * norm_world - dir;
                 const vec3f dir_camera = (state.camera.pos - pos_world).normalize();
 
                 const vec3f light_specular = mtl.c_specular * std::powf(std::max(0.0f, dir_reflected.dot(dir_camera)), mtl.exp_specular) * light.color;
@@ -695,28 +696,26 @@ protected:
         }
 
         // TODO: D R Y
-        for(const auto& light : state.th_objects) {
-            if(!light.is_point_light) {
-                continue;
-            }
+        for(const auto p_point_light : px_point_lights) {
+            const auto& object = *p_point_light;
 
-            vec3f dir_light = light.pos - pos_world;
+            vec3f dir_light = object.pos - pos_world;
             const float d_light = dir_light.norm();
 
             dir_light /= d_light;
 
             // Point lights have to have a "radius" parameter, for which just half the height is used
-            const float attenuation = 1.0f / std::powf(d_light / (light.scale.z / 2) + 1, 2);
+            const float attenuation = 1.0f / std::powf(d_light / (object.scale.z / 2) + 1, 2);
 
             // Diffuse component
-            color += mtl.c_diffuse * light.light_color * std::max(0.0f, dir_light.dot(norm_world)) * attenuation; // TODO: apply attenuation
+            color += mtl.c_diffuse * object.light.color * std::max(0.0f, dir_light.dot(norm_world)) * attenuation; // TODO: apply attenuation
 
             // Specular component
             if(state.options.lighting == wf_state::LGH_SPECULAR) {
                 const vec3f dir_reflected = 2 * (dir_light.dot(norm_world)) * norm_world - dir_light;
                 const vec3f dir_camera = (state.camera.pos - pos_world).normalize();
 
-                const vec3f light_specular = mtl.c_specular * std::powf(std::max(0.0f, dir_reflected.dot(dir_camera)), mtl.exp_specular) * light.light_color;
+                const vec3f light_specular = mtl.c_specular * std::powf(std::max(0.0f, dir_reflected.dot(dir_camera)), mtl.exp_specular) * object.light.color;
 
                 color += light_specular * attenuation;
             }
@@ -727,6 +726,10 @@ protected:
 
     void collect_triangles(const wf_state::th_object& object)
     {
+        if(object.is_light_source && object.light.is_directional && !state.projection.is_perspective()) {
+            return;
+        }
+
         if(object.vertices_world.empty()) {
             const mat_sq4f rot_world = mx_tx::rotate_xyz(object.orient);
             const mat_sq4f tx_world = mx_tx::translate(object.pos) * rot_world * mx_tx::scale(object.scale);
@@ -922,7 +925,6 @@ protected:
 
                 painter.setOpacity(state.options.occlusion != wf_state::OCC_NONE && tri_backface[i / 3] ? 0.25f : 1.0f);
 
-                // TODO: Bresenham over Z-buffer
                 draw_line(painter, a, b);
                 draw_line(painter, a, c);
                 draw_line(painter, b, c);
@@ -984,7 +986,8 @@ protected:
         }
     }
 
-    std::vector<vec3f> vx_dir_lights;
+    std::vector<const wf_state::th_object*> px_point_lights;
+    std::vector<const wf_state::th_object*> px_dir_lights;
 
 public:
     void render(QPainter& painter, QPoint p_cursor)
@@ -1004,33 +1007,26 @@ public:
         const mat_sq4f tx_camera = create_tx_camera();
         const mat_sq4f tx_projection = create_tx_projection();
 
-        vx_dir_lights.clear();
+        px_point_lights.clear();
+        px_dir_lights.clear();
 
-        for(const auto& light : state.lighting.dir_lights) {
-            const vec3f dir = mx_tx::rotate_z(-light.azimuth) * mx_tx::rotate_y(-light.altitude) * vec3f(1, 0, 0);
-
-            // TODO: draw as objects (s.t. apparent size depends on FOV)
-            if(state.projection.is_perspective()) {
-                const vec4f pos_clip = tx_projection.mul_homo(tx_camera * ((dir * 50.0f) + state.camera.pos));
-
-                if(pos_clip.z > 0) {
-                    const vec3f pos_screen = to_screen(pos_clip.to_cartesian());
-
-                    const QColor color = {
-                            int(255 * light.color.x),
-                            int(255 * light.color.y),
-                            int(255 * light.color.z)
-                    };
-
-                    painter.setPen(QColor::fromHsl(color.hue(), 255, 128));
-
-                    const int d = 1 + int(20 * light.color.norm());
-
-                    painter.drawEllipse((int)pos_screen.x - 10, (int)pos_screen.y - 10, d, d);
-                }
+        for(const auto& object : state.th_objects) {
+            if(!object.is_light_source) {
+                continue;
             }
 
-            vx_dir_lights.push_back(dir);
+            const auto& light = object.light;
+
+            if(!light.on) {
+                continue;
+            }
+
+            if(light.is_directional) {
+                px_dir_lights.push_back(&object);
+            }
+            else {
+                px_point_lights.push_back(&object);
+            }
         }
 
         collect_triangles();

@@ -102,6 +102,30 @@ struct wf_state
      * display2d. Inputs are to be processed right in this class, or something.
      */
 
+    struct light_source_t {
+        bool is_directional;
+
+        vec3f dir, dr_dir;
+
+        vec3f color;
+
+        bool on;
+
+        static light_source_t point(const vec3f& color)
+        {
+            return {
+                    false, vec3f(), vec3f(), color, true
+            };
+        }
+
+        static light_source_t directional(const vec3f& dir, const vec3f& dr_dir, const vec3f& color)
+        {
+            return {
+                    true, dir.normalized(), dr_dir, color, true
+            };
+        }
+    };
+
     struct th_object {
         std::string id;
         std::shared_ptr<const isg::model> model;
@@ -115,8 +139,8 @@ struct wf_state
         vec3f orient = { 0, 0, 0 };
         vec3f scale = { 1, 1, 1 };
 
-        bool is_point_light = false;
-        vec3f light_color = { 0, 0, 0 };
+        bool is_light_source = false;
+        light_source_t light;
 
         th_object& set_id(const std::string new_id) {
             id = new_id; return *this;
@@ -136,9 +160,9 @@ struct wf_state
         th_object& set_hoverable(bool new_hoverable) {
             hoverable = new_hoverable; return *this;
         }
-        th_object& set_light(vec3f color) {
-            is_point_light = true;
-            light_color = color;
+        th_object& set_light_source(light_source_t source) {
+            is_light_source = true;
+            light = source;
 
             return *this;
         }
@@ -153,16 +177,8 @@ struct wf_state
 
     std::vector<th_object> th_objects;
 
-    struct dir_light_t {
-        float azimuth, altitude;
-
-        vec3f color;
-    };
-
     struct lighting_t {
         vec3f amb_color = { 0.1f, 0.1f, 0.15f };
-
-        std::vector<dir_light_t> dir_lights;
     };
 
     lighting_t lighting;

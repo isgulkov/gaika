@@ -26,7 +26,7 @@ class wf_viewer : public QMainWindow
 
     int i_light = 0;
 
-    wf_state::th_object create_light_source(const vec3f& color, float d)
+    wf_state::th_object create_point_source(const vec3f& color, float d)
     {
         auto model = isg::obj_io::read_obj_model("../resources/meshes/lightbulb.obj");
 
@@ -35,10 +35,38 @@ class wf_viewer : public QMainWindow
         for(auto& mat : model.materials) {
             if(mat.c_diffuse == vec3f(1, 1, 1)) {
                 mat.c_diffuse = mat.c_ambient = color_bulb;
+                mat.ignore_lighting = true;
             }
         }
 
-        return wf_state::th_object(std::make_shared<const isg::model>(model)).set_scale(d).set_light(color).set_id("LightSource" + std::to_string(i_light++)).set_hoverable(true);
+        return wf_state::th_object(
+                std::make_shared<const isg::model>(model))
+                .set_scale(d)
+                .set_light_source(wf_state::light_source_t::point(color))
+                .set_id("PointLight" + std::to_string(i_light++)
+                ).set_hoverable(true);
+    }
+
+    wf_state::th_object create_directional_source(const vec3f& color, const vec3f& orient, const vec3f& d_orient)
+    {
+        auto model = isg::obj_io::read_obj_model("../resources/meshes/sun.obj");
+
+        const vec3f color_bulb = color / std::max(color.x, std::max(color.y, color.z));
+
+        for(auto& mat : model.materials) {
+            if(mat.c_diffuse == vec3f(1, 1, 1)) {
+                mat.c_diffuse = mat.c_ambient = color_bulb;
+                mat.ignore_lighting = true;
+            }
+        }
+
+        return wf_state::th_object(
+                std::make_shared<const isg::model>(model))
+                .set_scale(std::sqrt(color.norm()) * 2.5f)
+                .set_pos({0, 0, -10000})
+                .set_light_source(wf_state::light_source_t::directional(orient, d_orient, color))
+                .set_id("DirLight" + std::to_string(i_light++)
+                ).set_hoverable(true);
     }
 
     void init_state()
@@ -126,44 +154,32 @@ class wf_viewer : public QMainWindow
 
         // TODO: shift mesh coords to center of mass (?) on load
         state.th_objects = std::vector<wf_state::th_object> {
-                wf_state::th_object(flattrn).set_scale(2.5f),
-                wf_state::th_object(fat).set_id("Fat NW").set_pos({ 3, -3, 0.25f }).set_orient({ 0, 0, 0.1f }).set_scale(0.25f).set_hoverable(true),
-                wf_state::th_object(fat).set_id("Fat SW").set_pos({ -4, -4, 0.5f }).set_orient({ 0, 0, 0.2f }).set_hoverable(true),
-                wf_state::th_object(fat).set_id("Fat SE").set_pos({ -5, 5, 0.75f }).set_orient({ 0, 0, 0.3f }).set_scale(1.25f).set_hoverable(true),
-                wf_state::th_object(fat).set_id("Fat NE").set_pos({ 7.5f, 7.5f, 0 }).set_orient({ 0, 0, 0.4f }).set_scale({ 1.5f, 1.5f, 0.9f }).set_hoverable(true),
-                wf_state::th_object(skinny),
-                wf_state::th_object(skinny).set_orient({ 0, 0, 1.57f }),
-                wf_state::th_object(skinny).set_orient({ 0, -1.57f, 0 }),
-                wf_state::th_object(tetrahedron).set_pos({ 20, -80, 0 }).set_hoverable(true),
-                wf_state::th_object(hexahedron).set_pos({ 30, -70, 0 }).set_hoverable(true),
-                wf_state::th_object(octahedron).set_pos({ 40, -60, 0 }).set_hoverable(true),
-                wf_state::th_object(dodecahedron).set_pos({ 50, -50, 0 }).set_hoverable(true),
-                wf_state::th_object(icosahedron).set_pos({ 60, -40, 0 }).set_hoverable(true),
+//                wf_state::th_object(flattrn).set_scale(2.5f),
+//                wf_state::th_object(fat).set_id("Fat NW").set_pos({ 3, -3, 0.25f }).set_orient({ 0, 0, 0.1f }).set_scale(0.25f).set_hoverable(true),
+//                wf_state::th_object(fat).set_id("Fat SW").set_pos({ -4, -4, 0.5f }).set_orient({ 0, 0, 0.2f }).set_hoverable(true),
+//                wf_state::th_object(fat).set_id("Fat SE").set_pos({ -5, 5, 0.75f }).set_orient({ 0, 0, 0.3f }).set_scale(1.25f).set_hoverable(true),
+//                wf_state::th_object(fat).set_id("Fat NE").set_pos({ 7.5f, 7.5f, 0 }).set_orient({ 0, 0, 0.4f }).set_scale({ 1.5f, 1.5f, 0.9f }).set_hoverable(true),
+//                wf_state::th_object(skinny),
+//                wf_state::th_object(skinny).set_orient({ 0, 0, 1.57f }),
+//                wf_state::th_object(skinny).set_orient({ 0, -1.57f, 0 }),
+//                wf_state::th_object(tetrahedron).set_pos({ 20, -80, 0 }).set_hoverable(true),
+//                wf_state::th_object(hexahedron).set_pos({ 30, -70, 0 }).set_hoverable(true),
+//                wf_state::th_object(octahedron).set_pos({ 40, -60, 0 }).set_hoverable(true),
+//                wf_state::th_object(dodecahedron).set_pos({ 50, -50, 0 }).set_hoverable(true),
+//                wf_state::th_object(icosahedron).set_pos({ 60, -40, 0 }).set_hoverable(true),
                 wf_state::th_object(sphere40).set_pos({ 70, -30, 5 }).set_hoverable(true),
-                wf_state::th_object(sphere200).set_pos({ 85, -45, 10 }).set_scale(2).set_hoverable(true),
-                wf_state::th_object(sphere200black).set_pos({ 85, -75, 10 }).set_scale(2).set_hoverable(true),
-                wf_state::th_object(tomato).set_pos({ -45, -30, 5 }).set_scale(0.25f).set_hoverable(true),
-                wf_state::th_object(tomato_smooth).set_pos({ -25, -40, 5 }).set_orient({ float(M_PI) / 2, 0, 0 }).set_scale(0.15f).set_hoverable(true),
-                wf_state::th_object(cubecol).set_pos({ 20, 20, 2.5f }).set_hoverable(true),
-                wf_state::th_object(fish).set_pos({ 20, 50, 5 }).set_orient({ float(M_PI_2), 0, float(M_PI) / 4 }).set_scale(2.0f).set_hoverable(true),
-                create_light_source({ 100.0f, 0.5f, 0.5f }, 2.5f).set_pos({ -45, -45, 9 })
+//                wf_state::th_object(sphere200).set_pos({ 85, -45, 10 }).set_scale(2).set_hoverable(true),
+//                wf_state::th_object(sphere200black).set_pos({ 85, -75, 10 }).set_scale(2).set_hoverable(true),
+//                wf_state::th_object(tomato).set_pos({ -45, -30, 5 }).set_scale(0.25f).set_hoverable(true),
+//                wf_state::th_object(tomato_smooth).set_pos({ -25, -40, 5 }).set_orient({ float(M_PI) / 2, 0, 0 }).set_scale(0.15f).set_hoverable(true),
+//                wf_state::th_object(cubecol).set_pos({ 20, 20, 2.5f }).set_hoverable(true),
+//                wf_state::th_object(fish).set_pos({ 20, 50, 5 }).set_orient({ float(M_PI_2), 0, float(M_PI) / 4 }).set_scale(2.0f).set_hoverable(true),
+                create_point_source({ 100.0f, 0.5f, 0.5f }, 2.5f).set_pos({ -45, -45, 9 }),
+                create_directional_source(vec3f(0, 1.0f, 0.15f) * 0.2f, { 0.77f, 0.357f, 0 }, {}),
+                create_directional_source(vec3f(1.0f, 1.0f, 0.95f) * .9f, { 1.0f, 0, 1.0f }, { 0, 0, 3.14f * 2 / 60 } )
         };
 
         // TODO: make light source's surface not depend on lighting when it's on
-
-        state.lighting.dir_lights.push_back(
-                {
-                        0.77f, 0.357f,
-                        vec3f(0, 1.0f, 0.15f) * 0.2f
-                }
-        );
-
-        state.lighting.dir_lights.push_back(
-                {
-                        1.57f, 0.785f,
-                        vec3f(1.0f, 1.0f, 0.95f) * .9f
-                }
-        );
 
         state.camera = {
 //                { 0, 0, 10 }, { 0, 0, 0 }
@@ -261,7 +277,18 @@ public slots:
         state.v_camera = calculate_v_camera();
 
         // Sun movement: one full circle every 60s
-        state.lighting.dir_lights.back().azimuth += 3.14f * 2 * sec_since_update / 60;
+        for(auto& object : state.th_objects) {
+            if(!object.is_light_source || !object.light.is_directional) {
+                continue;
+            }
+
+            auto& light = object.light;
+
+            light.dir = mx_tx::rotate_xyz(light.dr_dir * sec_since_update) * light.dir;
+
+            object.set_pos(state.camera.pos + 150.0f * light.dir);
+            object.vertices_world.clear();
+        }
 
         /**
          * 2. Redraw

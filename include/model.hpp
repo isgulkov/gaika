@@ -21,6 +21,8 @@ struct material
     float exp_specular = 0;
 
     // TODO: corresponding texture maps
+
+    bool ignore_lighting = false;
 };
 
 struct model
