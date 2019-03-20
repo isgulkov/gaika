@@ -7,6 +7,11 @@
 #include <sstream>
 #include <iomanip>
 
+bool vec3f::operator==(const vec3f& other) const
+{
+    return x == other.x && y == other.y && z == other.z;
+}
+
 vec3f& vec3f::operator*=(float u)
 {
     x *= u;

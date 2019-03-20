@@ -496,8 +496,8 @@ protected:
 
             dir_light /= d_light;
 
-            // TODO: Point lights have to have a "radius" parameter (2.5f below)
-            const float attenuation = 1.0f / std::powf(d_light / 2.5f + 1, 2);
+            // Point lights have to have a "radius" parameter, for which just half the height is used
+            const float attenuation = 1.0f / std::powf(d_light / (light.scale.z / 2) + 1, 2);
 
             // Diffuse component
             color += mtl.c_diffuse * light.light_color * std::max(0.0f, dir_light.dot(norm_world)) * attenuation; // TODO: apply attenuation

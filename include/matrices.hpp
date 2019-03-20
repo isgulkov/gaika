@@ -13,6 +13,8 @@ struct vec3f
     vec3f(float x, float y, float z) : x(x), y(y), z(z) { }
     vec3f() : x(0), y(0), z(0) { }
 
+    bool operator==(const vec3f& other) const;
+
     vec3f& operator*=(float u);
     vec3f operator*(float u) const;
 

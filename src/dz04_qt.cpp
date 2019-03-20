@@ -24,6 +24,23 @@ class wf_viewer : public QMainWindow
 
     wf_state state;
 
+    int i_light = 0;
+
+    wf_state::th_object create_light_source(const vec3f& color, float d)
+    {
+        auto model = isg::obj_io::read_obj_model("../resources/meshes/lightbulb.obj");
+
+        const vec3f color_bulb = color / std::max(color.x, std::max(color.y, color.z));
+
+        for(auto& mat : model.materials) {
+            if(mat.c_diffuse == vec3f(1, 1, 1)) {
+                mat.c_diffuse = mat.c_ambient = color_bulb;
+            }
+        }
+
+        return wf_state::th_object(std::make_shared<const isg::model>(model)).set_scale(d).set_light(color).set_id("LightSource" + std::to_string(i_light++)).set_hoverable(true);
+    }
+
     void init_state()
     {
         // TODO: move somewhere reasonable
@@ -99,6 +116,10 @@ class wf_viewer : public QMainWindow
                 obj_io::read_obj_model("../resources/meshes/simple/flattrn.obj")
         );
 
+        std::shared_ptr<const isg::model> lightbulb = std::make_shared<const isg::model>(
+                obj_io::read_obj_model("../resources/meshes/lightbulb.obj")
+        );
+
         // TODO: shift mesh coords to center of mass (?) on load
         state.th_objects = std::vector<wf_state::th_object> {
                 wf_state::th_object(flattrn).set_scale(2.5f),
@@ -120,7 +141,7 @@ class wf_viewer : public QMainWindow
                 wf_state::th_object(tomato_smooth).set_pos({ -25, -40, 5 }).set_orient({ float(M_PI) / 2, 0, 0 }).set_scale(0.15f).set_hoverable(true),
                 wf_state::th_object(cubecol).set_pos({ 20, 20, 2.5f }).set_hoverable(true),
                 wf_state::th_object(fish).set_pos({ 20, 50, 5 }).set_orient({ float(M_PI_2), 0, float(M_PI) / 4 }).set_scale(2.0f).set_hoverable(true),
-                wf_state::th_object(sphere40).set_pos({ -45, -45, 9 }).set_scale(0.1f).set_light({ 100.0f, 0.5f, 0.5f }).set_hoverable(true)
+                create_light_source({ 100.0f, 0.5f, 0.5f }, 2.5f).set_pos({ -45, -45, 9 })
         };
 
         state.lighting.dir_lights.push_back(
