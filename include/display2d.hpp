@@ -110,7 +110,8 @@ public:
         const float dz_left = (c.z - a.z) / (c.y - a.y);
         const float dz_right = (c.z - b.z) / (c.y - b.y);
 
-        const int y_start = (int)std::ceil(a.y - 0.5f), y_end = (int)std::ceil(c.y - 0.5f);
+        const int y_start = std::max(0, (int)std::ceil(a.y - 0.5f));
+        const int y_end = std::min(height - 1, (int)std::ceil(c.y - 0.5f));
 
         float z_left = a.z + dz_left * (y_start - a.y);
         float z_right = b.z + dz_right * (y_start - b.y);
@@ -119,13 +120,13 @@ public:
             const float x_left = a.x + alpha_left * (y - a.y + 0.5f);
             const float x_right = b.x + alpha_right * (y - b.y + 0.5f);
 
-            const float x_start = std::ceil(x_left - 0.5f);
-            const float x_end = std::ceil(x_right - 0.5f);
+            const int x_start = std::max(0, (int)std::ceil(x_left - 0.5f));
+            const int x_end = std::min(width - 1, (int)std::ceil(x_right - 0.5f));
 
             const float dz_line = (z_right - z_left) / (x_right - x_left);
             float z = z_left + dz_line * (x_start - x_left);
 
-            for(int x = (int)x_start; x < x_end; x++) {
+            for(int x = x_start; x < x_end; x++) {
                 put_pixel(painter, x, y, z);
 
                 z += dz_line;
@@ -146,7 +147,8 @@ public:
         const float dz_left = (b.z - a.z) / (b.y - a.y);
         const float dz_right = (c.z - a.z) / (c.y - a.y);
 
-        const int y_start = (int)std::ceil(a.y - 0.5f), y_end = (int)std::ceil(c.y - 0.5f);
+        const int y_start = std::max(0, (int)std::ceil(a.y - 0.5f));
+        const int y_end = std::min(height - 1, (int)std::ceil(c.y - 0.5f));
 
         float z_left = a.z + dz_left * (y_start - a.y);
         float z_right = a.z + dz_right * (y_start - a.y);
@@ -155,13 +157,13 @@ public:
             const float x_left = a.x + alpha_left * (y + 0.5f - a.y);
             const float x_right = a.x + alpha_right * (y + 0.5f - a.y);
 
-            const float x_start = std::ceil(x_left - 0.5f);
-            const float x_end = std::ceil(x_right - 0.5f);
+            const int x_start = std::max(0, (int)std::ceil(x_left - 0.5f));
+            const int x_end = std::min(width - 1, (int)std::ceil(x_right - 0.5f));
 
             const float dz_line = (z_right - z_left) / (x_right - x_left);
             float z = z_left + dz_line * (x_start - x_left);
 
-            for(int x = (int)x_start; x < x_end; x++) {
+            for(int x = x_start; x < x_end; x++) {
                 put_pixel(painter, x, y, z);
 
                 z += dz_line;
@@ -223,7 +225,8 @@ private:
         const vec3f dc_left = (c_c - c_a) / (c.y - a.y);
         const vec3f dc_right = (c_c - c_b) / (c.y - b.y);
 
-        const int y_start = (int)std::ceil(a.y - 0.5f), y_end = (int)std::ceil(c.y - 0.5f);
+        const int y_start = std::max(0, (int)std::ceil(a.y - 0.5f));
+        const int y_end = std::min(height - 1, (int)std::ceil(c.y - 0.5f));
 
         vec3f c_left = c_a + dc_left * (y_start - a.y);
         vec3f c_right = c_b + dc_right * (y_start - b.y);
@@ -235,8 +238,8 @@ private:
             const float x_left = a.x + alpha_left * (y - a.y + 0.5f);
             const float x_right = b.x + alpha_right * (y - b.y + 0.5f);
 
-            const float x_start = std::ceil(x_left - 0.5f);
-            const float x_end = std::ceil(x_right - 0.5f);
+            const int x_start = std::max(0, (int)std::ceil(x_left - 0.5f));
+            const int x_end = std::min(width - 1, (int)std::ceil(x_right - 0.5f));
 
             const float dz_line = (z_right - z_left) / (x_right - x_left);
             float z = z_left + dz_line * (x_start - x_left);
@@ -244,7 +247,7 @@ private:
             const vec3f dc_line = (c_right - c_left) / (x_right - x_left);
             vec3f color = c_left + dc_line * (x_start - x_left);
 
-            for(int x = (int)x_start; x < x_end; x++) {
+            for(int x = x_start; x < x_end; x++) {
                 put_pixel(painter, x, y, z, color);
 
                 z += dz_line;
@@ -272,7 +275,8 @@ private:
         const vec3f dc_left = (c_b - c_a) / (b.y - a.y);
         const vec3f dc_right = (c_c - c_a) / (c.y - a.y);
 
-        const int y_start = (int)std::ceil(a.y - 0.5f), y_end = (int)std::ceil(c.y - 0.5f);
+        const int y_start = std::max(0, (int)std::ceil(a.y - 0.5f));
+        const int y_end = std::min(height - 1, (int)std::ceil(c.y - 0.5f));
 
         float z_left = a.z + dz_left * (y_start - a.y);
         float z_right = a.z + dz_right * (y_start - a.y);
@@ -284,8 +288,8 @@ private:
             const float x_left = a.x + alpha_left * (y + 0.5f - a.y);
             const float x_right = a.x + alpha_right * (y + 0.5f - a.y);
 
-            const float x_start = std::ceil(x_left - 0.5f);
-            const float x_end = std::ceil(x_right - 0.5f);
+            const int x_start = std::max(0, (int)std::ceil(x_left - 0.5f));
+            const int x_end = std::min(width - 1, (int)std::ceil(x_right - 0.5f));
 
             const float dz_line = (z_right - z_left) / (x_right - x_left);
             float z = z_left + dz_line * (x_start - x_left);
@@ -293,7 +297,7 @@ private:
             const vec3f dc_line = (c_right - c_left) / (x_right - x_left);
             vec3f color = c_left + dc_line * (x_start - x_left);
 
-            for(int x = (int)x_start; x < x_end; x++) {
+            for(int x = x_start; x < x_end; x++) {
                 put_pixel(painter, x, y, z, color);
 
                 z += dz_line;
@@ -683,11 +687,11 @@ protected:
         for(const vec4f& vertex : vertices_clipping) {
             uint8_t outcode = 0;
 
-            outcode |= (vertex.x > vertex.w);
-            outcode |= (vertex.x < -vertex.w) << 1;
-            outcode |= (vertex.y > vertex.w) << 2;
-            outcode |= (vertex.y < -vertex.w) << 3;
-            outcode |= (vertex.z > vertex.w) << 4;
+//            outcode |= (vertex.x > vertex.w);
+//            outcode |= (vertex.x < -vertex.w) << 1;
+//            outcode |= (vertex.y > vertex.w) << 2;
+//            outcode |= (vertex.y < -vertex.w) << 3;
+//            outcode |= (vertex.z > vertex.w) << 4;
             outcode |= (vertex.z < 0) << 5;
 
             vertex_outcodes.push_back(outcode);
