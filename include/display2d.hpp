@@ -42,6 +42,8 @@ public:
     const wf_state::th_object* hovered_object;
     bool hovered_multiple;
 
+    float d_hovered = MAXFLOAT;
+
 public:
     render3d(const wf_state& state) : state(state),
                                       width(state.viewport.width), height(state.viewport.height) { }
@@ -728,14 +730,29 @@ protected:
             const auto& object = *px_objects[i / 3];
 
             if(!object.hovered && object.hoverable && test_p_in_triangle(p_cursor, a, b, c)) {
-                object.hovered = true;
+                if(state.projection.is_orthographic()) {
+                    object.hovered = true;
 
-                if(!hovered_multiple && hovered_object != nullptr) {
-                    hovered_multiple = true;
-                    hovered_object = nullptr;
+                    if(!hovered_multiple && hovered_object != nullptr) {
+                        hovered_multiple = true;
+                        hovered_object = nullptr;
+                    }
+
+                    hovered_object = &object;
                 }
+                else {
+                    /**
+                     * Only hover the nearest object
+                     *
+                     * TODO: Use Z at the intersection point, not the center.
+                     */
+                    const float d = (a.z + b.z + c.z) / 3;
 
-                hovered_object = &object;
+                    if(hovered_object == nullptr || d < d_hovered) {
+                        d_hovered = d;
+                        hovered_object = &object;
+                    }
+                }
             }
         }
     }
