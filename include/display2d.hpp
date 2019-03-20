@@ -334,11 +334,17 @@ protected:
         }
 
         if(a.y == b.y) {
-            if(a.x > b.x) std::swap(a, b);
+            if(a.x > b.x) {
+                std::swap(a, b);
+                std::swap(c_a, c_b);
+            }
             draw_triangle_flat_top_gouraud(painter, a, b, c, c_a, c_b, c_c);
         }
         else if(b.y == c.y) {
-            if(b.x > c.x) std::swap(b, c);
+            if(b.x > c.x) {
+                std::swap(b, c);
+                std::swap(c_b, c_c);
+            }
             draw_triangle_flat_bottom_gouraud(painter, a, b, c, c_a, c_b, c_c);
         }
         else {
