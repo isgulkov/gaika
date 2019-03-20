@@ -104,6 +104,22 @@ public:
         }
     }
 
+    inline void put_pixel(QPainter& painter, int x, int y, float z, const std::function<vec3f()> f_color)
+    {
+        if(state.options.occlusion != wf_state::OCC_BFC_ZBUF) {
+            draw_pixel(painter, x, y, f_color());
+            return;
+        }
+
+        float& z_value = z_buffer[x + y * width];
+
+        if(z < z_value) {
+            draw_pixel(painter, x, y, f_color());
+
+            z_value = z;
+        }
+    }
+
     void draw_triangle_flat_top(QPainter& painter, vec3f a, vec3f b, vec3f c)
     {
         const float alpha_left = (c.x - a.x) / (c.y - a.y);
@@ -338,6 +354,7 @@ protected:
                 std::swap(a, b);
                 std::swap(c_a, c_b);
             }
+
             draw_triangle_flat_top_gouraud(painter, a, b, c, c_a, c_b, c_c);
         }
         else if(b.y == c.y) {
@@ -345,18 +362,14 @@ protected:
                 std::swap(b, c);
                 std::swap(c_b, c_c);
             }
+
             draw_triangle_flat_bottom_gouraud(painter, a, b, c, c_a, c_b, c_c);
         }
         else {
             const float alpha_split = (b.y - a.y) / (c.y - a.y);
 
-            const vec3f s = {
-                    a.x + (c.x - a.x) * alpha_split,
-                    a.y + (c.y - a.y) * alpha_split,
-                    a.z + (c.z - a.z) * alpha_split
-            };
-
-            const vec3f c_s = c_a * (1 - alpha_split) + c_c * alpha_split;
+            const vec3f s = a + (c - a) * alpha_split;
+            const vec3f c_s = c_a + (c_c - c_a) * alpha_split;
 
             if(s.x < b.x) {
                 draw_triangle_flat_bottom_gouraud(painter, a, s, b, c_a, c_s, c_b);
@@ -365,6 +378,193 @@ protected:
             else {
                 draw_triangle_flat_bottom_gouraud(painter, a, b, s, c_a, c_b, c_s);
                 draw_triangle_flat_top_gouraud(painter, b, s, c, c_b, c_s, c_c);
+            }
+        }
+    }
+
+private:
+    void draw_triangle_flat_top_phong(QPainter& painter, vec3f a, vec3f b, vec3f c, const isg::material& mtl,
+            vec3f n_a, vec3f n_b, vec3f n_c, vec3f w_a, vec3f w_b, vec3f w_c)
+    {
+        const float alpha_left = (c.x - a.x) / (c.y - a.y);
+        const float alpha_right = (c.x - b.x) / (c.y - b.y);
+
+        const float dz_left = (c.z - a.z) / (c.y - a.y);
+        const float dz_right = (c.z - b.z) / (c.y - b.y);
+
+        const vec3f dn_left = (n_c - n_a) / (c.y - a.y);
+        const vec3f dn_right = (n_c - n_b) / (c.y - b.y);
+
+        const vec3f dw_left = (w_c - w_a) / (c.y - a.y);
+        const vec3f dw_right = (w_c - w_b) / (c.y - b.y);
+
+        const int y_start = std::max(0, (int)std::ceil(a.y - 0.5f));
+        const int y_end = std::min(height - 1, (int)std::ceil(c.y - 0.5f));
+
+        float z_left = a.z + dz_left * (y_start - a.y);
+        float z_right = b.z + dz_right * (y_start - b.y);
+
+        vec3f n_left = n_a + dn_left * (y_start - a.y);
+        vec3f n_right = n_b + dn_right * (y_start - b.y);
+
+        vec3f w_left = w_a + dw_left * (y_start - a.y);
+        vec3f w_right = w_b + dw_right * (y_start - b.y);
+
+        for(int y = y_start; y < y_end; y++) {
+            const float x_left = a.x + alpha_left * (y - a.y + 0.5f);
+            const float x_right = b.x + alpha_right * (y - b.y + 0.5f);
+
+            const int x_start = std::max(0, (int)std::ceil(x_left - 0.5f));
+            const int x_end = std::min(width - 1, (int)std::ceil(x_right - 0.5f));
+
+            const float dz_line = (z_right - z_left) / (x_right - x_left);
+            float z = z_left + dz_line * (x_start - x_left);
+
+            const vec3f dn_line = (n_right - n_left) / (x_right - x_left);
+            vec3f norm_world = n_left + dn_line * (x_start - x_left);
+
+            const vec3f dw_line = (w_right - w_left) / (x_right - x_left);
+            vec3f pos_world = w_left + dw_line * (x_start - x_left);
+
+            for(int x = x_start; x < x_end; x++) {
+                put_pixel(painter, x, y, z, [this, &mtl, &norm_world, &pos_world]() {
+                    return 255 * calc_light(mtl, norm_world.normalized(), pos_world);
+                });
+
+                z += dz_line;
+                norm_world += dn_line;
+                pos_world += dw_line;
+            }
+
+            z_left += dz_left;
+            z_right += dz_right;
+
+            n_left += dn_left;
+            n_right += dn_right;
+
+            w_left += dw_left;
+            w_right += dw_right;
+        }
+    }
+
+    void draw_triangle_flat_bottom_phong(QPainter& painter, vec3f a, vec3f b, vec3f c, const isg::material& mtl,
+            vec3f n_a, vec3f n_b, vec3f n_c, vec3f w_a, vec3f w_b, vec3f w_c)
+    {
+        const float alpha_left = (b.x - a.x) / (b.y - a.y);
+        const float alpha_right = (c.x - a.x) / (c.y - a.y);
+
+        const float dz_left = (b.z - a.z) / (b.y - a.y);
+        const float dz_right = (c.z - a.z) / (c.y - a.y);
+
+        const vec3f dn_left = (n_b - n_a) / (b.y - a.y);
+        const vec3f dn_right = (n_c - n_a) / (c.y - a.y);
+
+        const vec3f dw_left = (w_b - w_a) / (b.y - a.y);
+        const vec3f dw_right = (w_c - w_a) / (c.y - a.y);
+
+        const int y_start = std::max(0, (int)std::ceil(a.y - 0.5f));
+        const int y_end = std::min(height - 1, (int)std::ceil(c.y - 0.5f));
+
+        float z_left = a.z + dz_left * (y_start - a.y);
+        float z_right = a.z + dz_right * (y_start - a.y);
+
+        vec3f n_left = n_a + dn_left * (y_start - a.y);
+        vec3f n_right = n_a + dn_right * (y_start - a.y);
+
+        vec3f w_left = w_a + dw_left * (y_start - a.y);
+        vec3f w_right = w_a + dw_right * (y_start - a.y);
+
+        for(int y = y_start; y < y_end; y++) {
+            const float x_left = a.x + alpha_left * (y - a.y + 0.5f);
+            const float x_right = a.x + alpha_right * (y - a.y + 0.5f);
+
+            const int x_start = std::max(0, (int)std::ceil(x_left - 0.5f));
+            const int x_end = std::min(width - 1, (int)std::ceil(x_right - 0.5f));
+
+            const float dz_line = (z_right - z_left) / (x_right - x_left);
+            float z = z_left + dz_line * (x_start - x_left);
+
+            const vec3f dn_line = (n_right - n_left) / (x_right - x_left);
+            vec3f norm_world = n_left + dn_line * (x_start - x_left);
+
+            const vec3f dw_line = (w_right - w_left) / (x_right - x_left);
+            vec3f pos_world = w_left + dw_line * (x_start - x_left);
+
+            for(int x = x_start; x < x_end; x++) {
+                put_pixel(painter, x, y, z, [this, &mtl, &norm_world, &pos_world]() {
+                    return 255 * calc_light(mtl, norm_world.normalized(), pos_world);
+                });
+
+                z += dz_line;
+                norm_world += dn_line;
+                pos_world += dw_line;
+            }
+
+            z_left += dz_left;
+            z_right += dz_right;
+
+            n_left += dn_left;
+            n_right += dn_right;
+
+            w_left += dw_left;
+            w_right += dw_right;
+        }
+    }
+
+protected:
+    void draw_triangle_phong(QPainter& painter, vec3f a, vec3f b, vec3f c, const isg::material& mtl,
+            vec3f n_a, vec3f n_b, vec3f n_c, vec3f w_a, vec3f w_b, vec3f w_c)
+    {
+        // Sort: `a` at the top, `c` at the bottom
+        if(a.y > b.y) {
+            std::swap(a, b);
+            std::swap(n_a, n_b);
+            std::swap(w_a, w_b);
+        }
+
+        if(b.y > c.y) {
+            std::swap(b, c);
+            std::swap(n_b, n_c);
+            std::swap(w_b, w_c);
+        }
+
+        if(a.y > b.y) {
+            std::swap(a, b);
+            std::swap(n_a, n_b);
+            std::swap(w_a, w_b);
+        }
+
+        if(a.y == b.y) {
+            if(a.x > b.x) {
+                std::swap(a, b);
+                std::swap(n_a, n_b);
+            }
+
+            draw_triangle_flat_top_phong(painter, a, b, c, mtl, n_a, n_b, n_c, w_a, w_b, w_c);
+        }
+        else if(b.y == c.y) {
+            if(b.x > c.x) {
+                std::swap(b, c);
+                std::swap(n_b, n_c);
+                std::swap(w_b, w_c);
+            }
+
+            draw_triangle_flat_bottom_phong(painter, a, b, c, mtl, n_a, n_b, n_c, w_a, w_b, w_c);
+        }
+        else {
+            const float alpha_split = (b.y - a.y) / (c.y - a.y);
+
+            const vec3f s = a + (c - a) * alpha_split;
+            const vec3f n_s = n_a + (n_c - n_a) * alpha_split;
+            const vec3f w_s = w_a + (w_c - w_a) * alpha_split;
+
+            if(s.x < b.x) {
+                draw_triangle_flat_bottom_phong(painter, a, s, b, mtl, n_a, n_s, n_b, w_a, w_s, w_b);
+                draw_triangle_flat_top_phong(painter, s, b, c, mtl, n_s, n_b, n_c, w_s, w_b, w_c);
+            }
+            else {
+                draw_triangle_flat_bottom_phong(painter, a, b, s, mtl, n_a, n_b, n_s, w_a, w_b, w_s);
+                draw_triangle_flat_top_phong(painter, b, s, c, mtl, n_b, n_s, n_c, w_b, w_s, w_c);
             }
         }
     }
@@ -451,15 +651,6 @@ protected:
 
     std::vector<vec3f> vx_world;
 
-    /**
-     * TODO: for each vertex
-     *  - world coords
-     *  - with Phong shading:
-     *    - world normal (default to face normal)
-     *    - material reference
-     *  - without Phong shading:
-     *    - final color (per vertex or per face)
-     */
     std::vector<vec3f> vns_world;
     std::vector<vec3f> v_colors;
 
@@ -467,6 +658,9 @@ protected:
     std::vector<QPen> tri_pens;
 
     std::vector<char> tri_nonorms;
+    std::vector<const isg::material*> tri_mtls;
+
+    std::vector<char> tri_backface;
 
     vec3f calc_light(const isg::material& mtl, const vec3f& norm_world, const vec3f& pos_world)
     {
@@ -734,7 +928,15 @@ protected:
                 }
             }
             else if(state.options.shading == wf_state::SHD_PHONG) {
+                const vec3f& w_a = vx_world[i], w_b = vx_world[i + 1], w_c = vx_world[i + 2];
+                const vec3f& n_a = vns_world[i], n_b = vns_world[i + 1], n_c = vns_world[i + 2];
 
+                if(!tri_nonorms[i / 3]) {
+                    draw_triangle_phong(painter, a, b, c, *tri_mtls[i / 3], n_a, n_b, n_c, w_a, w_b, w_c);
+                }
+                else {
+                    draw_triangle(painter, a, b, c, 255 * calc_light(*tri_mtls[i / 3], n_a, (w_a + w_b + w_c) / 3));
+                }
             }
 
             if(state.hovering.disabled || state.hovering.fixed) {

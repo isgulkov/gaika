@@ -465,8 +465,7 @@ protected:
                         state.options.shading = wf_state::SHD_GOURAUD;
                         break;
                     case wf_state::SHD_GOURAUD:
-//                        state.options.shading = wf_state::SHD_PHONG;
-                        state.options.shading = wf_state::SHD_FLAT;
+                        state.options.shading = wf_state::SHD_PHONG;
                         break;
                     case wf_state::SHD_PHONG:
                     default:
