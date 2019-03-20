@@ -793,8 +793,10 @@ protected:
              */
             const vec3f tri_norm = (b - a).cross(c - a).normalize();
 
+            const bool is_backface = dir_out.dot(tri_norm) >= 0;
+
             // REVIEW: See if this flag check really has no overhead
-            if(state.options.occlusion != wf_state::OCC_NONE && dir_out.dot(tri_norm) >= 0) {
+            if(is_backface && !(state.options.occlusion == wf_state::OCC_NONE || state.projection.is_orthographic() || state.options.shading == wf_state::SHD_NONE)) {
                 continue;
             }
 
@@ -807,6 +809,13 @@ protected:
             if(state.projection.is_orthographic() || state.options.shading == wf_state::SHD_NONE) {
                 // TODO: Display wireframes with SHD_NONE ()
                 v_colors.push_back(255 * mtl.c_diffuse);
+
+                if(state.options.occlusion != wf_state::OCC_NONE) {
+                    tri_backface.push_back(is_backface);
+//                    tri_backface.push_back(true);
+                }
+
+                tri_pens.push_back(face_pen);
             }
             else if(state.options.shading == wf_state::SHD_FLAT) {
                 v_colors.push_back(255 * calc_light(mtl, tri_norm, (a + b + c) / 3));
@@ -845,13 +854,11 @@ protected:
                 }
 
                 tri_nonorms.push_back(!has_norms);
+
+                tri_mtls.push_back(&object.model->materials[triangle.i_mtl]);
             }
 
             px_objects.push_back(&object);
-
-            if(state.projection.is_orthographic()) {
-                tri_pens.push_back(face_pen);
-            }
         }
     }
 
@@ -912,6 +919,9 @@ protected:
                 face_pen.setColor({ int(color.x), int(color.y), int(color.z) });
                 painter.setPen(face_pen);
 
+                painter.setOpacity(state.options.occlusion != wf_state::OCC_NONE && tri_backface[i / 3] ? 0.25f : 1.0f);
+
+                // TODO: Bresenham over Z-buffer
                 draw_line(painter, a, b);
                 draw_line(painter, a, c);
                 draw_line(painter, b, c);
