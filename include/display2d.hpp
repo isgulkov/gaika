@@ -464,6 +464,10 @@ protected:
 
     vec3f calc_light(const isg::material& mtl, const vec3f& norm_world, const vec3f& pos_world)
     {
+        if(state.options.lighting == wf_state::LGH_AMBIENT) {
+            return mtl.c_diffuse;
+        }
+
         const auto& lighting = state.lighting;
 
         vec3f color = (mtl.has_ambient ? mtl.c_ambient : mtl.c_diffuse) * lighting.amb_color;
@@ -479,12 +483,14 @@ protected:
             color += mtl.c_diffuse * light.color * std::max(0.0f, dir.dot(norm_world));
 
             // Specular component
-            const vec3f dir_reflected = 2 * (vx_dir_lights[i].dot(norm_world)) * norm_world - vx_dir_lights[i];
-            const vec3f dir_camera = (state.camera.pos - pos_world).normalize();
+            if(state.options.lighting == wf_state::LGH_SPECULAR) {
+                const vec3f dir_reflected = 2 * (vx_dir_lights[i].dot(norm_world)) * norm_world - vx_dir_lights[i];
+                const vec3f dir_camera = (state.camera.pos - pos_world).normalize();
 
-            const vec3f light_specular = mtl.c_specular * std::powf(std::max(0.0f, dir_reflected.dot(dir_camera)), mtl.exp_specular) * light.color;
+                const vec3f light_specular = mtl.c_specular * std::powf(std::max(0.0f, dir_reflected.dot(dir_camera)), mtl.exp_specular) * light.color;
 
-            color += light_specular;
+                color += light_specular;
+            }
         }
 
         // TODO: D R Y
@@ -505,12 +511,14 @@ protected:
             color += mtl.c_diffuse * light.light_color * std::max(0.0f, dir_light.dot(norm_world)) * attenuation; // TODO: apply attenuation
 
             // Specular component
-            const vec3f dir_reflected = 2 * (dir_light.dot(norm_world)) * norm_world - dir_light;
-            const vec3f dir_camera = (state.camera.pos - pos_world).normalize();
+            if(state.options.lighting == wf_state::LGH_SPECULAR) {
+                const vec3f dir_reflected = 2 * (dir_light.dot(norm_world)) * norm_world - dir_light;
+                const vec3f dir_camera = (state.camera.pos - pos_world).normalize();
 
-            const vec3f light_specular = mtl.c_specular * std::powf(std::max(0.0f, dir_reflected.dot(dir_camera)), mtl.exp_specular) * light.light_color;
+                const vec3f light_specular = mtl.c_specular * std::powf(std::max(0.0f, dir_reflected.dot(dir_camera)), mtl.exp_specular) * light.light_color;
 
-            color += light_specular * attenuation;
+                color += light_specular * attenuation;
+            }
         }
 
         return color.clamp(0, 1);
@@ -762,6 +770,12 @@ protected:
 public:
     void render(QPainter& painter, QPoint p_cursor)
     {
+        /**
+         * TODO: for each light source:
+         *  - set corresponding camera perspective settings (parametrize as fields of this)
+         *  - do a dry run for z-buffer
+         */
+
         painter.fillRect(0, 0, width, height, Qt::black);
 
         hovered_object = nullptr;

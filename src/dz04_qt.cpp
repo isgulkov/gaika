@@ -171,6 +171,7 @@ class wf_viewer : public QMainWindow
 
         state.options.occlusion = wf_state::OCC_BFC_ZBUF;
         state.options.shading = wf_state::SHD_GOURAUD;
+        state.options.lighting = wf_state::LGH_SPECULAR;
 
         state.viewport = { 640, 640, 1 };
 //        state.viewport = { 320, 320, 2 };
